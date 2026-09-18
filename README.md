@@ -251,30 +251,66 @@ InternPilot/
 
 ## ⚙️ Environment Configuration
 
-Create a `.env` file in the root directory.
+Copy the example configuration file to create your local `.env`:
+
+```bash
+cp .env.example .env
+```
+
+### 📄 Example Configuration (`.env`)
 
 ```env
 # Server Configuration
 PORT=8080
+NODE_ENV=development
 
-# MongoDB Configuration
-MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/internpilot
+# MongoDB Configuration (REQUIRED)
+ATLASDB_URL=mongodb+srv://username:password@cluster.mongodb.net/internpilot?retryWrites=true&w=majority
 
-# Express Session
+# Express Session & Security
 SESSION_SECRET=your_session_secret
-
-# Admin Security
 ADMIN_SECRET=your_admin_secret_key
 
-# Gmail SMTP Configuration
+# Gmail SMTP Configuration (Required for OTP & status emails)
+EMAIL_SERVICE=gmail
 EMAIL_USER=your_email@gmail.com
 EMAIL_PASS=your_gmail_app_password
 
-# Google OAuth Configuration
+# Google OAuth Configuration (Optional)
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
 GOOGLE_CALLBACK_URL=http://localhost:8080/auth/google/callback
+
+# Cloudinary Configuration (Optional - required for avatar & resume uploads)
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+
+# Google Gemini AI Configuration (Optional - required for AI chat)
+GEMINI_API_KEY=your_gemini_api_key
 ```
+
+### 📋 Environment Variables Reference
+
+| Variable | Required | Default | Description & Failure Behavior |
+| :--- | :---: | :--- | :--- |
+| `ATLASDB_URL` | **Yes** | — | **Database Connection:** MongoDB Atlas connection URI. The server will fail to start and crash with a `MongooseError` if this variable is missing or invalid. |
+| `PORT` | No | `8080` | **Server Port:** HTTP port number for Express. Defaults to `8080` if unspecified. |
+| `NODE_ENV` | No | `development` | **Runtime Mode:** Application environment mode (`development` / `production`). Production hides verbose error stack traces from users. |
+| `SESSION_SECRET` | No | `"supersecretkey"` | **Session Signing:** Key used by `express-session` to sign cookie sessions. A secure random string should be provided in production. |
+| `ADMIN_SECRET` | No | `'SUPER_SECRET_ADMIN_KEY_123'` | **Admin Registration:** Passphrase required to register an account with the `Admin` role. |
+| `EMAIL_USER` | **Yes\*** | — | **SMTP User:** Email address used by Nodemailer to dispatch OTP verification and status notifications. Email sending fails if missing. |
+| `EMAIL_PASS` | **Yes\*** | — | **SMTP Password:** 16-character Gmail App Password. Nodemailer authentication fails if missing. |
+| `EMAIL_SERVICE` | No | `'gmail'` | **Email Provider:** Nodemailer service provider name (defaults to `gmail`). |
+| `GOOGLE_CLIENT_ID` | Optional | `'dummy_id'` | **Google OAuth:** OAuth 2.0 Client ID. Google sign-in redirects to an error if dummy or missing. |
+| `GOOGLE_CLIENT_SECRET` | Optional | `'dummy_secret'` | **Google OAuth:** OAuth 2.0 Client Secret. Token exchange fails if invalid. |
+| `GOOGLE_CALLBACK_URL` | No | `http://localhost:8080/auth/google/callback` | **Google OAuth:** Authorized redirect URI for Google OAuth callbacks. |
+| `CLOUDINARY_CLOUD_NAME` | Optional | — | **Media Storage:** Cloudinary cloud account name for avatar and resume uploads. Upload routes throw an error if missing. |
+| `CLOUDINARY_API_KEY` | Optional | — | **Media Storage:** Cloudinary API key for file upload authorization. |
+| `CLOUDINARY_API_SECRET` | Optional | — | **Media Storage:** Cloudinary API secret for file upload authorization. |
+| `GEMINI_API_KEY` | Optional | — | **AI Assistant:** Google Gemini API key used by the `@google/genai` assistant in `/chat`. AI chat responses fail if missing. |
+
+*\* Required for user registration OTP verification and applicant status email notifications.*
 
 ---
 
@@ -320,7 +356,13 @@ npm install
 
 ### 3. Configure Environment Variables
 
-Create `.env` file and add required credentials as shown in the Environment Configuration section.
+Copy the environment template to create your `.env` file:
+
+```bash
+cp .env.example .env
+```
+
+Fill in your MongoDB Atlas connection string (`ATLASDB_URL`), session secrets, and optional API keys (see [Environment Configuration](#-environment-configuration) table above for details).
 
 ### 4. Start Application
 
