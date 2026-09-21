@@ -1,9 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/User');
 const Internship = require('../models/Internship');
 const Application = require('../models/Application');
-const { isAuthenticated, authorize, requireCompanyRole } = require('../middleware/auth');
+const { isAuthenticated, authorize } = require('../middleware/auth');
+const {
+    companyName,
+    companyInternshipQuery,
+    requireCompanyPermission
+} = require('../middleware/companyAccess');
 
 function calculateSkillScore(userSkills = [], requiredSkills = []) {
     if (!requiredSkills.length) return 100;
@@ -33,9 +37,9 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.post('/new', isAuthenticated, requireCompanyRole(['company', 'recruiter']), async (req, res) => {
+router.post('/new', isAuthenticated, requireCompanyPermission('internship:create'), async (req, res) => {
     try {
-        const { title, company: companyName, location, sector, stipend, vacancies, requiredSkills } = req.body;
+        const { title, location, sector, stipend, vacancies, requiredSkills } = req.body;
 
         const locationParts = location ? location.split(',') : [];
         const district = locationParts[0] ? locationParts[0].trim() : '';
@@ -44,8 +48,8 @@ router.post('/new', isAuthenticated, requireCompanyRole(['company', 'recruiter']
 
         const newInternship = new Internship({
             title,
-            companyName: companyName || req.user.companyDetails?.companyName || req.user.name,
-            companyId: req.user.companyId,
+            companyName: companyName(req.company),
+            companyId: req.company._id,
             sector,
             location: { district, state },
             monthlyStipend: stipendNumber,
@@ -63,15 +67,15 @@ router.post('/new', isAuthenticated, requireCompanyRole(['company', 'recruiter']
     }
 });
 
-router.post('/:id/edit', isAuthenticated, requireCompanyRole(['company', 'recruiter']), async (req, res) => {
+router.post('/:id/edit', isAuthenticated, requireCompanyPermission('internship:edit'), async (req, res) => {
     try {
-        const internship = await Internship.findOne({ _id: req.params.id, companyId: req.user.companyId });
+        const internship = await Internship.findOne({ _id: req.params.id, ...companyInternshipQuery(req.company) });
         if (!internship) {
             if (req.flash) req.flash('error_msg', 'Unauthorized action or internship not found.');
             return res.redirect('/internships');
         }
 
-        const { title, company: companyName, location, sector, stipend, duration, vacancies, requiredSkills } = req.body;
+        const { title, location, sector, stipend, duration, vacancies, requiredSkills } = req.body;
 
         const locationParts = location ? location.split(',') : [];
         const district = locationParts[0] ? locationParts[0].trim() : '';
@@ -79,7 +83,6 @@ router.post('/:id/edit', isAuthenticated, requireCompanyRole(['company', 'recrui
         const stipendNumber = stipend ? parseInt(stipend.toString().replace(/[^0-9]/g, '')) : 5000;
 
         internship.title = title || internship.title;
-        if (companyName) internship.companyName = companyName;
         internship.sector = sector || internship.sector;
         internship.location = { district, state };
         internship.monthlyStipend = stipendNumber;
@@ -96,9 +99,9 @@ router.post('/:id/edit', isAuthenticated, requireCompanyRole(['company', 'recrui
     }
 });
 
-router.post('/:id/delete', isAuthenticated, requireCompanyRole(['company', 'recruiter']), async (req, res) => {
+router.post('/:id/delete', isAuthenticated, requireCompanyPermission('internship:delete'), async (req, res) => {
     try {
-        const internship = await Internship.findOneAndDelete({ _id: req.params.id, companyId: req.user.companyId });
+        const internship = await Internship.findOneAndDelete({ _id: req.params.id, ...companyInternshipQuery(req.company) });
         if (!internship) {
             if (req.flash) req.flash('error_msg', 'Unauthorized action or internship not found.');
             return res.redirect('/internships');
@@ -147,9 +150,9 @@ router.post('/:id/apply', isAuthenticated, authorize('candidate'), async (req, r
     }
 });
 
-router.get('/:id/applicants', isAuthenticated, requireCompanyRole(['company', 'recruiter']), async (req, res) => {
+router.get('/:id/applicants', isAuthenticated, requireCompanyPermission('applications:view'), async (req, res) => {
     try {
-        const internship = await Internship.findOne({ _id: req.params.id, companyId: req.user.companyId });
+        const internship = await Internship.findOne({ _id: req.params.id, ...companyInternshipQuery(req.company) });
         if (!internship) {
             if (req.flash) req.flash('error_msg', 'Unauthorized action or internship not found.');
             return res.redirect('/internships');
@@ -159,7 +162,12 @@ router.get('/:id/applicants', isAuthenticated, requireCompanyRole(['company', 'r
             .populate('candidate')
             .sort({ matchScore: -1 });
 
-        res.render('company/company-applicants', { internship, applications, user: req.user });
+        res.render('company/company-applicants', {
+            internship,
+            applications,
+            user: req.user,
+            permissions: req.companyPermissions
+        });
     } catch (error) {
         console.error('Error fetching applicants:', error);
         res.status(500).send('Database Error');

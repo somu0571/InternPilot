@@ -146,7 +146,8 @@
                                                 </span>
                                                 <% } %>
 
-                                                    <!-- Employer Actions Dropdown -->
+                                                    <!-- Only admins and recruiters can change application status. -->
+                                                    <% if (permissions && permissions.includes('applications:review')) { %>
                                                     <form action="/company/applications/<%= app._id %>/status"
                                                         method="POST" class="inline-block">
                                                         <select name="status" onchange="this.form.submit()" class="px-3 py-1.5 text-xs font-semibold rounded-lg border shadow-sm cursor-pointer outline-none transition-colors <%= 
@@ -165,6 +166,7 @@
                                                                 ? 'selected' : '' %>>Rejected</option>
                                                         </select>
                                                     </form>
+                                                    <% } %>
 
                                 </div>
 

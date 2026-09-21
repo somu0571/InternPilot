@@ -27,15 +27,16 @@
                                 <%= item.vacancies || 1 %> Openings
                             </span>
 
-                            <!-- Show Edit/Delete ONLY if Admin OR if logged in as the owning Company -->
-                            <% if (currentUser && (currentUser.role==='admin' || ((currentUser.role==='company' || currentUser.role==='recruiter') &&
-                                item.companyId && currentUser.companyId && item.companyId.toString()===currentUser.companyId.toString()))) { %>
+                            <% const ownsListing = currentUser && ['company', 'recruiter'].includes(currentUser.role) &&
+                                item.companyId && currentUser.companyId && item.companyId.toString() === currentUser.companyId.toString(); %>
+                            <% if (ownsListing) { %>
                                 <button onclick="openEditModal(this)" data-item='<%= JSON.stringify(item) %>'
                                     class="text-slate-400 hover:text-indigo-600 transition-colors cursor-pointer p-0.5"
                                     title="Edit">
                                     <i class="ph-bold ph-pencil-simple text-sm"></i>
                                 </button>
 
+                                <% if (currentUser.role === 'company') { %>
                                 <form action="/internships/<%= item._id %>/delete" method="POST"
                                     onsubmit="return confirm('Delete this internship?');" class="inline">
                                     <button type="submit"
@@ -44,6 +45,7 @@
                                         <i class="ph-bold ph-trash text-sm"></i>
                                     </button>
                                 </form>
+                                <% } %>
                                 <% } %>
                         </div>
                     </div>
@@ -98,8 +100,8 @@
                     </div>
                 </div>
 
-                <!-- ACTION BUTTON AREA (HIDDEN FOR COMPANY, RECRUITER, & ADMIN ROLES) -->
-                <% if (!currentUser || (currentUser.role !=='company' && currentUser.role !=='admin' && currentUser.role !=='recruiter' )) { %>
+                <!-- Company team members cannot apply to their own listings. -->
+                <% if (!currentUser || !['company', 'admin', 'recruiter', 'hiring_manager'].includes(currentUser.role)) { %>
                     <div class="pt-2">
                         <% if (!currentUser) { %>
                             <!-- 1. NOT LOGGED IN -> Redirect to Login Page -->

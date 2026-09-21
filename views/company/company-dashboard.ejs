@@ -1,7 +1,12 @@
 <% layout('layouts/boilerplate') %>
 
+    <% const canCreateInternship = permissions.includes('internship:create'); %>
+    <% const canEditInternship = permissions.includes('internship:edit'); %>
+    <% const canDeleteInternship = permissions.includes('internship:delete'); %>
+
     <div class="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
 
+        <% if (canCreateInternship) { %>
         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm h-fit">
             <h2 class="text-lg font-bold text-slate-900 mb-4 border-b pb-2">Post New Opportunity</h2>
 
@@ -69,9 +74,10 @@
                 </button>
             </form>
         </div>
+        <% } %>
 
         <!-- Right Column: Active Internships -->
-        <div class="lg:col-span-2 space-y-4">
+        <div class="<%= canCreateInternship ? 'lg:col-span-2' : 'lg:col-span-3' %> space-y-4">
             <div class="flex justify-between items-center">
                 <h2 class="text-lg font-bold text-slate-900">Your Posted Internships</h2>
                 <span class="text-xs font-semibold bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full">
@@ -122,13 +128,16 @@
 
                             <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
                                 <!-- Edit Button -->
+                                <% if (canEditInternship) { %>
                                 <a href="/company/internships/edit/<%= internship._id %>"
                                     class="bg-amber-50 hover:bg-amber-100 text-amber-700 font-semibold text-xs px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5">
                                     <i class="ph-bold ph-pencil-simple text-sm"></i>
                                     Edit
                                 </a>
+                                <% } %>
 
                                 <!-- Delete Button Form -->
+                                <% if (canDeleteInternship) { %>
                                 <form action="/company/internships/delete/<%= internship._id %>" method="POST"
                                     onsubmit="return confirm('Are you sure you want to delete this internship?');">
                                     <button type="submit"
@@ -137,6 +146,7 @@
                                         Delete
                                     </button>
                                 </form>
+                                <% } %>
 
                                 <!-- View Applicants Button -->
                                 <a href="/company/internships/<%= internship._id %>/applicants"
@@ -149,7 +159,8 @@
                 </div>
                 <% } else { %>
                     <div class="bg-white border border-slate-200 rounded-xl p-8 text-center text-slate-500 text-sm">
-                        No active internships posted yet. Use the form on the left to publish your first role!
+                        No active internships posted yet.
+                        <%= canCreateInternship ? 'Use the form on the left to publish your first role!' : 'New listings will appear here when your recruiting team publishes them.' %>
                     </div>
                     <% } %>
         </div>

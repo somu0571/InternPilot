@@ -182,7 +182,7 @@ router.post('/login', (req, res, next) => {
 
             if (user.role === 'admin') {
                 return res.redirect('/admin/dashboard');
-            } else if (user.role === 'company' || user.role === 'recruiter') {
+            } else if (['company', 'recruiter', 'hiring_manager'].includes(user.role)) {
                 return res.redirect('/company/dashboard');
             } else {
                 return res.redirect('/');
@@ -208,7 +208,7 @@ router.get('/google/callback', (req, res, next) => {
 
             if (user.role === 'admin') {
                 return res.redirect('/admin/dashboard');
-            } else if (user.role === 'company' || user.role === 'recruiter') {
+            } else if (['company', 'recruiter', 'hiring_manager'].includes(user.role)) {
                 return res.redirect('/company/dashboard');
             } else {
                 return res.redirect('/');

@@ -40,7 +40,7 @@ const authorize = (...allowedRoles) => {
             req.flash('error_msg', 'You do not have permission to access that section.');
 
             if (req.user.role === 'admin') return res.redirect('/admin/dashboard');
-            if (req.user.role === 'company' || req.user.role === 'recruiter') return res.redirect('/company/dashboard');
+            if (['company', 'recruiter', 'hiring_manager'].includes(req.user.role)) return res.redirect('/company/dashboard');
             return res.redirect('/');
         }
 
