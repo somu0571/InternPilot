@@ -28,8 +28,8 @@
                             </span>
 
                             <!-- Show Edit/Delete ONLY if Admin OR if logged in as the owning Company -->
-                            <% if (currentUser && (currentUser.role==='admin' || ((currentUser.role==='company' || currentUser.role==='recruiter') &&
-                                item.companyId && currentUser.companyId && item.companyId.toString()===currentUser.companyId.toString()))) { %>
+                            <% if (currentUser && (currentUser.role==='admin' || (currentUser.role==='company' &&
+                                item.postedBy && item.postedBy.toString()===currentUser._id.toString()))) { %>
                                 <button onclick="openEditModal(this)" data-item='<%= JSON.stringify(item) %>'
                                     class="text-slate-400 hover:text-indigo-600 transition-colors cursor-pointer p-0.5"
                                     title="Edit">
@@ -98,8 +98,8 @@
                     </div>
                 </div>
 
-                <!-- ACTION BUTTON AREA (HIDDEN FOR COMPANY, RECRUITER, & ADMIN ROLES) -->
-                <% if (!currentUser || (currentUser.role !=='company' && currentUser.role !=='admin' && currentUser.role !=='recruiter' )) { %>
+                <!-- ACTION BUTTON AREA (HIDDEN FOR COMPANY & ADMIN ROLES) -->
+                <% if (!currentUser || (currentUser.role !=='company' && currentUser.role !=='admin' )) { %>
                     <div class="pt-2">
                         <% if (!currentUser) { %>
                             <!-- 1. NOT LOGGED IN -> Redirect to Login Page -->

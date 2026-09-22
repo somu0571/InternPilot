@@ -1,16 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const bcrypt = require('bcryptjs');
 
 const User = require('../models/User');
 const Internship = require('../models/Internship');
 const Application = require('../models/Application');
-const { isAuthenticated, requireCompanyRole } = require('../middleware/auth');
+const { isAuthenticated, authorize } = require('../middleware/auth');
 const { sendStatusUpdateEmail } = require('../utils/sendEmail');
 
-router.get('/company/dashboard', isAuthenticated, requireCompanyRole(['company', 'recruiter']), async (req, res) => {
+router.get('/company/dashboard', isAuthenticated, authorize('company'), async (req, res) => {
     try {
-        const internships = await Internship.find({ companyId: req.user.companyId }).sort({ _id: -1 });
+        const companyName = req.user.companyDetails?.companyName || req.user.name;
+        const internships = await Internship.find({ companyName }).sort({ _id: -1 });
         const internshipIds = internships.map(i => i._id);
         const totalApplicationsCount = await Application.countDocuments({ internship: { $in: internshipIds } });
 
@@ -25,22 +25,16 @@ router.get('/company/dashboard', isAuthenticated, requireCompanyRole(['company',
     }
 });
 
-router.post('/company/internships/create', isAuthenticated, requireCompanyRole(['company', 'recruiter']), async (req, res) => {
+router.post('/company/internships/create', isAuthenticated, authorize('company'), async (req, res) => {
     try {
         const { title, sector, requiredSkills, minQualifications, monthlyStipend, vacancies, duration, district, state } = req.body;
-        let companyName = req.user.companyDetails?.companyName;
-        if (!companyName) {
-             const accountOwner = await User.findById(req.user.companyId);
-             companyName = accountOwner?.companyDetails?.companyName || accountOwner?.name || req.user.name;
-        }
+        const companyName = req.user.companyDetails?.companyName || req.user.name;
 
         const skillsArray = requiredSkills
             ? requiredSkills.split(',').map(s => s.trim()).filter(Boolean)
             : [];
 
         await Internship.create({
-            companyId: req.user.companyId,
-            postedBy: req.user._id,
             companyName,
             title,
             sector: sector || 'General',
@@ -63,13 +57,13 @@ router.post('/company/internships/create', isAuthenticated, requireCompanyRole([
     }
 });
 
-router.get('/company/internships/:id/applicants', isAuthenticated, requireCompanyRole(['company', 'recruiter']), async (req, res) => {
+router.get('/company/internships/:id/applicants', isAuthenticated, authorize('company'), async (req, res) => {
     try {
         const internshipId = req.params.id;
 
-        const internship = await Internship.findOne({ _id: internshipId, companyId: req.user.companyId });
+        const internship = await Internship.findById(internshipId);
         if (!internship) {
-            return res.status(404).send('Internship posting not found or unauthorized.');
+            return res.status(404).send('Internship posting not found.');
         }
 
         const applications = await Application.find({ internship: internshipId })
@@ -87,7 +81,7 @@ router.get('/company/internships/:id/applicants', isAuthenticated, requireCompan
     }
 });
 
-router.post('/company/applications/:id/status', isAuthenticated, requireCompanyRole(['company', 'recruiter']), async (req, res) => {
+router.post('/company/applications/:id/status', isAuthenticated, authorize('company'), async (req, res) => {
     try {
         const { status } = req.body;
         const applicationId = req.params.id;
@@ -96,8 +90,8 @@ router.post('/company/applications/:id/status', isAuthenticated, requireCompanyR
             .populate('candidate')
             .populate('internship');
 
-        if (!application || !application.internship || application.internship.companyId.toString() !== req.user.companyId.toString()) {
-            return res.status(404).send('Application not found or unauthorized.');
+        if (!application) {
+            return res.status(404).send('Application not found.');
         }
 
         const previousStatus = application.status;
@@ -128,11 +122,11 @@ router.post('/company/applications/:id/status', isAuthenticated, requireCompanyR
     }
 });
 
-router.get('/company/internships/edit/:id', isAuthenticated, requireCompanyRole(['company', 'recruiter']), async (req, res) => {
+router.get('/company/internships/edit/:id', isAuthenticated, authorize('company'), async (req, res) => {
     try {
-        const internship = await Internship.findOne({ _id: req.params.id, companyId: req.user.companyId });
+        const internship = await Internship.findById(req.params.id);
         if (!internship) {
-            return res.status(404).send('Internship not found or unauthorized.');
+            return res.status(404).send('Internship not found.');
         }
 
         res.render('company/edit-internship', {
@@ -145,30 +139,27 @@ router.get('/company/internships/edit/:id', isAuthenticated, requireCompanyRole(
     }
 });
 
-router.post('/company/internships/edit/:id', isAuthenticated, requireCompanyRole(['company', 'recruiter']), async (req, res) => {
+router.post('/company/internships/edit/:id', isAuthenticated, authorize('company'), async (req, res) => {
     try {
-        const internship = await Internship.findOne({ _id: req.params.id, companyId: req.user.companyId });
-        if (!internship) return res.status(404).send('Internship not found or unauthorized.');
-
         const { title, sector, requiredSkills, minQualifications, monthlyStipend, vacancies, duration, district, state } = req.body;
 
         const skillsArray = requiredSkills
             ? requiredSkills.split(',').map(s => s.trim()).filter(Boolean)
             : [];
 
-        internship.title = title;
-        internship.sector = sector || 'General';
-        internship.minQualifications = minQualifications || 'Any';
-        internship.requiredSkills = skillsArray;
-        internship.monthlyStipend = monthlyStipend ? Number(monthlyStipend) : 5000;
-        internship.vacancies = vacancies ? Number(vacancies) : 1;
-        internship.duration = duration || '12 Months';
-        internship.location = {
-            district: district || '',
-            state: state || ''
-        };
-
-        await internship.save();
+        await Internship.findByIdAndUpdate(req.params.id, {
+            title,
+            sector: sector || 'General',
+            minQualifications: minQualifications || 'Any',
+            requiredSkills: skillsArray,
+            monthlyStipend: monthlyStipend ? Number(monthlyStipend) : 5000,
+            vacancies: vacancies ? Number(vacancies) : 1,
+            duration: duration || '12 Months',
+            location: {
+                district: district || '',
+                state: state || ''
+            }
+        });
 
         if (req.flash) req.flash('success_msg', 'Internship updated successfully!');
         res.redirect('/company/dashboard');
@@ -178,80 +169,15 @@ router.post('/company/internships/edit/:id', isAuthenticated, requireCompanyRole
     }
 });
 
-router.post('/company/internships/delete/:id', isAuthenticated, requireCompanyRole(['company', 'recruiter']), async (req, res) => {
+router.post('/company/internships/delete/:id', isAuthenticated, authorize('company'), async (req, res) => {
     try {
-        const internship = await Internship.findOneAndDelete({ _id: req.params.id, companyId: req.user.companyId });
-        if (!internship) return res.status(404).send('Internship not found or unauthorized.');
+        await Internship.findByIdAndDelete(req.params.id);
 
         if (req.flash) req.flash('success_msg', 'Internship deleted successfully!');
         res.redirect('/company/dashboard');
     } catch (error) {
         console.error('Error deleting internship:', error);
         res.status(500).send('Database Error');
-    }
-});
-
-// --- Team Management Routes ---
-
-router.get('/company/team', isAuthenticated, requireCompanyRole(['company']), async (req, res) => {
-    try {
-        const teamMembers = await User.find({            companyId: req.user.companyId,            role: 'recruiter',            isActive: true        }).sort({ createdAt: -1 });
-
-        res.render('company/company-team', {
-            user: req.user,
-            teamMembers
-        });
-    } catch (error) {
-        console.error('Error loading team page:', error);
-        res.status(500).send('Database Error');
-    }
-});
-
-router.post('/company/team/add', isAuthenticated, requireCompanyRole(['company']), async (req, res) => {
-    try {
-        const { name, email, password } = req.body;
-
-        const existingUser = await User.findOne({ email: email.toLowerCase() });
-        if (existingUser) {
-            if (req.flash) req.flash('error_msg', 'Email is already registered.');
-            return res.redirect('/company/team');
-        }
-
-        await User.create({
-            name,
-            email: email.toLowerCase(),
-            password,            role: 'recruiter',
-            companyId: req.user.companyId,
-            isEmailVerified: true,
-            isActive: true
-        });
-
-        if (req.flash) req.flash('success_msg', 'Recruiter added successfully!');
-        res.redirect('/company/team');
-    } catch (error) {
-        console.error('Error adding recruiter:', error);
-        if (req.flash) req.flash('error_msg', 'An error occurred while adding recruiter.');
-        res.redirect('/company/team');
-    }
-});
-
-router.post('/company/team/remove/:id', isAuthenticated, requireCompanyRole(['company']), async (req, res) => {
-    try {
-        const member = await User.findOne({ _id: req.params.id, companyId: req.user.companyId, role: 'recruiter' });
-        if (!member) {
-            if (req.flash) req.flash('error_msg', 'Recruiter not found.');
-            return res.redirect('/company/team');
-        }
-
-        member.isActive = false;
-        await member.save();
-
-        if (req.flash) req.flash('success_msg', 'Recruiter deactivated successfully!');
-        res.redirect('/company/team');
-    } catch (error) {
-        console.error('Error deactivating recruiter:', error);
-        if (req.flash) req.flash('error_msg', 'An error occurred while deactivating recruiter.');
-        res.redirect('/company/team');
     }
 });
 

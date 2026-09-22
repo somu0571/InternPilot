@@ -10,7 +10,6 @@ passport.use(new LocalStrategy({ usernameField: 'email' }, async (email, passwor
     try {
         const user = await User.findOne({ email: email.toLowerCase() });
         if (!user) return done(null, false, { message: 'Email not registered.' });
-        if (user.isActive === false) return done(null, false, { message: 'Account deactivated.' });
 
         const isMatch = await user.comparePassword(password);
         if (!isMatch) return done(null, false, { message: 'Incorrect password.' });
@@ -39,16 +38,12 @@ passport.use(new GoogleStrategy({
                 googleId: profile.id,
                 avatar: profile.photos[0]?.value,
                 role: 'candidate',
-                isEmailVerified: true,
-                isActive: true
+                isEmailVerified: true
             });
             sendWelcomeEmail(user).catch(console.error);
-        } else {
-            if (user.isActive === false) return done(null, false, { message: 'Account deactivated.' });
-            if (!user.googleId) {
-                user.googleId = profile.id;
-                await user.save();
-            }
+        } else if (!user.googleId) {
+            user.googleId = profile.id;
+            await user.save();
         }
 
         return done(null, user);
@@ -61,9 +56,6 @@ passport.serializeUser((user, done) => done(null, user.id));
 passport.deserializeUser(async (id, done) => {
     try {
         const user = await User.findById(id);
-        if (user && user.isActive === false) {
-            return done(null, false);
-        }
         done(null, user);
     } catch (err) {
         done(err, null);

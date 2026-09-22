@@ -17,10 +17,6 @@ const internshipSchema = new mongoose.Schema({
     postedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-    },
-    companyId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
     }
 });
 
