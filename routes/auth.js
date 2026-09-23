@@ -2,7 +2,13 @@ const express = require('express');
 const router = express.Router();
 const passport = require('passport');
 const User = require('../models/User');
-const { sendOTPEmail } = require('../utils/sendEmail');
+const { sendOTPEmail, isConsoleEmailTransport } = require('../utils/sendEmail');
+
+const otpDeliverySuccessMessage = () => (
+    isConsoleEmailTransport()
+        ? 'A verification code was generated. Check the server terminal (development mode).'
+        : 'A verification code has been sent to your email.'
+);
 
 router.get('/login', (req, res) => res.render('auth/login'));
 router.get('/register', (req, res) => res.render('auth/register'));
@@ -39,8 +45,8 @@ router.post('/register', async (req, res) => {
                 await sendOTPEmail(email, otp);
                 await existing.save();
 
-                console.log(`--> Fresh OTP (${otp}) successfully sent to: ${email}`);
-                req.flash('success_msg', 'A new verification code has been sent to your email.');
+                console.log('--> Fresh verification code delivered.');
+                req.flash('success_msg', otpDeliverySuccessMessage());
                 return res.redirect(`/auth/verify-otp?email=${encodeURIComponent(email)}`);
             }
         }
@@ -62,9 +68,9 @@ router.post('/register', async (req, res) => {
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         const otpExpires = Date.now() + 10 * 60 * 1000;
 
-        console.log(`--> Dispatching OTP (${otp}) via Nodemailer to ${email}...`);
+        console.log(`--> Dispatching verification code via ${isConsoleEmailTransport() ? 'development console' : 'email'}...`);
         await sendOTPEmail(email, otp);
-        console.log('--> Email sent successfully!');
+        console.log('--> Verification code delivered.');
 
         const userData = {
             name,
@@ -91,7 +97,7 @@ router.post('/register', async (req, res) => {
 
         console.log('--> User account created in MongoDB.');
 
-        req.flash('success_msg', 'Verification code sent to your email!');
+        req.flash('success_msg', otpDeliverySuccessMessage());
         res.redirect(`/auth/verify-otp?email=${encodeURIComponent(email)}`);
     } catch (err) {
         console.error('--> REGISTRATION / EMAIL ERROR:', err);
@@ -153,7 +159,7 @@ router.post('/resend-otp', async (req, res) => {
         await sendOTPEmail(email, otp);
         await user.save();
 
-        req.flash('success_msg', 'A new verification code has been sent to your email.');
+        req.flash('success_msg', otpDeliverySuccessMessage());
         res.redirect(`/auth/verify-otp?email=${encodeURIComponent(email)}`);
     } catch (err) {
         console.error('Resend OTP error:', err);

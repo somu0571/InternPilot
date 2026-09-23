@@ -1,12 +1,56 @@
-require('dotenv').config();
 const nodemailer = require('nodemailer');
 
+const isConsoleEmailTransport = () => (
+    process.env.NODE_ENV === 'development'
+    && String(process.env.EMAIL_TRANSPORT || '').toLowerCase() === 'console'
+);
+
+const getSenderAddress = () => {
+    if (isConsoleEmailTransport()) {
+        return '"InternPilot Support" <no-reply@internpilot.local>';
+    }
+
+    return `"InternPilot Support" <${String(process.env.EMAIL_USER || '').trim()}>`;
+};
+
+const getGmailCredentials = () => {
+    const user = String(process.env.EMAIL_USER || '').trim();
+    // Google displays App Passwords with spaces, but SMTP expects the compact value.
+    const pass = String(process.env.EMAIL_PASS || '').replace(/\s+/g, '');
+
+    if (!user || !pass) {
+        const error = new Error('Email is not configured. Set EMAIL_USER and EMAIL_PASS, or use the development console transport.');
+        error.code = 'EMAIL_CONFIG_MISSING';
+        throw error;
+    }
+
+    return { user, pass };
+};
+
 const createTransporter = () => {
+    if (isConsoleEmailTransport()) {
+        // This transport never connects to an SMTP service. It exists only for
+        // local OTP testing and is deliberately unavailable outside development.
+        return nodemailer.createTransport({
+            streamTransport: true,
+            buffer: true,
+            newline: 'unix'
+        });
+    }
+
+    if (String(process.env.EMAIL_TRANSPORT || '').toLowerCase() === 'console') {
+        const error = new Error('EMAIL_TRANSPORT=console is allowed only when NODE_ENV=development.');
+        error.code = 'EMAIL_TRANSPORT_NOT_ALLOWED';
+        throw error;
+    }
+
+    const { user, pass } = getGmailCredentials();
+
     return nodemailer.createTransport({
         service: 'gmail',
         auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS
+            user,
+            pass
         }
     });
 };
@@ -15,7 +59,7 @@ const sendOTPEmail = async (email, otp) => {
     const transporter = createTransporter();
 
     const mailOptions = {
-        from: `"InternPilot Support" <${process.env.EMAIL_USER}>`,
+        from: getSenderAddress(),
         to: email,
         subject: 'Verify Your InternPilot Account - OTP Code',
         html: `
@@ -31,7 +75,13 @@ const sendOTPEmail = async (email, otp) => {
         `
     };
 
-    return await transporter.sendMail(mailOptions);
+    const result = await transporter.sendMail(mailOptions);
+
+    if (isConsoleEmailTransport()) {
+        console.info(`[DEV ONLY] Verification OTP for ${email}: ${otp}`);
+    }
+
+    return result;
 };
 
 const sendStatusUpdateEmail = async (email, candidateName, internshipTitle, status) => {
@@ -47,7 +97,7 @@ const sendStatusUpdateEmail = async (email, candidateName, internshipTitle, stat
     const color = statusColors[status] || '#4f46e5';
 
     const mailOptions = {
-        from: `"InternPilot Support" <${process.env.EMAIL_USER}>`,
+        from: getSenderAddress(),
         to: email,
         subject: `Application Status Update - ${internshipTitle}`,
         html: `
@@ -69,5 +119,6 @@ const sendStatusUpdateEmail = async (email, candidateName, internshipTitle, stat
 
 module.exports = {
     sendOTPEmail,
-    sendStatusUpdateEmail
+    sendStatusUpdateEmail,
+    isConsoleEmailTransport
 };

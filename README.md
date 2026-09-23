@@ -268,7 +268,13 @@ ADMIN_SECRET=your_admin_secret_key
 
 # Gmail SMTP Configuration
 EMAIL_USER=your_email@gmail.com
+# Create this App Password while signed in to the same account as EMAIL_USER.
+# It is not your normal Gmail password.
 EMAIL_PASS=your_gmail_app_password
+
+# Local-only OTP testing (does not send real email)
+# NODE_ENV=development
+# EMAIL_TRANSPORT=console
 
 # Google OAuth Configuration
 GOOGLE_CLIENT_ID=your_google_client_id
