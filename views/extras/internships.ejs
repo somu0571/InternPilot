@@ -346,7 +346,7 @@
                                     (item.location || 'Location Not Specified') %>
                             </span>
                         </div>
-                        <div class="flex items-center justify-between">
+                        <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                             <span class="flex items-center gap-1.5">
                                 <i class="ph-bold ph-currency-inr text-emerald-600"></i>
                                 <strong class="text-slate-800">
@@ -354,7 +354,6 @@
                                         : '5,000' %> / month
                                 </strong>
                             </span>
-                            <span class="text-slate-400">&bull;</span>
                             <span class="flex items-center gap-1 text-slate-500">
                                 <i class="ph-bold ph-clock"></i>
                                 <%= item.duration || "12 Months" %>
