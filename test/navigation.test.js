@@ -82,3 +82,31 @@ test('header synchronizes history-based navigation and supports keyboard dismiss
     assert.match(headerTemplate, /event\.key === 'Escape'/);
     assert.match(headerTemplate, /aria-current/);
 });
+
+test('header renders unified InternPilot brand typography and aligns PMIS badge alongside subtitle', () => {
+    const html = renderHeader('/');
+
+    assert.doesNotMatch(html, /<span class="text-indigo-700">Intern<\/span>Pilot/);
+    assert.match(html, /InternPilot\s*<\/a>/);
+    assert.match(html, /PMIS<\/span>\s*<p[^>]*class="[^"]*whitespace-nowrap[^"]*"[^>]*>Prime Minister's Internship Scheme Portal<\/p>/);
+});
+
+test('header provides dynamic profile container sizing and full-name tooltip without rigid 100px truncation', () => {
+    const candidate = { _id: 'candidate-id', name: 'SOMSUBHRA CHATTERJEE', role: 'candidate' };
+    const html = renderHeader('/', candidate);
+
+    assert.doesNotMatch(html, /max-w-\[100px\]/);
+    assert.match(html, /max-w-\[160px\]/);
+    assert.match(html, /title="SOMSUBHRA CHATTERJEE"/);
+    assert.match(html, /SOMSUBHRA CHATTERJEE/);
+});
+
+test('header groups quick action controls with consistent spacing and clear visual hierarchy', () => {
+    const candidate = { _id: 'candidate-id', name: 'Candidate User', role: 'candidate', savedInternships: [] };
+    const html = renderHeader('/', candidate);
+
+    assert.match(html, /href="\/candidate\/saved-internships"/);
+    assert.match(html, /href="\/candidate\/saved-searches"/);
+    assert.match(html, /href="\/notifications"/);
+    assert.match(html, /class="[^"]*gap-1 sm:gap-1\.5[^"]*"/);
+});
