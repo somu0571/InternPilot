@@ -104,16 +104,16 @@
                                 data-search-text="<%= ((app.candidate && app.candidate.name) ? app.candidate.name : '') + ' ' + ((app.candidate && app.candidate.education) ? (app.candidate.education.qualification || '') : '') + ' ' + ((app.candidate && app.candidate.location) ? ((app.candidate.location.district ? app.candidate.location.district + ' ' : '') + (app.candidate.location.state || '')) : '') + ' ' + candidateSkillText %>"
                                 data-skill-profiles="<%= JSON.stringify(candidateSkillProfiles.map(skill => ({ name: skill.name, proficiency: skill.proficiency }))) %>">
 
-                                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                    <div class="flex items-start gap-4">
+                                <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+                                    <div class="flex items-start gap-3.5 min-w-0 flex-1">
                                         <!-- Rank Badge -->
                                         <div
                                             class="w-8 h-8 rounded-full bg-slate-100 font-bold text-slate-600 text-xs flex items-center justify-center border border-slate-200 shrink-0">
                                             #<%= index + 1 %>
                                         </div>
 
-                                        <div class="space-y-1.5">
-                                            <div class="flex items-center gap-2">
+                                        <div class="space-y-1.5 min-w-0 flex-1">
+                                            <div class="flex flex-wrap items-center gap-2">
                                                 <h4 class="text-base font-bold text-slate-900">
                                                     <%= (app.candidate && app.candidate.name) ? app.candidate.name
                                                         : 'Unknown Candidate' %>
@@ -147,201 +147,316 @@
                                                 <% } %>
                                             </div>
 
-                                            <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500">
-                                                <span>
-                                                    <i class="ph-bold ph-graduation-cap text-indigo-500"></i>
-                                                    <%= (app.candidate && app.candidate.education) ?
-                                                        (app.candidate.education.qualification || 'N/A' ) : 'N/A' %>
-                                                </span>
-                                                <span>&bull;</span>
-                                                <span>
-                                                    <i class="ph-bold ph-map-pin text-rose-500"></i>
-                                                    <%= (app.candidate && app.candidate.location) ?
-                                                        ((app.candidate.location.district ? app.candidate.location.district
-                                                        + ', ' : '' ) + (app.candidate.location.state || '' )) : 'N/A' %>
-                                                </span>
-                                                <span>&bull;</span>
-                                                <span>
-                                                    Age: <%= (app.candidate && app.candidate.age) ? app.candidate.age
-                                                        : 'N/A' %>
-                                                </span>
-                                            </div>
+                                            <%
+                                                const metaItems = [];
+                                                const candidateQual = (app.candidate?.education?.qualification || '').trim();
+                                                if (candidateQual && candidateQual !== 'N/A') {
+                                                    metaItems.push({
+                                                        icon: 'ph-graduation-cap text-indigo-500',
+                                                        text: candidateQual
+                                                    });
+                                                }
+                                                const locParts = [app.candidate?.location?.district, app.candidate?.location?.state]
+                                                    .map(part => (part || '').trim())
+                                                    .filter(Boolean);
+                                                if (locParts.length > 0) {
+                                                    metaItems.push({
+                                                        icon: 'ph-map-pin text-rose-500',
+                                                        text: locParts.join(', ')
+                                                    });
+                                                }
+                                                if (app.candidate?.age && Number(app.candidate.age) > 0) {
+                                                    metaItems.push({
+                                                        text: 'Age: ' + app.candidate.age
+                                                    });
+                                                }
+                                            %>
+                                            <% if (metaItems.length > 0) { %>
+                                                <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                                                    <% metaItems.forEach((item, itemIdx) => { %>
+                                                        <% if (itemIdx > 0) { %>
+                                                            <span class="text-slate-300 font-bold">&bull;</span>
+                                                        <% } %>
+                                                        <span class="inline-flex items-center gap-1.5">
+                                                            <% if (item.icon) { %>
+                                                                <i class="ph-bold <%= item.icon %>"></i>
+                                                            <% } %>
+                                                            <%= item.text %>
+                                                        </span>
+                                                    <% }) %>
+                                                </div>
+                                            <% } %>
 
-                                            <!-- Skills matching badges -->
-                                            <div class="flex flex-wrap gap-1.5 pt-1">
-                                                <% candidateSkillProfiles.forEach(skill => { %>
+                                            <%
+                                                const reqSkills = Array.isArray(internship?.requiredSkills) ? internship.requiredSkills : [];
+                                                const minQual = (typeof internship?.minQualifications === 'string'
+                                                    ? internship.minQualifications
+                                                    : (typeof internship?.minQualification === 'string' ? internship.minQualification : '')).trim();
+
+                                                const recruiterTokens = [
+                                                    ...reqSkills,
+                                                    ...(minQual ? minQual.split(/[,/|•\n+&]+/) : []),
+                                                    ...(Array.isArray(internship?.eligibilityCriteria) ? internship.eligibilityCriteria : []).flatMap(e => String(e || '').split(/[,/|•\n+&]+/))
+                                                ]
+                                                    .map(s => String(s || '').trim().toLowerCase())
+                                                    .filter(s => s && !['any', 'none', 'n/a', 'na', 'all'].includes(s));
+
+                                                let matchingCandidateSkills = [];
+                                                if (Array.isArray(app.matchingSkillProfiles) && app.matchingSkillProfiles.length > 0) {
+                                                    matchingCandidateSkills = app.matchingSkillProfiles.map(s => ({
+                                                        name: s.profileSkill || s.name || s.skill,
+                                                        proficiency: s.proficiency || 'Intermediate'
+                                                    }));
+                                                } else if (recruiterTokens.length > 0) {
+                                                    matchingCandidateSkills = candidateSkillProfiles.filter(profile => {
+                                                        const pKey = String(profile.name || '').trim().toLowerCase();
+                                                        return recruiterTokens.some(token => pKey === token || (token.length >= 3 && pKey.includes(token)) || (pKey.length >= 3 && token.includes(pKey)));
+                                                    });
+                                                } else if (Array.isArray(app.matchingSkills) && app.matchingSkills.length > 0) {
+                                                    const matchSet = new Set(app.matchingSkills.map(s => String(s || '').trim().toLowerCase()));
+                                                    matchingCandidateSkills = candidateSkillProfiles.filter(profile =>
+                                                        matchSet.has(String(profile.name || '').trim().toLowerCase())
+                                                    );
+                                                } else if (app.matchRationale && /matching skills:/i.test(app.matchRationale)) {
+                                                    const matchPart = app.matchRationale.match(/matching skills:\s*([^.]+)/i);
+                                                    if (matchPart && matchPart[1]) {
+                                                        const extracted = matchPart[1].split(/[,/]+/).map(s => s.trim().toLowerCase()).filter(Boolean);
+                                                        matchingCandidateSkills = candidateSkillProfiles.filter(profile =>
+                                                            extracted.some(e => String(profile.name || '').trim().toLowerCase().includes(e) || e.includes(String(profile.name || '').trim().toLowerCase()))
+                                                        );
+                                                    }
+                                                }
+                                                // When no skills match what the recruiter entered, matchingCandidateSkills is empty ([]),
+                                                // ensuring candidate skills are removed from the card unless they match the recruiter's requirements.
+                                            %>
+
+                                            <!-- Matching Skills Only -->
+                                            <% if (matchingCandidateSkills.length > 0) { %>
+                                                <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
+                                                    <% const visibleSkills = matchingCandidateSkills.slice(0, 4); %>
+                                                    <% const hiddenSkills = matchingCandidateSkills.slice(4); %>
+                                                    <% visibleSkills.forEach(skill => { %>
                                                         <span
                                                             class="inline-flex items-center gap-1 text-[11px] font-medium bg-slate-100 border border-slate-200 text-slate-700 px-2 py-0.5 rounded">
                                                             <%= skill.name %>
                                                             <span class="rounded bg-white px-1 text-[10px] font-bold text-slate-600" aria-label="<%= skill.name %> proficiency: <%= skill.proficiency %>"><%= skill.proficiency %></span>
                                                         </span>
-                                                <% }) %>
-                                            </div>
+                                                    <% }) %>
+                                                    <% if (hiddenSkills.length > 0) { %>
+                                                        <span id="extra-skills-<%= app._id %>" class="hidden inline-flex flex-wrap items-center gap-1.5">
+                                                            <% hiddenSkills.forEach(skill => { %>
+                                                                <span
+                                                                    class="inline-flex items-center gap-1 text-[11px] font-medium bg-slate-100 border border-slate-200 text-slate-700 px-2 py-0.5 rounded">
+                                                                    <%= skill.name %>
+                                                                    <span class="rounded bg-white px-1 text-[10px] font-bold text-slate-600" aria-label="<%= skill.name %> proficiency: <%= skill.proficiency %>"><%= skill.proficiency %></span>
+                                                                </span>
+                                                            <% }) %>
+                                                        </span>
+                                                        <button type="button"
+                                                            onclick="const el = document.getElementById('extra-skills-<%= app._id %>'); const isHidden = el.classList.toggle('hidden'); this.textContent = isHidden ? '+<%= hiddenSkills.length %> more' : 'Show less';"
+                                                            class="inline-flex items-center text-[11px] font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-2 py-0.5 rounded transition-colors cursor-pointer">
+                                                            +<%= hiddenSkills.length %> more
+                                                        </button>
+                                                    <% } %>
+                                                </div>
+                                            <% } %>
                                         </div>
                                     </div>
 
                                     <div
-                                        class="flex items-center justify-between md:justify-end gap-4 pt-3 md:pt-0 border-t md:border-0 border-slate-100">
+                                        class="flex flex-wrap sm:flex-nowrap items-center justify-between lg:justify-end gap-5 shrink-0 pt-3 lg:pt-0 border-t lg:border-0 border-slate-100">
 
-                                        <!-- Match Score -->
-                                        <div class="text-center">
-                                            <span
-                                                class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Match
-                                                Fit</span>
-                                            <span
-                                                class="px-3 py-1 rounded-lg border text-xs font-bold <%= (app.matchScore || 0) >= 75 ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : ((app.matchScore || 0) >= 40 ? 'bg-amber-50 border-amber-200 text-amber-700' : 'bg-rose-50 border-rose-200 text-rose-700') %>">
-                                                <%= app.matchScore || 0 %>%
-                                            </span>
-                                            <% if (app.matchRationale) { %>
-                                                <p class="mt-2 max-w-[14rem] text-[11px] leading-snug text-slate-500" title="How this score was calculated">
-                                                    <i class="ph-bold ph-sparkle text-amber-500"></i> <%= app.matchRationale %>
-                                                </p>
-                                            <% } %>
+                                        <!-- Match Score Card & View Profile Column -->
+                                        <div class="flex flex-col items-center gap-2">
+                                            <!-- Match Card -->
+                                            <div class="flex items-center gap-3 px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 shadow-sm min-w-[13rem] max-w-[18rem]">
+                                                <div class="text-left shrink-0">
+                                                    <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">MATCH</span>
+                                                    <span class="text-sm font-extrabold <%= (app.matchScore || 0) >= 75 ? 'text-emerald-600' : ((app.matchScore || 0) >= 40 ? 'text-amber-600' : 'text-rose-600') %>">
+                                                        <%= app.matchScore || 0 %>%
+                                                    </span>
+                                                </div>
+                                                <% if (app.matchRationale) { %>
+                                                    <div class="border-l border-slate-200 pl-3 text-[11px] leading-snug text-slate-500" title="<%= app.matchRationale %>">
+                                                        <span class="line-clamp-2"><%= app.matchRationale %></span>
+                                                    </div>
+                                                <% } else { %>
+                                                    <div class="border-l border-slate-200 pl-3 text-[11px] leading-snug text-slate-400 italic">
+                                                        Limited profile data available.
+                                                    </div>
+                                                <% } %>
+                                            </div>
+
+                                            <!-- View Profile Link with Arrow in Front -->
+                                            <div class="flex items-center justify-center gap-2">
+                                                <a href="/company/applications/<%= app._id %>/candidate"
+                                                    class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 hover:text-indigo-600 transition-colors">
+                                                    <i class="ph-bold ph-arrow-up-right text-xs"></i>
+                                                    View Profile
+                                                </a>
+                                                <% if (app.applicationKit) { %>
+                                                    <span class="text-slate-300">&bull;</span>
+                                                    <a href="/company/applications/<%= app._id %>/candidate#submitted-application-kit"
+                                                        class="inline-flex items-center gap-1 text-[11px] font-medium text-indigo-600 hover:text-indigo-800 transition-colors">
+                                                        <i class="ph-bold ph-briefcase text-xs"></i> Submitted Kit
+                                                    </a>
+                                                <% } %>
+                                            </div>
                                         </div>
 
-                                        <!-- View Profile Button -->
-                                        <a href="/company/applications/<%= app._id %>/candidate"
-                                            class="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 shadow-sm">
-                                            <i class="ph-bold ph-user text-sm"></i> View Profile
-                                        </a>
-                                        <% if (app.applicationKit) { %>
-                                            <a href="/company/applications/<%= app._id %>/candidate#submitted-application-kit"
-                                                class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 shadow-sm">
-                                                <i class="ph-bold ph-briefcase text-sm"></i> Submitted Kit
-                                            </a>
+                                        <!-- Chat / Message Button -->
+                                        <% if (typeof messageUnreadCount !== 'undefined') { %>
+                                            <div class="flex items-center justify-center self-center">
+                                                <%- include('../partials/message-start-button', { application: app, label: 'Message ' + ((app.candidate && app.candidate.name) || 'candidate'), compact: true }) %>
+                                            </div>
                                         <% } %>
-                                        <% if (typeof messageUnreadCount !== 'undefined') { %><%- include('../partials/message-start-button', { application: app, label: 'Message ' + ((app.candidate && app.candidate.name) || 'candidate'), compact: true }) %><% } %>
 
-                                        <!-- Candidate Resume Button -->
-                                        <% const submittedResumePath = app.applicationKit && app.applicationKit.resume
-                                            ? ((app.applicationKit.resume.fileUrl || '').startsWith('/uploads/')
-                                                ? app.applicationKit.resume.fileUrl
-                                                : sanitizeHttpUrl(app.applicationKit.resume.fileUrl).url)
-                                            : ''; %>
-                                        <% const resumePath = submittedResumePath || (app.candidate ? (app.candidate.resume || app.candidate.resumeUrl) : null); %>
+                                        <!-- Status Dropdown & Resume Column -->
+                                        <div class="flex flex-col gap-2 min-w-[8.5rem] w-36">
+                                            <!-- Employer Actions Dropdown or Withdrawn Indicator (Top) -->
+                                            <% if (isAppWithdrawn) { %>
+                                                <div class="w-full text-center px-3 py-1.5 bg-slate-100 text-slate-500 border border-slate-300 text-xs font-semibold rounded-lg flex items-center justify-center gap-1 shadow-sm"
+                                                    title="Candidate withdrew their application <%= app.withdrawalReason ? '(' + app.withdrawalReason + ')' : '' %>">
+                                                    <i class="ph-bold ph-arrow-u-up-left text-slate-500"></i>
+                                                    Withdrawn
+                                                </div>
+                                            <% } else if (app.status === 'Interview') { %>
+                                                <div class="w-full text-center px-3 py-1.5 bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-semibold rounded-lg flex items-center justify-center gap-1 shadow-sm"
+                                                    title="Candidate is in the interview stage">
+                                                    <i class="ph-bold ph-calendar text-indigo-600"></i>
+                                                    Interview
+                                                </div>
+                                            <% } else if (canReviewApplications) { %>
+                                                <form action="/company/applications/<%= app._id %>/status"
+                                                    method="POST" class="w-full" data-loading-text="Updating...">
+                                                    <select name="status" onchange="if (this.form.requestSubmit) { this.form.requestSubmit(); } else { this.form.submit(); }" class="w-full text-center px-3 py-1.5 text-xs font-semibold rounded-lg border shadow-sm cursor-pointer outline-none transition-colors <%=
+                                                    app.status === 'Shortlisted' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                                    app.status === 'Rejected' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                                                    app.status === 'Under Review' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                                                    'bg-indigo-50 text-indigo-700 border-indigo-200'
+                                                %>">
+                                                        <option value="Submitted" <%=app.status==='Submitted'
+                                                            ? 'selected' : '' %>>Submitted</option>
+                                                        <option value="Under Review" <%=app.status==='Under Review'
+                                                            ? 'selected' : '' %>>Under Review</option>
+                                                        <option value="Shortlisted" <%=app.status==='Shortlisted'
+                                                            ? 'selected' : '' %>>Shortlisted</option>
+                                                        <option value="Rejected" <%=app.status==='Rejected'
+                                                            ? 'selected' : '' %>>Rejected</option>
+                                                    </select>
+                                                </form>
+                                            <% } else { %>
+                                                <span class="w-full text-center px-3 py-1.5 bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold rounded-lg shadow-sm">
+                                                    <%= app.status || 'Submitted' %>
+                                                </span>
+                                            <% } %>
+
+                                            <!-- Candidate Resume Button (Bottom) -->
+                                            <% const submittedResumePath = app.applicationKit && app.applicationKit.resume
+                                                ? ((app.applicationKit.resume.fileUrl || '').startsWith('/uploads/')
+                                                    ? app.applicationKit.resume.fileUrl
+                                                    : sanitizeHttpUrl(app.applicationKit.resume.fileUrl).url)
+                                                : ''; %>
+                                            <% const resumePath = submittedResumePath || (app.candidate ? (app.candidate.resume || app.candidate.resumeUrl) : null); %>
                                             <% if (resumePath) { %>
                                                 <a href="<%= resumePath %>" target="_blank"
-                                                    class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 shadow-sm">
-                                                    <i class="ph-bold ph-file-pdf text-sm"></i> <%= submittedResumePath ? 'Submitted Resume' : 'Resume' %>
+                                                    class="w-full px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5 shadow-sm">
+                                                    <i class="ph-bold ph-file-pdf text-sm text-indigo-600"></i> <%= submittedResumePath ? 'Submitted Resume' : 'Resume' %>
                                                 </a>
-                                                <% } else { %>
-                                                    <span
-                                                        class="px-3 py-1.5 bg-slate-100 text-slate-400 border border-slate-200 text-xs font-medium rounded-lg flex items-center gap-1">
-                                                        <i class="ph-bold ph-file-x text-sm"></i> No Resume
-                                                    </span>
-                                                    <% } %>
-
-                                                        <!-- Employer Actions Dropdown or Withdrawn Indicator -->
-                                                        <% if (isAppWithdrawn) { %>
-                                                            <div class="px-3 py-1.5 bg-slate-100 text-slate-500 border border-slate-300 text-xs font-semibold rounded-lg flex items-center gap-1"
-                                                                title="Candidate withdrew their application <%= app.withdrawalReason ? '(' + app.withdrawalReason + ')' : '' %>">
-                                                                <i class="ph-bold ph-arrow-u-up-left text-slate-500"></i>
-                                                                Withdrawn
-                                                            </div>
-                                                        <% } else if (app.status === 'Interview') { %>
-                                                            <div class="px-3 py-1.5 bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-semibold rounded-lg flex items-center gap-1"
-                                                                title="Candidate is in the interview stage">
-                                                                <i class="ph-bold ph-calendar text-indigo-600"></i>
-                                                                Interview
-                                                            </div>
-                                                        <% } else if (canReviewApplications) { %>
-                                                            <form action="/company/applications/<%= app._id %>/status"
-                                                                method="POST" class="inline-block" data-loading-text="Updating...">
-                                                                <select name="status" onchange="if (this.form.requestSubmit) { this.form.requestSubmit(); } else { this.form.submit(); }" class="px-3 py-1.5 text-xs font-semibold rounded-lg border shadow-sm cursor-pointer outline-none transition-colors <%=
-                                                        app.status === 'Shortlisted' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                                                        app.status === 'Rejected' ? 'bg-rose-50 text-rose-700 border-rose-200' :
-                                                        app.status === 'Under Review' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                                                        'bg-indigo-50 text-indigo-700 border-indigo-200'
-                                                    %>">
-                                                                    <option value="Submitted" <%=app.status==='Submitted'
-                                                                        ? 'selected' : '' %>>Submitted</option>
-                                                                    <option value="Under Review" <%=app.status==='Under Review'
-                                                                        ? 'selected' : '' %>>Under Review</option>
-                                                                    <option value="Shortlisted" <%=app.status==='Shortlisted'
-                                                                        ? 'selected' : '' %>>Shortlisted</option>
-                                                                    <option value="Rejected" <%=app.status==='Rejected'
-                                                                        ? 'selected' : '' %>>Rejected</option>
-                                                                </select>
-                                                            </form>
-                                                        <% } else { %>
-                                                            <span class="px-3 py-1.5 bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold rounded-lg">
-                                                                <%= app.status || 'Submitted' %>
-                                                            </span>
-                                                        <% } %>
+                                            <% } else { %>
+                                                <span
+                                                    class="w-full px-3 py-1.5 bg-slate-50 text-slate-400 border border-slate-200 text-xs font-medium rounded-lg flex items-center justify-center gap-1 shadow-sm">
+                                                    <i class="ph-bold ph-file-x text-sm"></i> No Resume
+                                                </span>
+                                            <% } %>
+                                        </div>
 
                                     </div>
                                 </div>
 
-                                <!-- Candidate Notes Section -->
-                                <div class="border-t border-slate-100 pt-3 space-y-2.5">
-                                    <h5 class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                                <!-- Candidate Notes Section (Collapsible) -->
+                                <% const notesCount = Array.isArray(app.notes) ? app.notes.length : 0; %>
+                                <div class="border-t border-slate-100 pt-2.5">
+                                    <button type="button"
+                                        onclick="
+                                            const section = document.getElementById('notes-section-<%= app._id %>');
+                                            const icon = document.getElementById('notes-icon-<%= app._id %>');
+                                            const isHidden = section.classList.toggle('hidden');
+                                            if (icon) icon.classList.toggle('rotate-180', !isHidden);
+                                        "
+                                        class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-indigo-600 py-1 transition-colors group cursor-pointer"
+                                        aria-expanded="false"
+                                        aria-controls="notes-section-<%= app._id %>">
                                         <i class="ph-bold ph-note-pencil text-indigo-600 text-sm"></i>
-                                        Candidate Notes (<%= Array.isArray(app.notes) ? app.notes.length : 0 %>)
-                                    </h5>
+                                        <span>Candidate Notes (<%= notesCount %>)</span>
+                                        <i id="notes-icon-<%= app._id %>" class="ph-bold ph-caret-down text-[11px] text-slate-400 group-hover:text-indigo-600 transition-transform duration-200"></i>
+                                    </button>
 
-                                    <% if (Array.isArray(app.notes) && app.notes.length > 0) { %>
-                                        <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
-                                            <% app.notes.forEach(note => { %>
-                                                <% const noteAuthorId = note.createdBy?._id ? note.createdBy._id.toString() : (note.createdBy ? note.createdBy.toString() : ''); %>
-                                                <% const isNoteCreator = user && user._id && noteAuthorId === user._id.toString(); %>
-                                                <div class="bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs space-y-1">
-                                                    <div class="flex items-center justify-between text-slate-500">
-                                                        <span class="font-semibold text-slate-700">
-                                                            <%= note.createdBy ? (note.createdBy.companyDetails?.companyName || note.createdBy.name || 'Company') : 'Company' %>
-                                                        </span>
-                                                        <div class="flex items-center gap-2">
-                                                            <span class="text-[10px] text-slate-400">
-                                                                <%= new Date(note.createdAt).toLocaleString() %><%= note.updatedAt ? ' (edited)' : '' %>
+                                    <div id="notes-section-<%= app._id %>" class="hidden mt-2.5 space-y-2.5 pt-2 border-t border-slate-100">
+                                        <% if (Array.isArray(app.notes) && app.notes.length > 0) { %>
+                                            <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                                                <% app.notes.forEach(note => { %>
+                                                    <% const noteAuthorId = note.createdBy?._id ? note.createdBy._id.toString() : (note.createdBy ? note.createdBy.toString() : ''); %>
+                                                    <% const isNoteCreator = user && user._id && noteAuthorId === user._id.toString(); %>
+                                                    <div class="bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs space-y-1">
+                                                        <div class="flex items-center justify-between text-slate-500">
+                                                            <span class="font-semibold text-slate-700">
+                                                                <%= note.createdBy ? (note.createdBy.companyDetails?.companyName || note.createdBy.name || 'Company') : 'Company' %>
                                                             </span>
-                                                            <% if (canReviewApplications && isNoteCreator) { %>
-                                                                <div class="flex items-center gap-1.5 ml-1">
-                                                                    <button type="button" onclick="document.getElementById('edit-note-<%= note._id %>').classList.toggle('hidden')" class="text-slate-400 hover:text-indigo-600 transition-colors" title="Edit Note">
-                                                                        <i class="ph-bold ph-pencil-simple text-xs"></i>
-                                                                    </button>
-                                                                    <form action="/company/applications/<%= app._id %>/notes/<%= note._id %>/delete" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this note?')" data-loading-text="Deleting...">
-                                                                        <button type="submit" class="text-slate-400 hover:text-rose-600 transition-colors" title="Delete Note">
-                                                                            <i class="ph-bold ph-trash text-xs"></i>
+                                                            <div class="flex items-center gap-2">
+                                                                <span class="text-[10px] text-slate-400">
+                                                                    <%= new Date(note.createdAt).toLocaleString() %><%= note.updatedAt ? ' (edited)' : '' %>
+                                                                </span>
+                                                                <% if (canReviewApplications && isNoteCreator) { %>
+                                                                    <div class="flex items-center gap-1.5 ml-1">
+                                                                        <button type="button" onclick="document.getElementById('edit-note-<%= note._id %>').classList.toggle('hidden')" class="text-slate-400 hover:text-indigo-600 transition-colors" title="Edit Note">
+                                                                            <i class="ph-bold ph-pencil-simple text-xs"></i>
                                                                         </button>
-                                                                    </form>
-                                                                </div>
-                                                            <% } %>
+                                                                        <form action="/company/applications/<%= app._id %>/notes/<%= note._id %>/delete" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this note?')" data-loading-text="Deleting...">
+                                                                            <button type="submit" class="text-slate-400 hover:text-rose-600 transition-colors" title="Delete Note">
+                                                                                <i class="ph-bold ph-trash text-xs"></i>
+                                                                            </button>
+                                                                        </form>
+                                                                    </div>
+                                                                <% } %>
+                                                            </div>
                                                         </div>
+                                                        <p class="text-slate-700 whitespace-pre-line"><%= note.text %></p>
+
+                                                        <% if (canReviewApplications && isNoteCreator) { %>
+                                                            <div id="edit-note-<%= note._id %>" class="hidden pt-2 border-t border-slate-200 mt-2">
+                                                                <form action="/company/applications/<%= app._id %>/notes/<%= note._id %>/edit" method="POST" class="flex items-start gap-2" data-loading-text="Saving...">
+                                                                    <textarea name="text" required rows="2"
+                                                                        class="flex-1 px-2.5 py-1 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-indigo-500 bg-white resize-y"><%= note.text %></textarea>
+                                                                    <button type="submit"
+                                                                        class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium rounded-md transition-colors shrink-0">
+                                                                        Save
+                                                                    </button>
+                                                                    <button type="button" onclick="document.getElementById('edit-note-<%= note._id %>').classList.add('hidden')"
+                                                                        class="px-2 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-medium rounded-md transition-colors shrink-0">
+                                                                        Cancel
+                                                                    </button>
+                                                                </form>
+                                                            </div>
+                                                        <% } %>
                                                     </div>
-                                                    <p class="text-slate-700 whitespace-pre-line"><%= note.text %></p>
+                                                <% }) %>
+                                            </div>
+                                        <% } else { %>
+                                            <p class="text-xs text-slate-400 italic">No notes added yet.</p>
+                                        <% } %>
 
-                                                    <% if (canReviewApplications && isNoteCreator) { %>
-                                                        <div id="edit-note-<%= note._id %>" class="hidden pt-2 border-t border-slate-200 mt-2">
-                                                            <form action="/company/applications/<%= app._id %>/notes/<%= note._id %>/edit" method="POST" class="flex items-start gap-2" data-loading-text="Saving...">
-                                                                <textarea name="text" required rows="2"
-                                                                    class="flex-1 px-2.5 py-1 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-indigo-500 bg-white resize-y"><%= note.text %></textarea>
-                                                                <button type="submit"
-                                                                    class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium rounded-md transition-colors shrink-0">
-                                                                    Save
-                                                                </button>
-                                                                <button type="button" onclick="document.getElementById('edit-note-<%= note._id %>').classList.add('hidden')"
-                                                                    class="px-2 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-medium rounded-md transition-colors shrink-0">
-                                                                    Cancel
-                                                                </button>
-                                                            </form>
-                                                        </div>
-                                                    <% } %>
-                                                </div>
-                                            <% }) %>
-                                        </div>
-                                    <% } else { %>
-                                        <p class="text-xs text-slate-400 italic">No notes added yet.</p>
-                                    <% } %>
-
-                                    <% if (canReviewApplications) { %>
-                                    <form action="/company/applications/<%= app._id %>/notes" method="POST" class="flex items-center gap-2 pt-1" data-loading-text="Adding...">
-                                        <input type="text" name="text" placeholder="Add a note about this candidate..." required
-                                            class="flex-1 px-3 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-slate-50 focus:bg-white transition-colors" />
-                                        <button type="submit"
-                                            class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition-colors shrink-0 flex items-center gap-1">
-                                            <i class="ph-bold ph-plus text-xs"></i> Add Note
-                                        </button>
-                                    </form>
-                                    <% } %>
+                                        <% if (canReviewApplications) { %>
+                                        <form action="/company/applications/<%= app._id %>/notes" method="POST" class="flex items-center gap-2 pt-1" data-loading-text="Adding...">
+                                            <input type="text" name="text" placeholder="Add a note about this candidate..." required
+                                                class="flex-1 px-3 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 bg-slate-50 focus:bg-white transition-colors" />
+                                            <button type="submit"
+                                                class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition-colors shrink-0 flex items-center gap-1">
+                                                <i class="ph-bold ph-plus text-xs"></i> Add Note
+                                            </button>
+                                        </form>
+                                        <% } %>
+                                    </div>
                                 </div>
 
                             </div>

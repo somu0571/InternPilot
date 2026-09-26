@@ -35,7 +35,7 @@
     const isActive = name => Boolean(navigationState[name]);
     const ariaCurrent = active => active ? 'aria-current="page"' : '';
     const desktopLinkClass = active => [
-        'nav-link inline-flex items-center border-b-2 px-1 py-2 text-xs transition-colors',
+        'nav-link inline-flex items-center border-b-2 px-2.5 py-1.5 text-xs transition-colors',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2',
         active
             ? 'border-indigo-700 bg-indigo-50 text-indigo-900 font-bold'
@@ -56,28 +56,28 @@
 
 <!-- Official Government Header Bar -->
 <header class="sticky top-0 z-40 border-b border-slate-200 bg-white shadow-sm">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="flex h-20 items-center justify-between">
+    <div class="mx-auto w-full max-w-[96rem] px-4 sm:px-6 lg:px-8">
+        <div class="flex h-20 items-center justify-between gap-6 lg:gap-10">
             <!-- Left: Official Emblem & Platform Branding -->
-            <div class="flex min-w-0 items-center gap-4">
+            <div class="flex shrink-0 items-center gap-3.5 mr-4 lg:mr-8 xl:mr-12">
                 <div class="flex shrink-0 items-center">
                     <img src="/images/emblem.jpg" alt="State Emblem of India" class="h-12 w-auto object-contain mix-blend-multiply">
                 </div>
                 <div class="hidden h-10 w-px bg-slate-200 sm:block"></div>
-                <div class="min-w-0">
-                    <div class="flex items-center gap-2">
-                        <a href="/" class="flex items-center gap-1.5 text-xl font-black tracking-tight text-slate-900">
-                            <span class="text-indigo-700">Intern</span>Pilot
-                        </a>
-                        <span class="rounded-full border border-indigo-200 bg-indigo-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-700">PMIS</span>
+                <div class="flex flex-col">
+                    <a href="/" class="text-xl font-bold tracking-tight text-slate-900 transition-colors hover:text-indigo-700">
+                        InternPilot
+                    </a>
+                    <div class="hidden items-center gap-1.5 sm:flex">
+                        <span class="rounded-full border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-700">PMIS</span>
+                        <p class="whitespace-nowrap text-[11px] font-medium text-slate-500">Prime Minister's Internship Scheme Portal</p>
                     </div>
-                    <p class="hidden text-[11px] font-medium text-slate-500 sm:block">Prime Minister's Internship Scheme Portal</p>
                 </div>
             </div>
 
             <!-- Navigation, notification, and account controls -->
-            <div class="flex shrink-0 items-center gap-2 sm:gap-4 md:gap-6">
-                <nav aria-label="Primary navigation" class="hidden items-center gap-5 md:flex">
+            <div class="flex shrink-0 items-center gap-2 sm:gap-2.5 md:gap-3 lg:gap-4">
+                <nav aria-label="Primary navigation" class="hidden items-center gap-1 lg:gap-2 md:flex">
                     <a href="/" data-nav-link data-nav-variant="desktop" data-nav-prefixes="<%= navPrefixAttribute('home') %>" class="<%= desktopLinkClass(isActive('home')) %>" <%- ariaCurrent(isActive('home')) %>>Home</a>
                     <a href="/internships" data-nav-link data-nav-variant="desktop" data-nav-prefixes="<%= navPrefixAttribute('opportunities') %>" class="<%= desktopLinkClass(isActive('opportunities')) %>" <%- ariaCurrent(isActive('opportunities')) %>>Opportunities</a>
 
@@ -108,53 +108,66 @@
                     <% } %>
                 </nav>
 
-                <div class="hidden h-10 w-px bg-slate-200 md:block"></div>
+                <div class="hidden h-8 w-px bg-slate-200 md:block"></div>
 
                 <button id="mobileNavToggle" type="button" class="inline-flex items-center justify-center rounded-lg p-2 text-slate-700 transition-colors hover:bg-slate-100 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 md:hidden" aria-controls="mobileNavigation" aria-expanded="false">
                     <i id="mobileNavIcon" class="ph-bold ph-list text-xl" aria-hidden="true"></i>
                     <span id="mobileNavToggleLabel" class="sr-only">Open navigation menu</span>
                 </button>
 
-                <% if (currentUser && ['candidate', 'company', 'recruiter'].includes(currentUser.role)) { %>
-                    <% if (currentUser.role === 'candidate') { %>
-                        <a href="/candidate/saved-internships" aria-label="Saved Internships" data-nav-link data-nav-variant="icon" data-nav-prefixes="<%= navPrefixAttribute('savedInternships') %>" class="relative inline-flex items-center justify-center rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 <%= isActive('savedInternships') ? 'bg-indigo-100 font-bold text-indigo-900 ring-1 ring-indigo-700' : '' %>" <%- ariaCurrent(isActive('savedInternships')) %> title="Saved Internships">
-                            <i class="ph-bold ph-bookmark-simple text-lg" aria-hidden="true"></i>
-                            <% if (currentUser.savedInternships && currentUser.savedInternships.length > 0) { %>
-                                <span class="absolute -right-0.5 -top-0.5 h-4 min-w-4 rounded-full bg-indigo-600 px-1 text-center text-[9px] font-bold leading-4 text-white"><%= currentUser.savedInternships.length > 99 ? '99+' : currentUser.savedInternships.length %></span>
+                <!-- Action icons group: Bookmarks, Saved Searches, Notifications, Messages -->
+                <% const hasActionIcons = currentUser && (['candidate', 'company', 'recruiter'].includes(currentUser.role) || typeof messageUnreadCount !== 'undefined'); %>
+                <% if (hasActionIcons) { %>
+                    <div class="flex items-center gap-1 sm:gap-1.5">
+                        <% if (currentUser && ['candidate', 'company', 'recruiter'].includes(currentUser.role)) { %>
+                            <% if (currentUser.role === 'candidate') { %>
+                                <a href="/candidate/saved-internships" aria-label="Saved Internships" data-nav-link data-nav-variant="icon" data-nav-prefixes="<%= navPrefixAttribute('savedInternships') %>" class="relative inline-flex items-center justify-center rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 <%= isActive('savedInternships') ? 'bg-indigo-100 font-bold text-indigo-900 ring-1 ring-indigo-700' : '' %>" <%- ariaCurrent(isActive('savedInternships')) %> title="Saved Internships">
+                                    <i class="ph-bold ph-bookmark-simple text-lg" aria-hidden="true"></i>
+                                    <% if (currentUser.savedInternships && currentUser.savedInternships.length > 0) { %>
+                                        <span class="absolute -right-0.5 -top-0.5 h-4 min-w-4 rounded-full bg-indigo-600 px-1 text-center text-[9px] font-bold leading-4 text-white"><%= currentUser.savedInternships.length > 99 ? '99+' : currentUser.savedInternships.length %></span>
+                                    <% } %>
+                                </a>
+                                <a href="/candidate/saved-searches" aria-label="Saved Searches" data-nav-link data-nav-variant="icon" data-nav-prefixes="<%= navPrefixAttribute('savedSearches') %>" class="relative inline-flex items-center justify-center rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 <%= isActive('savedSearches') ? 'bg-indigo-100 font-bold text-indigo-900 ring-1 ring-indigo-700' : '' %>" <%- ariaCurrent(isActive('savedSearches')) %> title="Saved Searches">
+                                    <i class="ph-bold ph-funnel-simple text-lg" aria-hidden="true"></i>
+                                </a>
                             <% } %>
-                        </a>
-                        <a href="/candidate/saved-searches" aria-label="Saved Searches" data-nav-link data-nav-variant="icon" data-nav-prefixes="<%= navPrefixAttribute('savedSearches') %>" class="relative inline-flex items-center justify-center rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 <%= isActive('savedSearches') ? 'bg-indigo-100 font-bold text-indigo-900 ring-1 ring-indigo-700' : '' %>" <%- ariaCurrent(isActive('savedSearches')) %> title="Saved Searches">
-                            <i class="ph-bold ph-funnel-simple text-lg" aria-hidden="true"></i>
-                        </a>
-                    <% } %>
-                    <% const notifLink = currentUser.role === 'candidate' ? '/notifications' : '/company/notifications'; %>
-                    <% const notificationSection = currentUser.role === 'candidate' ? 'notifications' : 'companyNotifications'; %>
-                    <a href="<%= notifLink %>" aria-label="Notifications" data-nav-link data-nav-variant="icon" data-nav-prefixes="<%= navPrefixAttribute(notificationSection) %>" class="relative inline-flex items-center justify-center rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 <%= isActive(notificationSection) ? 'bg-indigo-100 font-bold text-indigo-900 ring-1 ring-indigo-700' : '' %>" <%- ariaCurrent(isActive(notificationSection)) %> title="Notifications">
-                        <i class="ph-bold ph-bell text-lg" aria-hidden="true"></i>
-                        <% if (notificationUnreadCount > 0) { %>
-                            <span class="absolute -right-0.5 -top-0.5 h-4 min-w-4 rounded-full bg-rose-600 px-1 text-center text-[9px] font-bold leading-4 text-white"><%= notificationUnreadCount > 99 ? '99+' : notificationUnreadCount %></span>
+                            <% const notifLink = currentUser.role === 'candidate' ? '/notifications' : '/company/notifications'; %>
+                            <% const notificationSection = currentUser.role === 'candidate' ? 'notifications' : 'companyNotifications'; %>
+                            <a href="<%= notifLink %>" aria-label="Notifications" data-nav-link data-nav-variant="icon" data-nav-prefixes="<%= navPrefixAttribute(notificationSection) %>" class="relative inline-flex items-center justify-center rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 <%= isActive(notificationSection) ? 'bg-indigo-100 font-bold text-indigo-900 ring-1 ring-indigo-700' : '' %>" <%- ariaCurrent(isActive(notificationSection)) %> title="Notifications">
+                                <i class="ph-bold ph-bell text-lg" aria-hidden="true"></i>
+                                <% if (notificationUnreadCount > 0) { %>
+                                    <span class="absolute -right-0.5 -top-0.5 h-4 min-w-4 rounded-full bg-rose-600 px-1 text-center text-[9px] font-bold leading-4 text-white"><%= notificationUnreadCount > 99 ? '99+' : notificationUnreadCount %></span>
+                                <% } %>
+                            </a>
                         <% } %>
-                    </a>
-                <% } %>
-                <% if (typeof messageUnreadCount !== 'undefined') { %><%- include('messages-nav', { variant: 'icon' }) %><% } %>
+                        <% if (typeof messageUnreadCount !== 'undefined') { %><%- include('messages-nav', { variant: 'icon' }) %><% } %>
+                    </div>
 
+                    <div class="hidden h-8 w-px bg-slate-200 sm:block"></div>
+                <% } %>
+
+                <!-- Profile and authentication controls -->
                 <div class="flex items-center gap-2 sm:gap-3">
                     <% if (!currentUser) { %>
-                        <a href="/auth/login" class="rounded-lg px-2 py-2 text-xs font-semibold text-slate-700 transition-colors hover:text-indigo-700 sm:px-3">Log In</a>
+                        <a href="/auth/login" class="rounded-lg px-2.5 py-2 text-xs font-semibold text-slate-700 transition-colors hover:text-indigo-700 sm:px-3">Log In</a>
                         <a href="/auth/register" class="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 sm:px-4">Sign Up</a>
                     <% } else { %>
                         <div class="group relative hidden sm:block">
-                            <button class="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-100 px-2.5 py-1.5 transition-colors hover:bg-slate-200 cursor-pointer">
+                            <button class="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-100 px-2.5 py-1.5 transition-colors hover:bg-slate-200 cursor-pointer" title="<%= currentUser.name %>">
                                 <% if (currentUser.avatar) { %>
-                                    <img src="<%= currentUser.avatar %>" alt="User Avatar" class="h-6 w-6 rounded-full border border-slate-300 object-cover">
+                                    <img src="<%= currentUser.avatar %>" alt="<%= currentUser.name %>" class="h-6 w-6 shrink-0 rounded-full border border-slate-300 object-cover">
                                 <% } else { %>
-                                    <div class="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-600 text-[10px] font-bold text-white"><%= currentUser.name ? currentUser.name.charAt(0).toUpperCase() : 'U' %></div>
+                                    <div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-[10px] font-bold text-white"><%= currentUser.name ? currentUser.name.charAt(0).toUpperCase() : 'U' %></div>
                                 <% } %>
-                                <span class="max-w-[100px] truncate text-xs font-semibold text-slate-700"><%= currentUser.name %></span>
-                                <i class="ph-bold ph-caret-down text-[10px] text-slate-500 transition-transform group-hover:rotate-180"></i>
+                                <span class="max-w-[140px] sm:max-w-[160px] lg:max-w-[180px] truncate text-xs font-semibold text-slate-700" title="<%= currentUser.name %>"><%= currentUser.name %></span>
+                                <i class="ph-bold ph-caret-down shrink-0 text-[10px] text-slate-500 transition-transform group-hover:rotate-180"></i>
                             </button>
-                            <div class="absolute right-0 top-full mt-2 hidden w-40 rounded-xl border border-slate-200 bg-white shadow-lg group-hover:block z-50 overflow-hidden">
-                                <a href="/auth/logout" class="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50">
+                            <div class="absolute right-0 top-full z-50 mt-2 hidden w-48 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg group-hover:block">
+                                <div class="border-b border-slate-100 bg-slate-50/50 px-4 py-2.5">
+                                    <p class="truncate text-xs font-bold text-slate-800" title="<%= currentUser.name %>"><%= currentUser.name %></p>
+                                    <p class="truncate text-[11px] capitalize text-slate-500"><%= currentUser.role %></p>
+                                </div>
+                                <a href="/auth/logout" class="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50">
                                     <i class="ph-bold ph-sign-out"></i> Log Out
                                 </a>
                             </div>
@@ -162,8 +175,8 @@
                     <% } %>
                 </div>
 
-                <div class="hidden items-center justify-center pl-2 lg:flex">
-                    <img src="/images/azadi-logo.jpg" alt="Azadi Ka Amrit Mahotsav" class="h-11 w-auto object-contain mix-blend-multiply contrast-125">
+                <div class="hidden items-center justify-center pl-1 xl:flex shrink-0">
+                    <img src="/images/azadi-logo.jpg" alt="Azadi Ka Amrit Mahotsav" class="h-10 w-auto object-contain mix-blend-multiply contrast-125">
                 </div>
             </div>
         </div>
