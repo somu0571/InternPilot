@@ -21,6 +21,8 @@ const { detectProfileConflicts } = require('../utils/conflictDetector');
 const { recordResumeParse } = require('../utils/resumeParse');
 const { formatRelativeTime, formatLocalizedDateTime } = require('../utils/dateFormat');
 const { buildSkillProfiles, parseSkillProfiles, skillNames } = require('../utils/skillProfiles');
+const { sanitizeHttpUrl } = require('../utils/safeUrl');
+const { filterAndSortApplications } = require('../utils/applicationSearch');
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -1027,13 +1029,18 @@ router.get('/candidate/applications', isAuthenticated, authorize('candidate'), a
             .populate('internship')
             .sort(sortObj);
 
+        const applicationSearch = filterAndSortApplications(applications, req.query);
+
         res.render('candidate/candidate-tracker', {
             candidate,
-            applications,
+            currentUser: req.user,
+            applications: applicationSearch.applications,
             stats,
-            searchQuery,
-            statusFilter,
-            sortOrder,
+            searchQuery: applicationSearch.search,
+            statusFilter: applicationSearch.status,
+            sort: applicationSearch.sort,
+            totalApplications: allApplications.length,
+            pageTitle: 'My Applications',
             sanitizeHttpUrl,
             formatRelativeTime,
             formatLocalizedDateTime

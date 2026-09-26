@@ -42,7 +42,7 @@
     const activeSearchQuery = typeof searchQuery === 'string' ? searchQuery : '';
     const activeStatusFilter = typeof statusFilter === 'string' ? statusFilter : 'all';
     const activeSort = typeof sort === 'string' ? sort : 'recent';
-    const applicationCount = Number.isFinite(Number(totalApplications)) ? Number(totalApplications) : safeApplications.length;
+    const applicationCount = (typeof totalApplications !== 'undefined' && Number.isFinite(Number(totalApplications))) ? Number(totalApplications) : safeApplications.length;
     const hasActiveFilters = Boolean(activeSearchQuery || activeStatusFilter !== 'all');
     const clearFiltersUrl = activeSort !== 'recent'
         ? `/candidate/applications?sort=${encodeURIComponent(activeSort)}`
@@ -136,6 +136,16 @@
             </a>
         </section>
     <% } else { %>
+
+        <%
+            /* Build the stats counts for the filter pill labels */
+            const totalCount      = safeApplications.length;
+            const submittedCount  = safeApplications.filter(a => ['Submitted','submitted','pending'].includes(String(a.status))).length;
+            const underRevCount   = safeApplications.filter(a => ['Under Review','under_review'].includes(String(a.status))).length;
+            const shortCount      = safeApplications.filter(a => ['Shortlisted','shortlisted'].includes(String(a.status))).length;
+            const rejCount        = safeApplications.filter(a => ['Rejected','rejected'].includes(String(a.status))).length;
+            const withdrawnCount  = safeApplications.filter(a => ['Withdrawn','withdrawn'].includes(String(a.status))).length;
+        %>
 
         <!-- ── Search & Filter Bar ── -->
         <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">

@@ -14,6 +14,116 @@ const { notifyCandidateWithdrawal } = require('../utils/recruiterNotifications')
 const { isAuthenticated, authorize } = require('../middleware/auth');
 const { formatRelativeTime, formatLocalizedDateTime } = require('../utils/dateFormat');
 const { filterAndSortApplications } = require('../utils/applicationSearch');
+const {
+    normalizeSavedSearchCriteria,
+    hasSavedSearchCriteria,
+    getSavedSearchCriteriaHash,
+    buildSavedSearchResultsUrl,
+    matchesInternshipCriteria,
+    describeSavedSearchCriteria
+} = require('../utils/queryHelper');
+
+const MAX_SAVED_SEARCHES = 10;
+
+function parseSavedSearchCriteria(rawCriteria) {
+    if (typeof rawCriteria === 'string') {
+        try {
+            return normalizeSavedSearchCriteria(JSON.parse(rawCriteria));
+        } catch (error) {
+            throw new Error('The saved-search filters were invalid. Please try saving the search again.');
+        }
+    }
+
+    if (rawCriteria && typeof rawCriteria === 'object' && !Array.isArray(rawCriteria)) {
+        return normalizeSavedSearchCriteria(rawCriteria);
+    }
+
+    throw new Error('Choose at least one filter before saving this search.');
+}
+
+function readCheckbox(value) {
+    return value === true || value === 'true' || value === '1' || value === 'on';
+}
+
+function getAlertSettings(body = {}, fallback = {}) {
+    const candidateFrequency = typeof body.frequency === 'string'
+        ? body.frequency.trim().toLowerCase()
+        : (fallback.frequency || 'instant');
+    const frequency = ['instant', 'daily', 'weekly', 'off'].includes(candidateFrequency)
+        ? candidateFrequency
+        : null;
+
+    if (!frequency) throw new Error('Choose a valid alert frequency.');
+
+    const hasExplicitDelivery = readCheckbox(body.deliveryConfigured)
+        || Object.prototype.hasOwnProperty.call(body, 'inApp')
+        || Object.prototype.hasOwnProperty.call(body, 'email');
+    const delivery = hasExplicitDelivery
+        ? { inApp: readCheckbox(body.inApp), email: readCheckbox(body.email) }
+        : {
+            inApp: fallback.delivery?.inApp !== false,
+            email: Boolean(fallback.delivery?.email)
+        };
+
+    if (frequency !== 'off' && !delivery.inApp && !delivery.email) {
+        throw new Error('Select in-app notifications, email, or both.');
+    }
+
+    return { frequency, delivery };
+}
+
+function getSavedSearchName(value, fallback = '') {
+    const name = typeof value === 'string' ? value.trim() : fallback;
+    if (!name) throw new Error('Give this saved search a name.');
+    if (name.length > 80) throw new Error('Saved search names must be 80 characters or fewer.');
+    return name;
+}
+
+function savedSearchReturnPath(req, fallback = '/candidate/saved-searches') {
+    const candidate = typeof req.body?.returnTo === 'string' ? req.body.returnTo : '';
+    if (candidate.startsWith('/internships') || candidate.startsWith('/candidate/saved-searches')) return candidate;
+    return fallback;
+}
+
+function isValidSavedSearchId(value) {
+    return mongoose.Types.ObjectId.isValid(value);
+}
+
+// MongoDB is the final authority for the candidate + criteriaHash unique
+// index. The read-before-write checks below make the common path friendly,
+// while this recognises the small window where two identical requests reach
+// the index at the same time.
+function isSavedSearchDuplicateKeyError(error) {
+    if (error?.code !== 11000) return false;
+
+    const keyPattern = error.keyPattern;
+    return !keyPattern || (
+        Object.prototype.hasOwnProperty.call(keyPattern, 'candidate')
+        && Object.prototype.hasOwnProperty.call(keyPattern, 'criteriaHash')
+    );
+}
+
+function applyRepeatedSavedSearchSettings(savedSearch, { name, frequency, delivery, now }) {
+    savedSearch.name = name;
+    savedSearch.frequency = frequency;
+    savedSearch.delivery = delivery;
+    savedSearch.isPaused = false;
+    savedSearch.alertStartAt = now;
+    if (frequency === 'daily' || frequency === 'weekly') savedSearch.lastDigestAt = now;
+}
+
+async function getPublishedListingsForSavedSearches() {
+    const now = new Date();
+    return Internship.find({
+        status: 'published',
+        isPaused: { $ne: true },
+        $or: [
+            { applicationDeadline: { $exists: false } },
+            { applicationDeadline: null },
+            { applicationDeadline: { $gte: now } }
+        ]
+    }).select('_id title companyName sector location requiredSkills monthlyStipend duration applicationDeadline status isPaused').lean();
+}
 
 /**
  * GET /candidate/saved-internships
@@ -357,7 +467,6 @@ router.get('/candidate/my-applications', isAuthenticated, authorize('candidate')
             shortlisted: allApplications.filter(a => a.status === 'Shortlisted').length,
             rejected: allApplications.filter(a => a.status === 'Rejected').length
         };
-        const applicationSearch = filterAndSortApplications(applications, req.query);
 
         let query = { candidate: userId };
 
@@ -365,19 +474,19 @@ router.get('/candidate/my-applications', isAuthenticated, authorize('candidate')
             if (statusFilter.toLowerCase() === 'submitted') {
                 query.status = { $in: ['Submitted', 'pending'] };
             } else {
-                query.status = new RegExp('^' + statusFilter.replace(/[-/\\\\^$*+?.()|[\\]{}]/g, '\\\\$&') + '$', 'i');
+                query.status = new RegExp('^' + statusFilter.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&') + '$', 'i');
             }
         }
 
         if (searchQuery) {
             const Internship = require('../models/Internship');
-            const escapeRegex = (text) => text.replace(/[-[\]{}()*+?.,\\\\^$|#\\s]/g, '\\\\$&');
+            const escapeRegex = (text) => text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
             const regex = new RegExp(escapeRegex(searchQuery), 'gi');
-            
+
             const matchingInternships = await Internship.find({
                 $or: [{ title: regex }, { companyName: regex }, { company: regex }]
             }).select('_id');
-            
+
             const internshipIds = matchingInternships.map(i => i._id);
             query.internship = { $in: internshipIds };
         }
@@ -395,13 +504,7 @@ router.get('/candidate/my-applications', isAuthenticated, authorize('candidate')
             .populate('internship')
             .sort(sortObj);
 
-        const stats = {
-            total: applications.length,
-            submitted: applications.filter(a => a.status === 'Submitted').length,
-            underReview: applications.filter(a => a.status === 'Under Review').length,
-            shortlisted: applications.filter(a => a.status === 'Shortlisted').length,
-            rejected: applications.filter(a => a.status === 'Rejected').length
-        };
+        const applicationSearch = filterAndSortApplications(applications, req.query);
 
         res.render('candidate/candidate-tracker', {
             candidate,
@@ -411,7 +514,7 @@ router.get('/candidate/my-applications', isAuthenticated, authorize('candidate')
             searchQuery: applicationSearch.search,
             statusFilter: applicationSearch.status,
             sort: applicationSearch.sort,
-            totalApplications: applicationSearch.totalApplications,
+            totalApplications: allApplications.length,
             pageTitle: 'My Applications',
             formatRelativeTime,
             formatLocalizedDateTime

@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const router = express.Router();
 const User = require('../models/User');
 const { isAuthenticated, authorize } = require('../middleware/auth');
@@ -36,6 +37,10 @@ router.get('/dashboard', isAuthenticated, authorize('admin'), async (req, res) =
 
 router.post('/approve-company/:id', isAuthenticated, authorize('admin'), async (req, res) => {
     try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            req.flash('error_msg', 'Invalid company ID.');
+            return res.redirect('/admin/dashboard');
+        }
         const result = await User.findOneAndUpdate(
             { _id: req.params.id, role: 'company' },
             { 'companyDetails.isVerified': true }
@@ -55,6 +60,10 @@ router.post('/approve-company/:id', isAuthenticated, authorize('admin'), async (
 
 router.post('/reject-company/:id', isAuthenticated, authorize('admin'), async (req, res) => {
     try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            req.flash('error_msg', 'Invalid company ID.');
+            return res.redirect('/admin/dashboard');
+        }
         const result = await User.findOneAndDelete({ _id: req.params.id, role: 'company' });
         if (!result) {
             req.flash('error_msg', 'Company not found or already removed.');
