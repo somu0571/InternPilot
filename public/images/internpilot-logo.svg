@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100" fill="none">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="ipBg" x1="15" y1="15" x2="85" y2="85" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3b49df" />
+      <stop offset="45%" stop-color="#2c39cc" />
+      <stop offset="100%" stop-color="#1b248a" />
+    </linearGradient>
+
+    <!-- Outer Rim Gradient -->
+    <linearGradient id="ipRim" x1="10" y1="10" x2="90" y2="90" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#9bb0ff" />
+      <stop offset="50%" stop-color="#687efc" />
+      <stop offset="100%" stop-color="#3e4ec8" />
+    </linearGradient>
+
+    <!-- Flight Arc Gradient -->
+    <linearGradient id="ipArc" x1="36" y1="78" x2="66" y2="34" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.3" />
+      <stop offset="30%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#67e8f9" />
+    </linearGradient>
+
+    <!-- Star Glow Gradient -->
+    <linearGradient id="ipStar" x1="60" y1="22" x2="68" y2="34" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#fff176" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
+
+    <!-- Drop Shadow for Aircraft -->
+    <filter id="ipPlaneShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="1" dy="2.5" stdDeviation="2.5" flood-color="#0f172a" flood-opacity="0.4" />
+    </filter>
+
+    <!-- Radial Highlight -->
+    <radialGradient id="ipGlow" cx="35%" cy="30%" r="60%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.22" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <!-- Circular Base Badge -->
+  <circle cx="50" cy="50" r="46" fill="url(#ipBg)" />
+  <circle cx="50" cy="50" r="46" fill="url(#ipGlow)" />
+
+  <!-- Outer Ring and Accent Rim -->
+  <circle cx="50" cy="50" r="45.5" stroke="url(#ipRim)" stroke-width="1.8" />
+  <circle cx="50" cy="50" r="42" stroke="#5c6ef8" stroke-width="0.75" stroke-opacity="0.7" />
+
+  <!-- Flight Trajectory Arc sweeping up toward the star -->
+  <path d="M 37 68 C 36 75.5 45 79.5 54 78 C 63 76 69 66 67.5 53 C 66.5 45 65.5 39 64.2 34" 
+        stroke="url(#ipArc)" stroke-width="3.2" stroke-linecap="round" fill="none" />
+
+  <!-- Soaring Paper Plane / Delta Craft -->
+  <g filter="url(#ipPlaneShadow)">
+    <!-- Main Top Wing (Pure White Highlight) -->
+    <polygon points="59.5,39.5 31,51.5 42.5,59" fill="#ffffff" />
+    <!-- Center Keel Fold (Soft Blue White) -->
+    <polygon points="59.5,39.5 42.5,59 44,66.5" fill="#e0e7ff" />
+    <!-- Right Wing (Subtle Depth) -->
+    <polygon points="59.5,39.5 44,66.5 51.5,61.8" fill="#c7d2fe" />
+    <!-- Underbody Fold / Shadow Fin -->
+    <polygon points="42.5,59 40,63.5 44,66.5" fill="#818cf8" />
+  </g>
+
+  <!-- Star Glow Aura -->
+  <circle cx="64" cy="27.5" r="4.5" fill="#fbbf24" opacity="0.3" filter="blur(1px)" />
+
+  <!-- Guidance Star at Apex -->
+  <polygon points="64,22 65.6,26.2 70,26.2 66.5,28.8 67.8,33 64,30.4 60.2,33 61.5,28.8 58,26.2 62.4,26.2" 
+           fill="url(#ipStar)" />
+  <circle cx="64" cy="27.5" r="1.2" fill="#ffffff" />
+</svg>

@@ -82,3 +82,27 @@ test('header synchronizes history-based navigation and supports keyboard dismiss
     assert.match(headerTemplate, /event\.key === 'Escape'/);
     assert.match(headerTemplate, /aria-current/);
 });
+
+test('header includes circular brand logo mark with proper hierarchy, styling and alt text', () => {
+    const html = renderHeader('/');
+    
+    assert.match(html, /src="\/images\/internpilot-logo\.svg"/);
+    assert.match(html, /alt="InternPilot Logo"/);
+    assert.match(html, /header-brand-logo/);
+    assert.match(html, /object-contain/);
+
+    const emblemIdx = html.indexOf('/images/emblem.jpg');
+    const logoIdx = html.indexOf('/images/internpilot-logo.svg');
+    const textIdx = html.indexOf('Intern</span>Pilot');
+    const pmisIdx = html.indexOf('>PMIS<');
+
+    assert.ok(emblemIdx !== -1, 'Emblem exists');
+    assert.ok(logoIdx !== -1, 'Logo mark exists');
+    assert.ok(textIdx !== -1, 'InternPilot text exists');
+    assert.ok(pmisIdx !== -1, 'PMIS badge exists');
+
+    assert.ok(emblemIdx < logoIdx, 'Emblem is before Logo mark');
+    assert.ok(logoIdx < textIdx, 'Logo mark is before InternPilot text');
+    assert.ok(textIdx < pmisIdx, 'InternPilot text is before PMIS badge');
+});
+
