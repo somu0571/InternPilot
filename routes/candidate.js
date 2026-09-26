@@ -459,6 +459,15 @@ router.get('/candidate/my-applications', isAuthenticated, authorize('candidate')
         const statusFilter = (req.query.status || 'all').trim();
         const sortOrder = (req.query.sort || 'applied_desc').trim();
 
+        const allApplications = await Application.find({ candidate: userId });
+        const stats = {
+            total: allApplications.length,
+            submitted: allApplications.filter(a => a.status === 'Submitted').length,
+            underReview: allApplications.filter(a => a.status === 'Under Review').length,
+            shortlisted: allApplications.filter(a => a.status === 'Shortlisted').length,
+            rejected: allApplications.filter(a => a.status === 'Rejected').length
+        };
+
         let query = { candidate: userId };
 
         if (statusFilter !== 'all') {
@@ -493,14 +502,6 @@ router.get('/candidate/my-applications', isAuthenticated, authorize('candidate')
         const applications = await Application.find(query)
             .populate('internship')
             .sort(sortObj);
-
-        const stats = {
-            total: applications.length,
-            submitted: applications.filter(a => a.status === 'Submitted').length,
-            underReview: applications.filter(a => a.status === 'Under Review').length,
-            shortlisted: applications.filter(a => a.status === 'Shortlisted').length,
-            rejected: applications.filter(a => a.status === 'Rejected').length
-        };
         const applicationSearch = filterAndSortApplications(applications, req.query);
 
         res.render('candidate/candidate-tracker', {
@@ -511,7 +512,7 @@ router.get('/candidate/my-applications', isAuthenticated, authorize('candidate')
             searchQuery: applicationSearch.search,
             statusFilter: applicationSearch.status,
             sort: applicationSearch.sort,
-            totalApplications: applicationSearch.totalApplications,
+            totalApplications: allApplications.length,
             pageTitle: 'My Applications',
             formatRelativeTime,
             formatLocalizedDateTime
