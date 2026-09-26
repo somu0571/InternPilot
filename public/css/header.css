@@ -1,0 +1,18 @@
+/* InternPilot Brand Logo Mark - Header UI Styles */
+.header-brand-logo {
+    display: inline-block;
+    object-fit: contain;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    flex-shrink: 0;
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.header-brand-link:hover .header-brand-logo {
+    transform: scale(1.05);
+}
+
+.header-brand-link:focus-visible {
+    outline: 2px solid #4f46e5;
+    outline-offset: 2px;
+}
