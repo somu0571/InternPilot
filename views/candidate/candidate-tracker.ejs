@@ -39,12 +39,23 @@
             ? date.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' })
             : 'To be confirmed';
     };
+    const safeUrl = typeof sanitizeHttpUrl === 'function' ? sanitizeHttpUrl : (url => {
+        try {
+            const parsed = new URL(url);
+            return { url: ['http:', 'https:'].includes(parsed.protocol) ? url : null };
+        } catch (e) {
+            return { url: null };
+        }
+    });
+
     const activeSearchQuery = typeof searchQuery === 'string' ? searchQuery : '';
     const activeStatusFilter = typeof statusFilter === 'string' ? statusFilter : 'all';
-    const activeSort = typeof sort === 'string' ? sort : 'recent';
-    const applicationCount = Number.isFinite(Number(totalApplications)) ? Number(totalApplications) : safeApplications.length;
+    const activeSort = typeof sortOrder === 'string' ? sortOrder : 'applied_desc';
+    const totalCount = (typeof stats !== 'undefined' && stats && Number.isFinite(Number(stats.total)))
+        ? Number(stats.total)
+        : safeApplications.length;
     const hasActiveFilters = Boolean(activeSearchQuery || activeStatusFilter !== 'all');
-    const clearFiltersUrl = activeSort !== 'recent'
+    const clearFiltersUrl = activeSort !== 'applied_desc'
         ? `/candidate/applications?sort=${encodeURIComponent(activeSort)}`
         : '/candidate/applications';
 %>
@@ -63,7 +74,7 @@
         </a>
     </header>
 
-    <% if (applicationCount > 0) { %>
+    <% if (totalCount > 0) { %>
         <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5" aria-label="Search and filter applications">
             <form action="/candidate/applications" method="GET" class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_11rem_11rem_auto] lg:items-end">
                 <div>
@@ -86,9 +97,10 @@
                 <div>
                     <label for="application-sort" class="mb-1.5 block text-xs font-bold text-slate-700">Sort</label>
                     <select id="application-sort" name="sort" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100">
-                        <option value="recent" <%= activeSort === 'recent' ? 'selected' : '' %>>Recently updated</option>
-                        <option value="oldest" <%= activeSort === 'oldest' ? 'selected' : '' %>>Oldest application</option>
-                        <option value="company" <%= activeSort === 'company' ? 'selected' : '' %>>Company name</option>
+                        <option value="applied_desc" <%= activeSort === 'applied_desc' ? 'selected' : '' %>>Recently applied</option>
+                        <option value="applied_asc" <%= activeSort === 'applied_asc' ? 'selected' : '' %>>Oldest application</option>
+                        <option value="updated_desc" <%= activeSort === 'updated_desc' ? 'selected' : '' %>>Recently updated</option>
+                        <option value="match_desc" <%= activeSort === 'match_desc' ? 'selected' : '' %>>Highest match score</option>
                     </select>
                 </div>
                 <div class="flex items-center gap-2">
@@ -102,9 +114,9 @@
             </form>
             <p class="mt-3 text-xs text-slate-500" aria-live="polite">
                 <% if (hasActiveFilters) { %>
-                    Showing <%= safeApplications.length %> of <%= applicationCount %> application<%= applicationCount === 1 ? '' : 's' %>.
+                    Showing <%= safeApplications.length %> of <%= totalCount %> application<%= totalCount === 1 ? '' : 's' %>.
                 <% } else { %>
-                    <%= applicationCount %> application<%= applicationCount === 1 ? '' : 's' %>.
+                    <%= totalCount %> application<%= totalCount === 1 ? '' : 's' %>.
                 <% } %>
             </p>
         </section>
@@ -136,66 +148,7 @@
             </a>
         </section>
     <% } else { %>
-
-        <!-- ── Search & Filter Bar ── -->
-        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
-
-            <!-- Search input -->
-            <div class="relative">
-                <span class="absolute inset-y-0 left-3 flex items-center pointer-events-none text-slate-400">
-                    <i class="ph-bold ph-magnifying-glass text-sm" aria-hidden="true"></i>
-                </span>
-                <input
-                    id="appSearchInput"
-                    type="search"
-                    placeholder="Search by role or company…"
-                    autocomplete="off"
-                    aria-label="Search applications"
-                    class="w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-4 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition"
-                />
-            </div>
-
-            <!-- Status filter pills -->
-            <div id="statusFilterBar" role="group" aria-label="Filter by status" class="flex flex-wrap gap-2">
-                <button type="button" data-filter="all"
-                    class="filter-pill active rounded-full border border-indigo-600 bg-indigo-600 px-3 py-1 text-[11px] font-semibold text-white transition-all focus:outline-none focus:ring-2 focus:ring-indigo-400">
-                    All <span class="ml-1 opacity-75">(<%= totalCount %>)</span>
-                </button>
-                <% if (submittedCount > 0) { %>
-                <button type="button" data-filter="submitted"
-                    class="filter-pill rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold text-slate-600 hover:border-slate-400 transition-all focus:outline-none focus:ring-2 focus:ring-slate-300">
-                    Submitted <span class="ml-1 opacity-60">(<%= submittedCount %>)</span>
-                </button>
-                <% } %>
-                <% if (underRevCount > 0) { %>
-                <button type="button" data-filter="under review"
-                    class="filter-pill rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold text-slate-600 hover:border-slate-400 transition-all focus:outline-none focus:ring-2 focus:ring-slate-300">
-                    Under Review <span class="ml-1 opacity-60">(<%= underRevCount %>)</span>
-                </button>
-                <% } %>
-                <% if (shortCount > 0) { %>
-                <button type="button" data-filter="shortlisted"
-                    class="filter-pill rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold text-slate-600 hover:border-slate-400 transition-all focus:outline-none focus:ring-2 focus:ring-slate-300">
-                    Shortlisted <span class="ml-1 opacity-60">(<%= shortCount %>)</span>
-                </button>
-                <% } %>
-                <% if (rejCount > 0) { %>
-                <button type="button" data-filter="rejected"
-                    class="filter-pill rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold text-slate-600 hover:border-slate-400 transition-all focus:outline-none focus:ring-2 focus:ring-slate-300">
-                    Rejected <span class="ml-1 opacity-60">(<%= rejCount %>)</span>
-                </button>
-                <% } %>
-                <% if (withdrawnCount > 0) { %>
-                <button type="button" data-filter="withdrawn"
-                    class="filter-pill rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold text-slate-600 hover:border-slate-400 transition-all focus:outline-none focus:ring-2 focus:ring-slate-300">
-                    Withdrawn <span class="ml-1 opacity-60">(<%= withdrawnCount %>)</span>
-                </button>
-                <% } %>
-            </div>
-        </div>
-        <!-- ── End Filter Bar ── -->
-
-        <div class="space-y-4" aria-label="Submitted applications" id="applicationsList">
+        <div class="space-y-4" aria-label="Submitted applications">
             <% safeApplications.forEach(app => { %>
                 <%
                     const normalizedStatus = normalizeStatus(app.status);
@@ -217,14 +170,12 @@
                             ? 'bg-amber-50 border-amber-200 text-amber-700'
                             : 'bg-rose-50 border-rose-200 text-rose-700';
                     const interview = app.interview && app.interview.status ? app.interview : null;
-                    const safeMeetingLink = interview ? sanitizeHttpUrl(interview.meetingLink).url : '';
+                    const safeMeetingLink = interview ? (safeUrl(interview.meetingLink).url || '') : '';
                     const statusUpdatedAt = asValidDate(app.statusUpdatedAt || app.appliedAt);
                     const hasApplicationKit = Boolean(app.applicationKit);
                 %>
 
                 <article id="app-card-<%= app._id %>"
-                    data-status="<%= normalizedStatus %>"
-                    data-search-text="<%= (internshipTitle + ' ' + companyName).toLowerCase() %>"
                     class="application-card rounded-2xl border <%= isWithdrawn ? 'border-slate-300 bg-slate-50' : 'border-slate-200 bg-white' %> p-5 shadow-sm transition-shadow hover:shadow-md sm:p-6">
                     <div data-application-grid
                         class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(140px,0.65fr)_minmax(270px,1.2fr)_minmax(150px,0.7fr)] lg:items-center">
@@ -313,6 +264,8 @@
                         <section data-card-column="actions" class="border-t border-slate-100 pt-5 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0 lg:text-right">
                             <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Actions</p>
                             <div class="mt-2 flex flex-wrap items-center gap-2 lg:justify-end">
+                                <% if (typeof messageUnreadCount !== 'undefined') { %><%- include('../partials/message-start-button', { application: app, label: 'Message recruiter' }) %><% } %>
+
                                 <% if (!isTerminated) { %>
                                     <button type="button"
                                         data-withdraw-trigger
@@ -400,21 +353,6 @@
                 </article>
             <% }) %>
         </div>
-
-        <!-- Empty filter state (shown by JS when no cards match) -->
-        <div id="noFilterResults" class="hidden rounded-2xl border border-slate-200 bg-white px-6 py-14 text-center shadow-sm">
-            <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
-                <i class="ph-bold ph-funnel-simple text-3xl" aria-hidden="true"></i>
-            </div>
-            <h2 class="text-base font-bold text-slate-700">No applications match your filter</h2>
-            <p class="mx-auto mt-1 max-w-xs text-xs text-slate-500">Try a different status or clear the search to see all your applications.</p>
-            <button type="button" id="clearFiltersBtn"
-                class="mt-5 inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300">
-                <i class="ph-bold ph-x-circle" aria-hidden="true"></i>
-                Clear filters
-            </button>
-        </div>
-
     <% } %>
 </div>
 
@@ -497,99 +435,5 @@
                 closeWithdrawModal();
             }
         });
-    })();
-</script>
-
-<script>
-    /* ── Application Status Filter + Search ── */
-    (() => {
-        const cards         = Array.from(document.querySelectorAll('#applicationsList .application-card'));
-        const filterBtns    = Array.from(document.querySelectorAll('#statusFilterBar .filter-pill'));
-        const searchInput   = document.getElementById('appSearchInput');
-        const noResults     = document.getElementById('noFilterResults');
-        const clearBtn      = document.getElementById('clearFiltersBtn');
-
-        if (!cards.length) return;   // no applications on page, nothing to wire
-
-        let activeFilter = 'all';
-        let searchQuery  = '';
-
-        /* Mapping of filter key → normalised status strings that should match */
-        const filterMap = {
-            'all':          null,   // null = show everything
-            'submitted':    ['submitted', 'pending'],
-            'under review': ['under review'],
-            'shortlisted':  ['shortlisted'],
-            'rejected':     ['rejected'],
-            'withdrawn':    ['withdrawn'],
-        };
-
-        function applyFilters() {
-            const query     = searchQuery.trim().toLowerCase();
-            const allowed   = activeFilter === 'all' ? null : (filterMap[activeFilter] || [activeFilter]);
-            let visibleCount = 0;
-
-            cards.forEach(card => {
-                const cardStatus = (card.dataset.status || '').toLowerCase();
-                const cardText   = (card.dataset.searchText || '').toLowerCase();
-
-                const passesStatus = !allowed || allowed.some(s => cardStatus.includes(s));
-                const passesSearch = !query   || cardText.includes(query);
-
-                if (passesStatus && passesSearch) {
-                    card.style.display = '';
-                    visibleCount++;
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-
-            /* Toggle empty-filter state */
-            if (noResults) {
-                noResults.classList.toggle('hidden', visibleCount > 0);
-            }
-        }
-
-        /* Active pill styling */
-        function setActivePill(btn) {
-            filterBtns.forEach(b => {
-                const isActive = b === btn;
-                b.classList.toggle('active',                 isActive);
-                b.classList.toggle('bg-indigo-600',          isActive);
-                b.classList.toggle('border-indigo-600',      isActive);
-                b.classList.toggle('text-white',             isActive);
-                b.classList.toggle('bg-white',               !isActive);
-                b.classList.toggle('border-slate-200',       !isActive);
-                b.classList.toggle('text-slate-600',         !isActive);
-            });
-        }
-
-        /* Pill click handler */
-        filterBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                activeFilter = btn.dataset.filter || 'all';
-                setActivePill(btn);
-                applyFilters();
-            });
-        });
-
-        /* Search input handler */
-        if (searchInput) {
-            searchInput.addEventListener('input', () => {
-                searchQuery = searchInput.value;
-                applyFilters();
-            });
-        }
-
-        /* Clear filters button */
-        if (clearBtn) {
-            clearBtn.addEventListener('click', () => {
-                activeFilter = 'all';
-                searchQuery  = '';
-                if (searchInput) searchInput.value = '';
-                setActivePill(filterBtns[0]);   // reset to "All" pill
-                applyFilters();
-            });
-        }
     })();
 </script>

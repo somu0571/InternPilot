@@ -20,7 +20,6 @@ const { calculateSkillScore } = require('../utils/skillMatch');
 const { detectProfileConflicts } = require('../utils/conflictDetector');
 const { recordResumeParse } = require('../utils/resumeParse');
 const { formatRelativeTime, formatLocalizedDateTime } = require('../utils/dateFormat');
-const { buildSkillProfiles, parseSkillProfiles, skillNames } = require('../utils/skillProfiles');
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -251,8 +250,7 @@ router.get('/candidate/profile', isAuthenticated, authorize('candidate'), async 
 
         res.render('candidate/candidate-profile', {
             user: freshUser,
-            candidate: freshUser,
-            skillProfiles: buildSkillProfiles(freshUser)
+            candidate: freshUser
         });
     } catch (error) {
         console.error('Error fetching candidate profile:', error);
@@ -276,18 +274,11 @@ router.get('/candidate/resume-builder', isAuthenticated, authorize('candidate'),
 
 router.post('/candidate/profile/edit', isAuthenticated, authorize('candidate'), async (req, res) => {
     try {
-        const {
-            location,
-            age,
-            familyIncome,
-            qualification,
-            institution,
-            enrollmentStatus,
-            employmentStatus
-        } = req.body;
+        const { location, age, familyIncome, qualification, institution, skills } = req.body;
 
-        const parsedSkillProfiles = parseSkillProfiles(req.body);
-        const skillsArray = skillNames(null, parsedSkillProfiles);
+        const skillsArray = skills
+            ? skills.split(',').map(s => s.trim()).filter(Boolean)
+            : [];
 
         const userId = req.user._id || req.user.id;
 
@@ -296,35 +287,24 @@ router.post('/candidate/profile/edit', isAuthenticated, authorize('candidate'), 
         if (location) {
             const parts = location.split(',').map(s => s.trim());
             district = parts[0] || '';
-            state = parts.slice(1).join(', ') || '';
+            state = parts[1] || '';
         }
-
-        const parsedAge = (age !== undefined && age !== null && age !== '' && !isNaN(Number(age)))
-            ? Number(age)
-            : null;
-        const parsedIncome = (familyIncome !== undefined && familyIncome !== null && familyIncome !== '' && !isNaN(Number(familyIncome)))
-            ? Number(familyIncome)
-            : null;
 
         await User.findByIdAndUpdate(
             userId,
             {
                 $set: {
-                    age: parsedAge,
-                    familyIncome: parsedIncome,
+                    age: age ? Number(age) : null,
+                    familyIncome: familyIncome ? Number(familyIncome) : null,
                     institution: institution || '',
                     'education.institutionName': institution || '',
                     skills: skillsArray,
-                    skillProfiles: parsedSkillProfiles,
                     'location.district': district,
                     'location.state': state,
-                    'education.qualification': qualification || '',
-                    qualification: qualification || '',
-                    enrollmentStatus: (enrollmentStatus || '').trim(),
-                    employmentStatus: (employmentStatus || '').trim()
+                    'education.qualification': qualification || ''
                 }
             },
-            { returnDocument: 'after', runValidators: false }
+            { new: true, runValidators: false }
         );
 
         // Wipe recommendations cache to force AI regeneration with new skills
