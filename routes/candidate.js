@@ -479,7 +479,6 @@ router.get('/candidate/my-applications', isAuthenticated, authorize('candidate')
         }
 
         if (searchQuery) {
-            const Internship = require('../models/Internship');
             const escapeRegex = (text) => text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
             const regex = new RegExp(escapeRegex(searchQuery), 'gi');
 
@@ -503,7 +502,6 @@ router.get('/candidate/my-applications', isAuthenticated, authorize('candidate')
         const applications = await Application.find(query)
             .populate('internship')
             .sort(sortObj);
-
         const applicationSearch = filterAndSortApplications(applications, req.query);
 
         res.render('candidate/candidate-tracker', {
