@@ -22,15 +22,11 @@
                 </p>
             </div>
 
-            <% const poolSize = typeof totalApplicants !== 'undefined' ? totalApplicants : (Array.isArray(applications) ? applications.length : 0); %>
-            <% const shownCount = Array.isArray(applications) ? applications.length : 0; %>
-            <%# Only the /company route passes filters; other callers get the plain list. %>
-            <% const filtersEnabled = typeof candidateFilters !== 'undefined' && !!candidateFilters; %>
             <div class="bg-indigo-50 border border-indigo-100 px-4 py-2.5 rounded-xl text-right">
                 <span class="block text-[10px] font-semibold text-indigo-500 uppercase tracking-wider">Total
                     Applicants</span>
-                <span class="text-xl font-bold text-indigo-700" data-live-region="count" aria-live="polite">
-                    <%= shownCount === poolSize ? poolSize : shownCount + ' of ' + poolSize %> Candidates
+                <span class="text-xl font-bold text-indigo-700">
+                    <%= Array.isArray(applications) ? applications.length : 0 %> Candidates
                 </span>
             </div>
         </div>
@@ -45,30 +41,11 @@
             </div>
         </div>
 
-        <% if (filtersEnabled && poolSize > 0) { %><%- include('../partials/candidate-filter-panel') %><% } %>
-
-        <%# Swapped in place by the candidate filter script. data-state carries the filters the server applied. %>
-        <div data-live-region="results" class="space-y-4 transition-opacity"
-            data-state="<%= JSON.stringify(typeof candidateFilters !== 'undefined' ? candidateFilters : {}) %>">
-
-        <% if (filtersEnabled) { %><%- include('../partials/candidate-active-filters') %><% } %>
-
-        <% if (poolSize === 0) { %>
+        <% if (!applications || applications.length===0) { %>
             <div class="bg-white border border-slate-200 rounded-xl p-12 text-center shadow-sm">
                 <i class="ph-bold ph-users-three text-4xl text-slate-300 mb-2"></i>
                 <h3 class="text-base font-bold text-slate-800">No applicants yet</h3>
                 <p class="text-xs text-slate-500 mt-1">Applications will appear here once candidates start applying.</p>
-            </div>
-        <% } else if (!applications || applications.length === 0) { %>
-            <div class="bg-white border border-slate-200 rounded-xl p-12 text-center shadow-sm">
-                <i class="ph-bold ph-funnel-x text-4xl text-slate-300 mb-2"></i>
-                <h3 class="text-base font-bold text-slate-800">No candidates match these filters</h3>
-                <p class="text-xs text-slate-500 mt-1 mb-4">Remove a filter above to widen the pool again.</p>
-                <% if (typeof filterBasePath !== 'undefined' && filterBasePath) { %>
-                    <a href="<%= filterBasePath %>" class="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition-colors">
-                        Clear all filters
-                    </a>
-                <% } %>
             </div>
             <% } else { %>
                 <div class="space-y-4">
@@ -315,8 +292,6 @@
                 </div>
                 <% } %>
 
-        </div>
-
         <!-- Search Empty State -->
         <div id="searchEmptyState" class="hidden bg-white border border-slate-200 rounded-xl p-12 text-center shadow-sm mt-4">
             <i class="ph-bold ph-magnifying-glass text-4xl text-slate-300 mb-2"></i>
@@ -324,8 +299,6 @@
             <p class="text-xs text-slate-500 mt-1">Try adjusting your search keywords.</p>
         </div>
     </div>
-
-<% if (filtersEnabled) { %><%- include('../partials/candidate-filters-script') %><% } %>
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -337,8 +310,6 @@
 
         searchInput.addEventListener('input', (e) => {
             const searchTerm = e.target.value.toLowerCase().trim();
-            // Re-read on each keystroke: the candidate filters swap the cards in place.
-            const candidateCards = document.querySelectorAll('.applicant-card');
             let visibleCount = 0;
 
             candidateCards.forEach(card => {
