@@ -513,19 +513,19 @@ START2CODE is an initiative event owned and organized by the **GitHub Club under
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/rajeevsahani">
-                    <img src="https://avatars.githubusercontent.com/u/10737960?v=4" width="100;" alt="rajeevsahani"/>
+                <a href="https://github.com/alisayam-786">
+                    <img src="https://avatars.githubusercontent.com/u/233578022?v=4" width="100;" alt="alisayam-786"/>
                     <br />
-                    <sub><b>Rajeev Kumar</b></sub>
+                    <sub><b>Ali Sayam</b></sub>
                 </a>
             </td>
 		</tr>
 		<tr>
             <td align="center">
-                <a href="https://github.com/alisayam-786">
-                    <img src="https://avatars.githubusercontent.com/u/233578022?v=4" width="100;" alt="alisayam-786"/>
+                <a href="https://github.com/rajeevsahani">
+                    <img src="https://avatars.githubusercontent.com/u/10737960?v=4" width="100;" alt="rajeevsahani"/>
                     <br />
-                    <sub><b>Ali Sayam</b></sub>
+                    <sub><b>Rajeev Kumar</b></sub>
                 </a>
             </td>
             <td align="center">
