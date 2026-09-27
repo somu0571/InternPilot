@@ -27,6 +27,7 @@ test('isActiveListing only counts listings open to applicants', () => {
     assert.equal(isActiveListing({ status: 'draft' }), false);
     assert.equal(isActiveListing({ status: 'paused' }), false);
     assert.equal(isActiveListing({ status: 'closed' }), false);
+    assert.equal(isActiveListing({ status: 'published', vacancies: 1, filledSeats: 1 }), false);
     assert.equal(isActiveListing({ status: 'published', isPaused: true }), false);
 });
 

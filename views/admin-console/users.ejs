@@ -1,0 +1,86 @@
+<% layout('layouts/boilerplate') %>
+<%
+const roleStyles = {
+    candidate: 'bg-indigo-50 text-indigo-700 border-indigo-100',
+    company: 'bg-violet-50 text-violet-700 border-violet-100',
+    recruiter: 'bg-sky-50 text-sky-700 border-sky-100',
+    hiring_manager: 'bg-amber-50 text-amber-700 border-amber-100',
+    admin: 'bg-slate-100 text-slate-700 border-slate-200'
+};
+const initials = name => String(name || '?').trim().split(/\s+/).slice(0, 2).map(part => part.charAt(0).toUpperCase()).join('') || '?';
+%>
+<div class="grid gap-6 lg:grid-cols-[15rem_minmax(0,1fr)]">
+    <%- include('partials/sidebar', { section: 'users' }) %>
+    <section class="min-w-0 space-y-5">
+        <header class="ip-hero">
+            <div class="relative flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <p class="text-xs font-bold uppercase tracking-[0.2em] text-indigo-100/80">Admin console</p>
+                    <h1 class="mt-1 text-3xl font-bold">Users</h1>
+                    <p class="mt-1 text-sm text-indigo-100/90">Search, filter and manage every account on the platform.</p>
+                </div>
+                <span class="inline-flex items-center gap-2 self-start rounded-full bg-white/15 px-3 py-1.5 text-xs font-bold ring-1 ring-white/25 sm:self-auto"><i class="ph-bold ph-users-three" aria-hidden="true"></i><span data-count-up><%= users.length %></span> shown</span>
+            </div>
+        </header>
+
+        <form method="GET" class="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-4">
+            <label class="text-xs font-bold text-slate-600">Search name or email
+                <input name="search" value="<%= filters.search %>" placeholder="Asha, asha@example.com" class="mt-1 w-full rounded-xl border-slate-300 text-sm" />
+            </label>
+            <label class="text-xs font-bold text-slate-600">Role
+                <select name="role" class="mt-1 w-full rounded-xl border-slate-300 text-sm">
+                    <option value="">All roles</option>
+                    <% roles.forEach(role => { %><option value="<%= role %>" <%= filters.role === role ? 'selected' : '' %>><%= role %></option><% }) %>
+                </select>
+            </label>
+            <label class="text-xs font-bold text-slate-600">Status
+                <select name="status" class="mt-1 w-full rounded-xl border-slate-300 text-sm">
+                    <option value="">All</option>
+                    <option value="active" <%= filters.status === 'active' ? 'selected' : '' %>>Active</option>
+                    <option value="suspended" <%= filters.status === 'suspended' ? 'selected' : '' %>>Suspended</option>
+                </select>
+            </label>
+            <div class="flex items-end gap-2">
+                <button class="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white hover:bg-indigo-700"><i class="ph-bold ph-funnel" aria-hidden="true"></i> Filter</button>
+                <a href="/admin/console/export/users?<%= new URLSearchParams(filters).toString() %>" class="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:border-indigo-300 hover:text-indigo-700"><i class="ph-bold ph-download-simple" aria-hidden="true"></i> CSV</a>
+            </div>
+        </form>
+
+        <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-50/80">
+                        <tr>
+                            <th class="px-5 py-3">User</th>
+                            <th class="px-5 py-3">Role</th>
+                            <th class="px-5 py-3">Status</th>
+                            <th class="px-5 py-3">Joined</th>
+                            <th class="px-5 py-3"><span class="sr-only">Open</span></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100" data-animate-stagger>
+                        <% if (users.length) { users.forEach(user => { const suspended = user.consoleStatus === 'suspended'; %>
+                            <tr>
+                                <td class="px-5 py-3">
+                                    <div class="flex items-center gap-3">
+                                        <span class="ip-avatar" aria-hidden="true"><%= initials(user.name) %></span>
+                                        <div class="min-w-0">
+                                            <a class="font-bold text-slate-900 hover:text-indigo-700" href="/admin/console/users/<%= user._id %>"><%= user.name %></a>
+                                            <p class="truncate text-xs text-slate-500"><%= user.email %></p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-5 py-3"><span class="ip-pill ip-pill--nodot capitalize <%= roleStyles[user.role] || roleStyles.admin %>"><%= user.role.replace('_', ' ') %></span></td>
+                                <td class="px-5 py-3"><span class="ip-pill capitalize <%= suspended ? 'bg-rose-50 text-rose-700 border-rose-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100' %>"><%= user.consoleStatus %></span></td>
+                                <td class="px-5 py-3 text-slate-500"><%= new Date(user.createdAt).toLocaleDateString('en-IN') %></td>
+                                <td class="px-5 py-3 text-right"><a href="/admin/console/users/<%= user._id %>" class="inline-flex items-center gap-1 text-xs font-bold text-indigo-600 hover:text-indigo-800">View <i class="ph-bold ph-arrow-right" aria-hidden="true"></i></a></td>
+                            </tr>
+                        <% }); } else { %>
+                            <tr><td colspan="5" class="px-5 py-10 text-center text-slate-500">No users match these filters.</td></tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+</div>

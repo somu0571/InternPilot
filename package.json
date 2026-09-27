@@ -6,12 +6,12 @@
   "author": "Somsubhra Chatterjee",
   "type": "commonjs",
   "main": "index.js",
-"scripts": {
+  "scripts": {
     "start": "node app.js",
     "dev": "node --watch app.js",
     "test": "node --test test/*.test.js",
     "migrate:skill-proficiencies": "node migrate-skill-proficiencies.js"
-},
+  },
   "dependencies": {
     "@google/genai": "^2.13.0",
     "bcryptjs": "^3.0.3",
@@ -29,9 +29,12 @@
     "multer-storage-cloudinary": "^4.0.0",
     "node-cron": "^4.6.0",
     "nodemailer": "^9.0.3",
+    "ogl": "^1.0.11",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "passport-local": "^1.0.0",
-    "pdf-parse": "^1.1.1"
+    "pdf-parse": "^1.1.1",
+    "pdfkit": "^0.20.2",
+    "qrcode": "^1.5.4"
   }
 }

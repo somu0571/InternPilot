@@ -19,6 +19,7 @@ const path = require("path");
 const session = require("express-session");
 const flash = require("connect-flash");
 const passport = require("passport");
+const { requireTransactionSupport } = require('./utils/database');
 
 require("./config/passport");
 
@@ -27,6 +28,7 @@ const Internship = require("./models/Internship");
 const Notification = require('./models/Notification');
 const { buildNavigationState } = require('./utils/navigation');
 const { checkPmisEligibility } = require('./utils/pmisEligibility');
+const { calculateProfileCompletion } = require('./utils/profileCompletion');
 const { sanitizeHttpUrl } = require('./utils/safeUrl');
 
 const authRoutes = require("./routes/auth");
@@ -58,16 +60,10 @@ app.use(express.json());
 app.use(methodOverride("_method"));
 app.use(express.static(path.join(__dirname, "public")));
 
-// Session configuration
-app.use(session({
-    secret: process.env.SESSION_SECRET || "supersecretkey",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        httpOnly: true,
-        maxAge: 1000 * 60 * 60 * 24 * 7
-    }
-}));
+// Session configuration. Sessions are kept in MongoDB so a restart or deploy
+// doesn't sign everyone out, and they last 7 days from the last visit (#179).
+if (process.env.NODE_ENV === 'production') app.set('trust proxy', 1);
+app.use(session(require('./utils/sessionStore').buildSessionOptions()));
 
 // Passport & Flash middleware
 app.use(passport.initialize());
@@ -84,6 +80,7 @@ app.use(async (req, res, next) => {
     res.locals.error = req.flash("error");
     res.locals.notificationUnreadCount = 0;
     res.locals.checkPmisEligibility = checkPmisEligibility;
+    res.locals.calculateProfileCompletion = calculateProfileCompletion;
 
     if (req.user) {
         try {
@@ -110,18 +107,23 @@ app.use(async (req, res, next) => {
     return next();
 });
 
-// Database connection
-main()
-    .then(() => console.log("MongoDB Connected Successfully"))
-    .catch(err => console.log(err));
-
 async function main() {
     await mongoose.connect(process.env.ATLASDB_URL);
+    await requireTransactionSupport(mongoose.connection);
 }
+
+// Signed-in devices (#196): notes the device for each sign-in, signs a session
+// out once the password changes, and serves the /account/sessions page.
+app.use(require('./middleware/trackSession'));
+app.use(require('./routes/accountSessions'));
 
 // In-app messaging (#136). Mounted before every page route so its unread
 // count is available to the header on all pages, the homepage included.
 app.use(require('./routes/messages'));
+
+// Admin console, announcement banners and sign-in suspensions. Mounted before
+// the page routes because the suspension check and banners apply to every page.
+app.use(require('./routes/adminConsole'));
 
 // Resume parser details (#20) for the candidate profile page.
 app.use(require('./routes/resumeParse'));
@@ -150,12 +152,15 @@ app.use('/internships', internshipRoutes);
 app.use('/', userRoutes);
 app.use('/', candidateRoutes);
 app.use('/', companyRoutes);
+app.use('/', require('./routes/offers'));
 app.use('/admin', adminRoutes);
 app.use('/', chatRoutes);
 app.use('/', notificationRoutes);
 app.use('/', activityRoutes);
 app.use('/', require('./routes/interview'));
 app.use('/', require('./routes/problems'));
+app.use('/', require('./routes/certificates'));
+app.use('/', require('./routes/reviews'));
 app.use('/api', activityRoutes);
 app.use('/api/v1', analyticsRoutes);
 
@@ -201,9 +206,22 @@ app.use((err, req, res, next) => {
     });
 });
 
-// Initialize background scheduler
-require('./utils/scheduler');
+async function startServer() {
+    try {
+        await main();
+        console.log("MongoDB Connected Successfully");
 
-app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-});
+        // Start scheduled work only after the database meets the same
+        // transaction requirements as the moderation workflow.
+        require('./utils/scheduler');
+        app.listen(port, () => {
+            console.log(`Server running on port ${port}`);
+        });
+    } catch (err) {
+        console.error('Database startup failed:', err);
+        await mongoose.disconnect().catch(() => {});
+        process.exitCode = 1;
+    }
+}
+
+startServer();

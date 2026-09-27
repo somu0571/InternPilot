@@ -42,6 +42,37 @@
                 criteria: []
             }); %>
 
+    <% const completion = (typeof profileCompletion !== 'undefined' && profileCompletion)
+        ? profileCompletion
+        : ((typeof calculateProfileCompletion === 'function' && activeUser)
+            ? calculateProfileCompletion(activeUser)
+            : {
+                percentage: 0,
+                isComplete: false,
+                level: 'low',
+                score: 0,
+                totalWeight: 100,
+                badge: {
+                    label: 'Getting Started',
+                    colorClass: 'rose',
+                    bgClass: 'bg-rose-50 text-rose-700 border-rose-200',
+                    barClass: 'bg-rose-500',
+                    fillClass: 'text-rose-500',
+                    icon: 'ph-warning-circle'
+                },
+                summaryText: 'Complete your profile to increase visibility to recruiters.',
+                items: [],
+                completedItems: [],
+                missingItems: [],
+                requiredMissingCount: 0,
+                recommendedMissingCount: 0,
+                nextAction: null
+            }); %>
+
+    <% const activeAppsCount = typeof activeApplicationsCount !== 'undefined' ? activeApplicationsCount : 0; %>
+    <% const savedCount = typeof savedInternshipsCount !== 'undefined' ? savedInternshipsCount : ((activeUser && Array.isArray(activeUser.savedInternships)) ? activeUser.savedInternships.length : 0); %>
+    <% const progressWidthAttr = 'style="' + 'width: ' + completion.percentage + '%;"'; %>
+
         <div class="max-w-7xl mx-auto space-y-6">
 
             <% if (typeof success_msg !== 'undefined' && success_msg && success_msg.length > 0) { %>
@@ -62,198 +93,188 @@
                 </div>
             <% } %>
 
-            <div
-                class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-6">
+            <!-- Hero Header Card -->
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                 <div class="flex items-center gap-5">
-                    <div
-                        class="w-20 h-20 bg-indigo-100 text-indigo-700 font-extrabold text-3xl rounded-full flex items-center justify-center border-2 border-indigo-200 shrink-0">
+                    <div class="w-20 h-20 bg-indigo-100 text-indigo-700 font-extrabold text-3xl rounded-full flex items-center justify-center border-2 border-indigo-200 shrink-0 shadow-xs">
                         <%= (activeUser && activeUser.name) ? activeUser.name.charAt(0).toUpperCase() : 'U' %>
                     </div>
-                    <div>
+                    <div class="space-y-1">
                         <div class="flex flex-wrap items-center gap-2.5">
                             <h1 class="text-2xl font-bold text-slate-800 tracking-tight">
                                 <%= activeUser ? activeUser.name : '' %>
                             </h1>
                             <span id="headerEligibilityBadge"
-                                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border <%= pmisStatus.badge.bgClass %> shadow-xs">
+                                onclick="window.switchTab && window.switchTab('eligibility'); document.getElementById('pmisEligibilityCard') && document.getElementById('pmisEligibilityCard').scrollIntoView({behavior:'smooth'});"
+                                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border <%= pmisStatus.badge.bgClass %> shadow-xs cursor-pointer hover:opacity-90 transition-opacity"
+                                title="Click to view PMIS scheme evaluation">
                                 <i class="ph-bold <%= pmisStatus.badge.icon %>"></i>
                                 <%= pmisStatus.badge.label %>
                             </span>
+                            <a href="#profileCompletionCard" id="headerCompletionBadge"
+                                onclick="window.switchTab && window.switchTab('eligibility');"
+                                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border <%= completion.badge.bgClass %> shadow-xs hover:opacity-90 transition-all cursor-pointer"
+                                title="Click to view profile completion checklist">
+                                <i id="headerCompletionIcon" class="ph-bold <%= completion.badge.icon %>"></i>
+                                <span id="headerCompletionText">Profile: <%= completion.percentage %>%</span>
+                            </a>
                         </div>
-                        <p class="text-xs text-slate-500 font-medium flex items-center gap-1 mt-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-rose-500" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                            <%= (activeUser && activeUser.location) ? (typeof activeUser.location==='object' ?
-                                ([activeUser.location.district, activeUser.location.state].filter(Boolean).join(', ') || 'Location Not Provided') : activeUser.location)
-                                : 'Location Not Provided' %>
-                        </p>
+                        <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 font-medium">
+                            <span class="flex items-center gap-1">
+                                <i class="ph-bold ph-graduation-cap text-indigo-500 text-sm"></i>
+                                <%= (activeUser && activeUser.education && activeUser.education.qualification) ? activeUser.education.qualification : ((activeUser && activeUser.qualification) ? activeUser.qualification : 'Candidate Portfolio') %>
+                                <% if (activeUser && activeUser.institution) { %> · <%= activeUser.institution %><% } %>
+                            </span>
+                            <span class="text-slate-300">•</span>
+                            <span class="flex items-center gap-1">
+                                <i class="ph-bold ph-map-pin text-rose-500 text-sm"></i>
+                                <%= (activeUser && activeUser.location) ? (typeof activeUser.location === 'object' ? ([activeUser.location.district, activeUser.location.state].filter(Boolean).join(', ') || 'Location Not Provided') : activeUser.location) : 'Location Not Provided' %>
+                            </span>
+                            <% if (activeUser && activeUser.email) { %>
+                                <span class="text-slate-300">•</span>
+                                <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                    <i class="ph-bold ph-seal-check"></i> <%= activeUser.email %>
+                                </span>
+                            <% } %>
+                        </div>
                     </div>
                 </div>
 
-                <div class="flex items-center gap-3">
-                    <a href="/candidate/saved-internships" class="inline-flex items-center gap-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs px-4 py-2.5 rounded-lg border border-rose-200 transition-colors cursor-pointer">
-                        <i class="ph-fill ph-bookmark-simple text-base"></i>
-                        Saved Internships
-                    </a>
+                <div class="flex flex-wrap items-center gap-2.5 shrink-0 w-full md:w-auto">
                     <button id="openModalBtn" type="button"
-                        class="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs px-4 py-2.5 rounded-lg border border-slate-200 transition-colors cursor-pointer">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-600" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                        </svg>
+                        class="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 transition-colors cursor-pointer shadow-xs">
+                        <i class="ph-bold ph-pencil-simple text-sm"></i>
                         Edit Profile
                     </button>
-
                     <a href="/candidate/resume-builder"
-                        class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-lg text-xs">
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-3.5 py-2.5 rounded-xl text-xs shadow-xs transition-colors">
                         Resume Builder
                     </a>
-                    <a href="/internships"
-                        class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs px-4 py-2.5 rounded-lg transition-colors shadow-sm">
-                        Browse Internships
-                    </a>
                 </div>
             </div>
 
-            <!-- Dedicated PMIS Eligibility Status Card -->
-            <div id="pmisEligibilityCard"
-                class="bg-white border <%= pmisStatus.status === 'eligible' ? 'border-emerald-200' : (pmisStatus.status === 'ineligible' ? 'border-rose-200' : 'border-amber-200') %> rounded-2xl p-6 shadow-sm space-y-5 transition-all">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-                    <div class="flex items-center gap-3">
-                        <div
-                            class="w-10 h-10 rounded-xl <%= pmisStatus.status === 'eligible' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : (pmisStatus.status === 'ineligible' ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-amber-50 text-amber-600 border-amber-100') %> flex items-center justify-center text-xl shrink-0 font-bold border">
+            <!-- 4-Metric Quick Stats Strip -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Metric 1: Profile Completion -->
+                <div onclick="window.switchTab && window.switchTab('eligibility'); document.getElementById('profileCompletionCard') && document.getElementById('profileCompletionCard').scrollIntoView({behavior:'smooth'});"
+                    class="bg-white border border-slate-200 hover:border-indigo-300 rounded-2xl p-4 shadow-xs transition-all cursor-pointer group">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-semibold text-slate-500">Profile Completion</span>
+                        <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-base group-hover:scale-110 transition-transform">
+                            <i class="ph-bold ph-chart-pie-slice"></i>
+                        </div>
+                    </div>
+                    <div class="flex items-baseline gap-2">
+                        <span class="text-2xl font-black text-slate-800"><%= completion.percentage %>%</span>
+                        <span class="text-[11px] font-bold px-2 py-0.5 rounded-full border <%= completion.badge.bgClass %>"><%= completion.badge.label %></span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-1.5 rounded-full mt-3 overflow-hidden">
+                        <div class="h-full rounded-full <%= completion.badge.barClass %> transition-all duration-500" <%- progressWidthAttr %>></div>
+                    </div>
+                </div>
+
+                <!-- Metric 2: PMIS Eligibility -->
+                <div onclick="window.switchTab && window.switchTab('eligibility'); document.getElementById('pmisEligibilityCard') && document.getElementById('pmisEligibilityCard').scrollIntoView({behavior:'smooth'});"
+                    class="bg-white border border-slate-200 hover:border-emerald-300 rounded-2xl p-4 shadow-xs transition-all cursor-pointer group">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-semibold text-slate-500">Scheme Eligibility</span>
+                        <div class="w-8 h-8 rounded-lg <%= pmisStatus.status === 'eligible' ? 'bg-emerald-50 text-emerald-600' : (pmisStatus.status === 'ineligible' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600') %> flex items-center justify-center text-base group-hover:scale-110 transition-transform">
                             <i class="ph-bold <%= pmisStatus.badge.icon %>"></i>
                         </div>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <h2 class="text-base font-bold text-slate-800">PMIS Eligibility Status</h2>
-                                <a href="/guidelines" target="_blank"
-                                    class="text-xs text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1"
-                                    title="View official PMIS guidelines">
-                                    <i class="ph-bold ph-info"></i> Guidelines
-                                </a>
-                            </div>
-                            <p class="text-xs text-slate-500">Evaluated against the Prime Minister's Internship Scheme rules</p>
-                        </div>
                     </div>
-                    <div class="shrink-0">
-                        <span id="cardEligibilityBadge"
-                            class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold border <%= pmisStatus.badge.bgClass %> shadow-xs">
-                            <i class="ph-bold <%= pmisStatus.badge.icon %> text-sm"></i>
-                            <span><%= pmisStatus.badge.label %></span>
-                        </span>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-base font-bold text-slate-800 truncate"><%= pmisStatus.badge.label %></span>
                     </div>
+                    <p class="text-[11px] text-slate-500 mt-2 flex items-center gap-1">
+                        <i class="ph-bold ph-arrow-right text-[10px] text-indigo-500"></i> View 5 scheme criteria
+                    </p>
                 </div>
 
-                <!-- Status Feedback Callouts -->
-                <% if (pmisStatus.status === 'eligible') { %>
-                    <div class="bg-emerald-50/70 border border-emerald-200 rounded-xl p-4 flex items-start gap-3 text-xs text-emerald-800">
-                        <i class="ph-fill ph-check-circle text-emerald-600 text-lg shrink-0 mt-0.5"></i>
-                        <div class="space-y-1">
-                            <p class="font-bold text-emerald-900">You meet all eligibility criteria under the Prime Minister's Internship Scheme!</p>
-                            <p class="text-emerald-700">You are eligible to apply for scheme internships and receive the monthly stipend (₹5,000) and one-time incident grant (₹6,000).</p>
+                <!-- Metric 3: Active Applications -->
+                <a href="/candidate/my-applications"
+                    class="bg-white border border-slate-200 hover:border-sky-300 rounded-2xl p-4 shadow-xs transition-all cursor-pointer group block">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-semibold text-slate-500">Active Applications</span>
+                        <div class="w-8 h-8 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center text-base group-hover:scale-110 transition-transform">
+                            <i class="ph-bold ph-paper-plane-tilt"></i>
                         </div>
                     </div>
-                <% } else if (pmisStatus.status === 'ineligible') { %>
-                    <div class="bg-rose-50/80 border border-rose-200 rounded-xl p-4 space-y-2.5 text-xs text-rose-800">
-                        <div class="flex items-center gap-2 font-bold text-rose-900 text-sm">
-                            <i class="ph-bold ph-x-circle text-rose-600 text-base shrink-0"></i>
-                            <span>Disqualifying Criteria Identified:</span>
-                        </div>
-                        <ul class="space-y-1.5 pl-6 list-disc text-rose-700 font-medium">
-                            <% pmisStatus.reasons.forEach(reason => { %>
-                                <li><%= reason %></li>
-                            <% }) %>
-                        </ul>
-                        <% if (pmisStatus.missingFields && pmisStatus.missingFields.length > 0) { %>
-                            <div class="pt-2 border-t border-rose-200/60 text-rose-600">
-                                <span class="font-semibold">Additionally missing:</span> <%= pmisStatus.missingFields.join('; ') %>
-                            </div>
-                        <% } %>
-                        <p class="text-[11px] text-rose-600 pt-1">
-                            If any information on your profile was entered incorrectly, you can update it by clicking <button type="button" onclick="document.getElementById('openModalBtn').click()" class="underline font-bold hover:text-rose-800 cursor-pointer">Edit Profile</button>.
-                        </p>
+                    <div class="flex items-baseline gap-2">
+                        <span class="text-2xl font-black text-slate-800"><%= activeAppsCount %></span>
+                        <span class="text-[11px] font-semibold text-slate-500">In review / interview</span>
                     </div>
-                <% } else { %>
-                    <div class="bg-amber-50/80 border border-amber-200 rounded-xl p-4 space-y-2.5 text-xs text-amber-800">
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                            <div class="flex items-center gap-2 font-bold text-amber-900 text-sm">
-                                <i class="ph-bold ph-warning-circle text-amber-600 text-base shrink-0"></i>
-                                <span>Profile Incomplete — More Information Needed</span>
-                            </div>
-                            <button type="button" onclick="document.getElementById('openModalBtn').click()"
-                                class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-lg transition-colors cursor-pointer shadow-xs shrink-0">
-                                <i class="ph-bold ph-pencil-simple"></i> Complete Profile
-                            </button>
-                        </div>
-                        <p class="text-amber-700">Please provide the following required details on your profile to verify your PMIS scheme eligibility:</p>
-                        <ul class="space-y-1.5 pl-6 list-disc text-amber-900 font-medium">
-                            <% pmisStatus.missingFields.forEach(field => { %>
-                                <li><%= field %></li>
-                            <% }) %>
-                        </ul>
-                    </div>
-                <% } %>
+                    <p class="text-[11px] text-sky-600 font-semibold mt-2 flex items-center gap-1">
+                        Track status <i class="ph-bold ph-arrow-right text-[10px]"></i>
+                    </p>
+                </a>
 
-                <!-- Criteria Checklist Breakdown -->
-                <% if (pmisStatus.criteria && pmisStatus.criteria.length > 0) { %>
-                    <div>
-                        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">Eligibility Criteria Breakdown</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                            <% pmisStatus.criteria.forEach(item => { %>
-                                <div class="border rounded-xl p-3 flex flex-col justify-between text-xs space-y-2 <%= item.status === 'pass' ? 'border-emerald-100 bg-emerald-50/30' : (item.status === 'fail' ? 'border-rose-100 bg-rose-50/30' : 'border-amber-100 bg-amber-50/30') %>">
-                                    <div class="flex items-start justify-between gap-2">
-                                        <span class="font-bold text-slate-800"><%= item.label %></span>
-                                        <% if (item.status === 'pass') { %>
-                                            <span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full shrink-0">
-                                                <i class="ph-bold ph-check"></i> Eligible
-                                            </span>
-                                        <% } else if (item.status === 'fail') { %>
-                                            <span class="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full shrink-0">
-                                                <i class="ph-bold ph-x"></i> Disqualified
-                                            </span>
-                                        <% } else { %>
-                                            <span class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full shrink-0">
-                                                <i class="ph-bold ph-warning"></i> Missing
-                                            </span>
-                                        <% } %>
-                                    </div>
-                                    <div class="text-[11px] text-slate-600">
-                                        <span class="text-slate-400 block text-[10px] uppercase font-semibold">Your Profile</span>
-                                        <span class="font-semibold text-slate-700"><%= item.value %></span>
-                                    </div>
-                                    <p class="text-[11px] <%= item.status === 'pass' ? 'text-emerald-700' : (item.status === 'fail' ? 'text-rose-700' : 'text-amber-700') %>">
-                                        <%= item.message %>
-                                    </p>
-                                </div>
-                            <% }) %>
+                <!-- Metric 4: Saved Internships -->
+                <a href="/candidate/saved-internships"
+                    class="bg-white border border-slate-200 hover:border-rose-300 rounded-2xl p-4 shadow-xs transition-all cursor-pointer group block">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-semibold text-slate-500">Saved Internships</span>
+                        <div class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center text-base group-hover:scale-110 transition-transform">
+                            <i class="ph-fill ph-bookmark-simple"></i>
                         </div>
                     </div>
-                <% } %>
+                    <div class="flex items-baseline gap-2">
+                        <span class="text-2xl font-black text-slate-800"><%= savedCount %></span>
+                        <span class="text-[11px] font-semibold text-slate-500">Bookmarked</span>
+                    </div>
+                    <p class="text-[11px] text-rose-600 font-semibold mt-2 flex items-center gap-1">
+                        View bookmarks <i class="ph-bold ph-arrow-right text-[10px]"></i>
+                    </p>
+                </a>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Sticky Tabbed Navigation Bar -->
+            <div class="sticky top-0 sm:top-16 z-20 bg-slate-50/95 backdrop-blur-md pt-2 pb-3 border-b border-slate-200">
+                <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1" role="tablist" aria-label="Candidate Profile Sections">
+                    <button type="button" role="tab" id="tabBtn-portfolio" data-tab-target="portfolio" aria-selected="true"
+                        class="profile-tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer bg-white text-indigo-700 shadow-sm border border-slate-200">
+                        <i class="ph-bold ph-briefcase text-sm"></i>
+                        <span>Portfolio &amp; Experience</span>
+                        <span class="ml-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-indigo-50 text-indigo-700">
+                            <%= (profileSkillEntries.length + (activeUser && activeUser.projects ? activeUser.projects.length : 0) + (activeUser && activeUser.certifications ? activeUser.certifications.length : 0)) %>
+                        </span>
+                    </button>
+                    <button type="button" role="tab" id="tabBtn-resumes" data-tab-target="resumes" aria-selected="false"
+                        class="profile-tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 border border-transparent">
+                        <i class="ph-bold ph-file-text text-sm"></i>
+                        <span>Resumes &amp; AI Insights</span>
+                        <span class="ml-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold <%= hasResume ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-800 border border-amber-200' %>">
+                            <%= hasResume ? 'Active' : 'Not Uploaded' %>
+                        </span>
+                    </button>
+                    <button type="button" role="tab" id="tabBtn-eligibility" data-tab-target="eligibility" aria-selected="false"
+                        class="profile-tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 border border-transparent">
+                        <i class="ph-bold ph-shield-check text-sm"></i>
+                        <span>Scheme Eligibility &amp; Health</span>
+                        <span class="ml-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold <%= pmisStatus.badge.bgClass %>">
+                            <%= pmisStatus.badge.label %>
+                        </span>
+                    </button>
+                </div>
+            </div>
 
+            <!-- ========================================== -->
+            <!-- TAB 1: Portfolio & Experience (Default)   -->
+            <!-- ========================================== -->
+            <div id="tabContent-portfolio" class="space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-                <div class="lg:col-span-2 space-y-6">
-
-
+                    <!-- Candidate Details & Education Card -->
                     <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
-                        <h2
-                            class="text-sm font-bold text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                            Candidate Details
-                        </h2>
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                            <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                <i class="ph-bold ph-user-circle text-indigo-600 text-lg"></i>
+                                Candidate Details
+                            </h2>
+                            <button type="button" onclick="document.getElementById('openModalBtn').click()"
+                                class="text-xs text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1 cursor-pointer">
+                                <i class="ph-bold ph-pencil-simple"></i> Edit
+                            </button>
+                        </div>
 
                         <div class="grid grid-cols-2 gap-4 text-xs">
                             <div>
@@ -319,12 +340,12 @@
                                            class="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors">
                                             <i class="ph-bold ph-arrow-square-out"></i> View
                                         </a>
-                                        <button type="button" onclick="window.showResumeReplace && window.showResumeReplace()"
+                                        <button type="button" onclick="window.switchTab && window.switchTab('resumes'); window.showResumeReplace && window.showResumeReplace();"
                                                 class="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors cursor-pointer">
                                             <i class="ph-bold ph-arrows-clockwise"></i> Replace
                                         </button>
                                     <% } else { %>
-                                        <button type="button" onclick="window.showResumeReplace && window.showResumeReplace()"
+                                        <button type="button" onclick="window.switchTab && window.switchTab('resumes'); window.showResumeReplace && window.showResumeReplace();"
                                                 class="inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded bg-indigo-600 hover:bg-indigo-700 text-white transition-colors cursor-pointer">
                                             <i class="ph-bold ph-upload-simple"></i> Upload Resume
                                         </button>
@@ -333,8 +354,7 @@
                             </div>
                         </div>
 
-                        <div
-                            class="rounded-xl p-3 text-xs flex items-center justify-between gap-3 <%= pmisStatus.status === 'eligible' ? 'bg-emerald-50 border border-emerald-200 text-emerald-800' : (pmisStatus.status === 'ineligible' ? 'bg-rose-50 border border-rose-200 text-rose-800' : 'bg-amber-50 border border-amber-200 text-amber-800') %>">
+                        <div class="rounded-xl p-3 text-xs flex items-center justify-between gap-3 <%= pmisStatus.status === 'eligible' ? 'bg-emerald-50 border border-emerald-200 text-emerald-800' : (pmisStatus.status === 'ineligible' ? 'bg-rose-50 border border-rose-200 text-rose-800' : 'bg-amber-50 border border-amber-200 text-amber-800') %>">
                             <div class="flex items-center gap-2">
                                 <i class="ph-bold <%= pmisStatus.badge.icon %> text-base shrink-0"></i>
                                 <span>
@@ -344,408 +364,660 @@
                                     <% } %>
                                 </span>
                             </div>
-                            <a href="#pmisEligibilityCard"
-                                class="underline font-bold shrink-0 hover:opacity-80">
+                            <button type="button" onclick="window.switchTab && window.switchTab('eligibility'); document.getElementById('pmisEligibilityCard') && document.getElementById('pmisEligibilityCard').scrollIntoView({behavior:'smooth'});"
+                                class="underline font-bold shrink-0 hover:opacity-80 cursor-pointer">
                                 Details
-                            </a>
+                            </button>
                         </div>
                     </div>
 
+                    <!-- Technical & Soft Skills Card -->
                     <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
-                        <h2
-                            class="text-sm font-bold text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                            Technical & Soft Skills
-                        </h2>
-
-                        <% if (profileSkillEntries.length > 0) { %>
-                                <div class="flex flex-wrap gap-2">
-                                    <% profileSkillEntries.forEach(skill => { %>
-                                        <span
-                                            class="inline-flex items-center gap-1.5 bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm">
-                                            <%= skill.name %>
-                                            <span class="rounded bg-white/80 px-1.5 py-0.5 text-[10px] font-bold text-indigo-800" aria-label="<%= skill.name %> proficiency: <%= skill.proficiency %>">
-                                                <%= skill.proficiency %>
-                                            </span>
-                                        </span>
-                                        <% }) %>
-                                </div>
-                                <% } else { %>
-                                    <p class="text-xs text-slate-400 italic">No skills added yet.</p>
-                                    <% } %>
-                    </div>
-
-                    <% const certifications = (activeUser && activeUser.certifications) ? activeUser.certifications : []; %>
-                        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
-                            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                                <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                                    <i class="ph-bold ph-certificate text-indigo-600 text-lg"></i>
-                                    Certifications
-                                </h2>
-                                <button type="button" data-cert-add
-                                    class="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs px-3 py-1.5 rounded-lg transition-colors shadow-sm cursor-pointer">
-                                    <i class="ph-bold ph-plus"></i> Add
-                                </button>
-                            </div>
-
-                            <% if (certifications.length> 0) { %>
-                                <div class="space-y-3">
-                                    <% certifications.forEach(cert=> { %>
-                                        <div class="border border-slate-100 rounded-lg p-3 flex items-start justify-between gap-3">
-                                            <div class="min-w-0">
-                                                <h4 class="text-sm font-bold text-slate-800 truncate">
-                                                    <%= cert.name %>
-                                                </h4>
-                                                <% if (cert.issuer) { %>
-                                                    <p class="text-xs text-slate-500 mt-0.5">Issued by <%= cert.issuer %>
-                                                    </p>
-                                                    <% } %>
-                                                        <% if (cert.issueDate) { %>
-                                                            <p class="text-xs text-slate-400 mt-0.5">
-                                                                <%= new Date(cert.issueDate).toLocaleDateString('en-IN', {
-                                                                    month: 'short' , year: 'numeric' }) %>
-                                                            </p>
-                                                            <% } %>
-                                                                <div class="flex flex-wrap items-center gap-3 mt-1.5">
-                                                                    <% if (cert.link) { %>
-                                                                        <a href="<%= cert.link %>" target="_blank"
-                                                                            rel="noopener noreferrer"
-                                                                            class="text-xs text-indigo-600 hover:underline font-semibold">Credential
-                                                                            Link</a>
-                                                                        <% } %>
-                                                                            <% if (cert.fileUrl) { %>
-                                                                                <a href="<%= cert.fileUrl %>" target="_blank"
-                                                                                    rel="noopener noreferrer"
-                                                                                    class="text-xs text-emerald-700 hover:underline font-semibold">
-                                                                                    <%= cert.fileName || 'View Certificate' %>
-                                                                                </a>
-                                                                                <% } %>
-                                                                </div>
-                                            </div>
-
-                                            <div class="flex items-center gap-1 shrink-0">
-                                                <button type="button" class="text-slate-400 hover:text-indigo-600 p-1"
-                                                    title="Edit certification" data-cert-edit
-                                                    data-id="<%= cert._id %>"
-                                                    data-name="<%= cert.name %>"
-                                                    data-issuer="<%= cert.issuer || '' %>"
-                                                    data-link="<%= cert.link || '' %>"
-                                                    data-issuedate="<%= cert.issueDate ? new Date(cert.issueDate).toISOString().slice(0, 10) : '' %>">
-                                                    <i class="ph-bold ph-pencil-simple"></i>
-                                                </button>
-                                                <form action="/candidate/profile/certifications/<%= cert._id %>?_method=DELETE"
-                                                    method="POST"
-                                                    onsubmit="return confirm('Remove this certification?');">
-                                                    <button type="submit" class="text-slate-400 hover:text-rose-600 p-1"
-                                                        title="Delete certification">
-                                                        <i class="ph-bold ph-trash"></i>
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </div>
-                                        <% }) %>
-                                </div>
-                                <% } else { %>
-                                    <p class="text-xs text-slate-400 italic">No certifications added yet.</p>
-                                    <% } %>
-                        </div>
-
-                        <% const projects = (activeUser && activeUser.projects) ? activeUser.projects : []; %>
-                            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
-                                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                                    <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                                        <i class="ph-bold ph-code text-indigo-600 text-lg"></i>
-                                        Projects
-                                    </h2>
-                                    <button type="button" data-project-add
-                                        class="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs px-3 py-1.5 rounded-lg transition-colors shadow-sm cursor-pointer">
-                                        <i class="ph-bold ph-plus"></i> Add
-                                    </button>
-                                </div>
-
-                                <% if (projects.length> 0) { %>
-                                    <div class="space-y-3">
-                                        <% projects.forEach(project=> { %>
-                                            <div
-                                                class="border border-slate-100 rounded-lg p-3 flex items-start justify-between gap-3">
-                                                <div class="min-w-0">
-                                                    <h4 class="text-sm font-bold text-slate-800 truncate">
-                                                        <%= project.title %>
-                                                    </h4>
-                                                    <% if (project.description) { %>
-                                                        <p class="text-xs text-slate-500 mt-1">
-                                                            <%= project.description %>
-                                                        </p>
-                                                        <% } %>
-                                                            <% if (project.techStack && project.techStack.length> 0) { %>
-                                                                <div class="flex flex-wrap gap-1.5 mt-2">
-                                                                    <% project.techStack.forEach(tech=> { %>
-                                                                        <span
-                                                                            class="bg-slate-100 border border-slate-200 text-slate-600 text-[11px] font-semibold px-2 py-0.5 rounded">
-                                                                            <%= tech %>
-                                                                        </span>
-                                                                        <% }) %>
-                                                                </div>
-                                                                <% } %>
-                                                                    <div class="flex flex-wrap items-center gap-3 mt-1.5">
-                                                                        <% if (project.link) { %>
-                                                                            <a href="<%= project.link %>" target="_blank"
-                                                                                rel="noopener noreferrer"
-                                                                                class="text-xs text-indigo-600 hover:underline font-semibold">View
-                                                                                Project</a>
-                                                                            <% } %>
-                                                                                <% if (project.fileUrl) { %>
-                                                                                    <a href="<%= project.fileUrl %>"
-                                                                                        target="_blank"
-                                                                                        rel="noopener noreferrer"
-                                                                                        class="text-xs text-emerald-700 hover:underline font-semibold">
-                                                                                        <%= project.fileName || 'View Attachment' %>
-                                                                                    </a>
-                                                                                    <% } %>
-                                                                    </div>
-                                                </div>
-
-                                                <div class="flex items-center gap-1 shrink-0">
-                                                    <button type="button" class="text-slate-400 hover:text-indigo-600 p-1"
-                                                        title="Edit project" data-project-edit
-                                                        data-id="<%= project._id %>"
-                                                        data-title="<%= project.title %>"
-                                                        data-description="<%= project.description || '' %>"
-                                                        data-link="<%= project.link || '' %>"
-                                                        data-techstack="<%= (project.techStack || []).join(', ') %>">
-                                                        <i class="ph-bold ph-pencil-simple"></i>
-                                                    </button>
-                                                    <form action="/candidate/profile/projects/<%= project._id %>?_method=DELETE"
-                                                        method="POST"
-                                                        onsubmit="return confirm('Remove this project?');">
-                                                        <button type="submit" class="text-slate-400 hover:text-rose-600 p-1"
-                                                            title="Delete project">
-                                                            <i class="ph-bold ph-trash"></i>
-                                                        </button>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                            <% }) %>
-                                    </div>
-                                    <% } else { %>
-                                        <p class="text-xs text-slate-400 italic">No projects added yet.</p>
-                                        <% } %>
-                            </div>
-
-                </div>
-
-                <div class="space-y-6">
-                    <div id="resumeUploadCard" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
                         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                             <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                                <i class="ph-bold ph-file-text text-indigo-600 text-lg"></i>
-                                Resume Status & Parser
+                                <i class="ph-bold ph-cpu text-indigo-600 text-lg"></i>
+                                Technical &amp; Soft Skills
                             </h2>
-                            <span id="resumeStatusBadge"
-                                class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border <%= hasResume ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200' %>">
-                                <i class="ph-bold <%= hasResume ? 'ph-check-circle text-emerald-600' : 'ph-warning-circle text-amber-600' %>"></i>
-                                <%= hasResume ? 'On File' : 'Not Uploaded' %>
+                            <button type="button" onclick="document.getElementById('openModalBtn').click()"
+                                class="inline-flex items-center gap-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-xs px-3 py-1.5 rounded-lg transition-colors cursor-pointer">
+                                <i class="ph-bold ph-plus"></i> Add Skills
+                            </button>
+                        </div>
+
+                        <% if (profileSkillEntries.length > 0) { %>
+                            <div class="flex flex-wrap gap-2">
+                                <% profileSkillEntries.forEach(skill => { %>
+                                    <span class="inline-flex items-center gap-1.5 bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm">
+                                        <%= skill.name %>
+                                        <span class="rounded bg-white/80 px-1.5 py-0.5 text-[10px] font-bold text-indigo-800" aria-label="<%= skill.name %> proficiency: <%= skill.proficiency %>">
+                                            <%= skill.proficiency %>
+                                        </span>
+                                    </span>
+                                <% }) %>
+                            </div>
+                        <% } else { %>
+                            <div class="text-center py-6 border border-dashed border-slate-200 rounded-xl">
+                                <i class="ph-bold ph-lightbulb text-slate-300 text-3xl mb-2"></i>
+                                <p class="text-xs text-slate-500 font-medium">No skills added yet.</p>
+                                <p class="text-[11px] text-slate-400 mt-1">Add your core technical skills and proficiencies to match top internship criteria.</p>
+                                <button type="button" onclick="document.getElementById('openModalBtn').click()" class="mt-3 inline-flex items-center gap-1.5 bg-indigo-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition-colors cursor-pointer">
+                                    <i class="ph-bold ph-plus"></i> Add First Skill
+                                </button>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+
+                <!-- Featured Projects Showcase Card -->
+                <% const projects = (activeUser && activeUser.projects) ? activeUser.projects : []; %>
+                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                            <i class="ph-bold ph-code text-indigo-600 text-lg"></i>
+                            Projects
+                        </h2>
+                        <button type="button" data-project-add
+                            class="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs px-3 py-1.5 rounded-lg transition-colors shadow-sm cursor-pointer">
+                            <i class="ph-bold ph-plus"></i> Add
+                        </button>
+                    </div>
+
+                    <% if (projects.length > 0) { %>
+                        <div class="space-y-3">
+                            <% projects.forEach(project => { %>
+                                <div class="border border-slate-100 hover:border-slate-200 rounded-xl p-4 flex items-start justify-between gap-4 transition-all bg-slate-50/30">
+                                    <div class="min-w-0 space-y-1">
+                                        <h4 class="text-sm font-bold text-slate-800 truncate">
+                                            <%= project.title %>
+                                        </h4>
+                                        <% if (project.description) { %>
+                                            <p class="text-xs text-slate-500 line-clamp-2">
+                                                <%= project.description %>
+                                            </p>
+                                        <% } %>
+                                        <% if (project.techStack && project.techStack.length > 0) { %>
+                                            <div class="flex flex-wrap gap-1.5 pt-1">
+                                                <% project.techStack.forEach(tech => { %>
+                                                    <span class="bg-slate-100 border border-slate-200 text-slate-600 text-[11px] font-semibold px-2 py-0.5 rounded">
+                                                        <%= tech %>
+                                                    </span>
+                                                <% }) %>
+                                            </div>
+                                        <% } %>
+                                        <div class="flex flex-wrap items-center gap-3 pt-1">
+                                            <% if (project.link) { %>
+                                                <a href="<%= project.link %>" target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    class="text-xs text-indigo-600 hover:underline font-semibold flex items-center gap-1">
+                                                    <i class="ph-bold ph-arrow-square-out"></i> View Project
+                                                </a>
+                                            <% } %>
+                                            <% if (project.fileUrl) { %>
+                                                <a href="<%= project.fileUrl %>" target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    class="text-xs text-emerald-700 hover:underline font-semibold flex items-center gap-1">
+                                                    <i class="ph-bold ph-paperclip"></i> <%= project.fileName || 'View Attachment' %>
+                                                </a>
+                                            <% } %>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center gap-1 shrink-0">
+                                        <button type="button" class="text-slate-400 hover:text-indigo-600 p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer"
+                                            title="Edit project" data-project-edit
+                                            data-id="<%= project._id %>"
+                                            data-title="<%= project.title %>"
+                                            data-description="<%= project.description || '' %>"
+                                            data-link="<%= project.link || '' %>"
+                                            data-techstack="<%= (project.techStack || []).join(', ') %>">
+                                            <i class="ph-bold ph-pencil-simple text-base"></i>
+                                        </button>
+                                        <form action="/candidate/profile/projects/<%= project._id %>?_method=DELETE"
+                                            method="POST"
+                                            onsubmit="return confirm('Remove this project?');">
+                                            <button type="submit" class="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 cursor-pointer"
+                                                title="Delete project">
+                                                <i class="ph-bold ph-trash text-base"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            <% }) %>
+                        </div>
+                    <% } else { %>
+                        <div class="text-center py-8 border border-dashed border-slate-200 rounded-xl">
+                            <i class="ph-bold ph-code text-slate-300 text-3xl mb-2"></i>
+                            <p class="text-xs text-slate-600 font-bold">No projects added yet.</p>
+                            <p class="text-[11px] text-slate-400 mt-1 max-w-sm mx-auto">Showcase your portfolio, GitHub links, and work to boost your profile score (+15%).</p>
+                            <button type="button" data-project-add class="mt-3 inline-flex items-center gap-1.5 bg-indigo-600 text-white text-xs font-bold px-3.5 py-1.5 rounded-lg hover:bg-indigo-700 transition-colors shadow-xs cursor-pointer">
+                                <i class="ph-bold ph-plus"></i> Add Your First Project
+                            </button>
+                        </div>
+                    <% } %>
+                </div>
+
+                <!-- Verified Certifications Card -->
+                <% const certifications = (activeUser && activeUser.certifications) ? activeUser.certifications : []; %>
+                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                            <i class="ph-bold ph-certificate text-indigo-600 text-lg"></i>
+                            Certifications
+                        </h2>
+                        <button type="button" data-cert-add
+                            class="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs px-3 py-1.5 rounded-lg transition-colors shadow-sm cursor-pointer">
+                            <i class="ph-bold ph-plus"></i> Add
+                        </button>
+                    </div>
+
+                    <% if (certifications.length > 0) { %>
+                        <div class="space-y-3">
+                            <% certifications.forEach(cert => { %>
+                                <div class="border border-slate-100 hover:border-slate-200 rounded-xl p-4 flex items-start justify-between gap-4 transition-all bg-slate-50/30">
+                                    <div class="min-w-0 space-y-1">
+                                        <h4 class="text-sm font-bold text-slate-800 truncate">
+                                            <%= cert.name %>
+                                        </h4>
+                                        <% if (cert.issuer) { %>
+                                            <p class="text-xs text-slate-500">Issued by <%= cert.issuer %></p>
+                                        <% } %>
+                                        <% if (cert.issueDate) { %>
+                                            <p class="text-xs text-slate-400">
+                                                <%= new Date(cert.issueDate).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }) %>
+                                            </p>
+                                        <% } %>
+                                        <div class="flex flex-wrap items-center gap-3 pt-1">
+                                            <% if (cert.link) { %>
+                                                <a href="<%= cert.link %>" target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    class="text-xs text-indigo-600 hover:underline font-semibold flex items-center gap-1">
+                                                    <i class="ph-bold ph-seal-check"></i> Credential Link
+                                                </a>
+                                            <% } %>
+                                            <% if (cert.fileUrl) { %>
+                                                <a href="<%= cert.fileUrl %>" target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    class="text-xs text-emerald-700 hover:underline font-semibold flex items-center gap-1">
+                                                    <i class="ph-bold ph-file-pdf"></i> <%= cert.fileName || 'View Certificate' %>
+                                                </a>
+                                            <% } %>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center gap-1 shrink-0">
+                                        <button type="button" class="text-slate-400 hover:text-indigo-600 p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer"
+                                            title="Edit certification" data-cert-edit
+                                            data-id="<%= cert._id %>"
+                                            data-name="<%= cert.name %>"
+                                            data-issuer="<%= cert.issuer || '' %>"
+                                            data-link="<%= cert.link || '' %>"
+                                            data-issuedate="<%= cert.issueDate ? new Date(cert.issueDate).toISOString().slice(0, 10) : '' %>">
+                                            <i class="ph-bold ph-pencil-simple text-base"></i>
+                                        </button>
+                                        <form action="/candidate/profile/certifications/<%= cert._id %>?_method=DELETE"
+                                            method="POST"
+                                            onsubmit="return confirm('Remove this certification?');">
+                                            <button type="submit" class="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 cursor-pointer"
+                                                title="Delete certification">
+                                                <i class="ph-bold ph-trash text-base"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            <% }) %>
+                        </div>
+                    <% } else { %>
+                        <div class="text-center py-8 border border-dashed border-slate-200 rounded-xl">
+                            <i class="ph-bold ph-certificate text-slate-300 text-3xl mb-2"></i>
+                            <p class="text-xs text-slate-600 font-bold">No certifications added yet.</p>
+                            <p class="text-[11px] text-slate-400 mt-1 max-w-sm mx-auto">Add verified certificates and courses to demonstrate domain mastery (+10%).</p>
+                            <button type="button" data-cert-add class="mt-3 inline-flex items-center gap-1.5 bg-indigo-600 text-white text-xs font-bold px-3.5 py-1.5 rounded-lg hover:bg-indigo-700 transition-colors shadow-xs cursor-pointer">
+                                <i class="ph-bold ph-plus"></i> Add First Certification
+                            </button>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- TAB 2: Resumes & AI Insights              -->
+            <!-- ========================================== -->
+            <div id="tabContent-resumes" class="hidden space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                    <!-- Resume Manager Card -->
+                    <div class="lg:col-span-2 space-y-6">
+                        <div id="resumeUploadCard" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-5">
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                                <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                    <i class="ph-bold ph-file-text text-indigo-600 text-lg"></i>
+                                    Resume Management
+                                </h2>
+                                <span id="resumeStatusBadge"
+                                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border <%= hasResume ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-600 border-slate-200' %>">
+                                    <i class="ph-bold <%= hasResume ? 'ph-check-circle' : 'ph-x-circle' %>"></i>
+                                    <%= hasResume ? 'On File' : 'Not Uploaded' %>
+                                </span>
+                            </div>
+
+                            <!-- Persistent Resume Info Banner -->
+                            <div class="rounded-xl p-4 border transition-all <%= hasResume ? 'bg-slate-50 border-slate-200' : 'bg-amber-50 border-amber-200' %>">
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                    <div class="flex items-start gap-3">
+                                        <div class="w-10 h-10 rounded-xl <%= hasResume ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700' %> flex items-center justify-center text-xl shrink-0 font-bold">
+                                            <i class="ph-bold <%= hasResume ? 'ph-file-pdf' : 'ph-file-dashed' %>"></i>
+                                        </div>
+                                        <div class="space-y-0.5">
+                                            <% if (hasResume) { %>
+                                                <p class="text-xs font-bold text-slate-800">
+                                                    Resume uploaded: <span class="text-indigo-600 font-semibold"><%= resumeDisplayName %></span>
+                                                </p>
+                                                <p class="text-[11px] text-slate-500 flex items-center gap-1.5">
+                                                    <span class="inline-flex items-center gap-1 text-emerald-700 font-semibold">
+                                                        <i class="ph-bold ph-check"></i> Active
+                                                    </span>
+                                                    <span>•</span>
+                                                    <span>Uploaded <%= (activeUser && activeUser.resumeUploadedAt) ? new Date(activeUser.resumeUploadedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Recently' %></span>
+                                                </p>
+                                            <% } else { %>
+                                                <p class="text-xs font-bold text-amber-900">No resume currently on file</p>
+                                                <p class="text-[11px] text-amber-700">Upload your PDF or Word resume to enable automatic parsing and AI feedback.</p>
+                                            <% } %>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center gap-2 shrink-0">
+                                        <% if (hasResume) { %>
+                                            <a href="<%= activeUser.resume || activeUser.resumeUrl %>" target="_blank"
+                                                class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition-colors">
+                                                <i class="ph-bold ph-arrow-square-out"></i> View Resume
+                                            </a>
+                                            <button type="button" id="toggleReplaceResumeBtn"
+                                                class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer">
+                                                <i class="ph-bold ph-arrows-clockwise"></i> Replace Resume
+                                            </button>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Saved Resume Versions -->
+                            <% if (savedResumeVersions.length > 0) { %>
+                                <div class="space-y-2 border-t border-slate-100 pt-4">
+                                    <h3 class="text-xs font-bold text-slate-800">Saved resume versions</h3>
+                                    <div class="space-y-2">
+                                        <% savedResumeVersions.forEach((version) => { %>
+                                            <div class="flex items-center justify-between p-2.5 rounded-xl border <%= version.isActive ? 'border-indigo-200 bg-indigo-50/40' : 'border-slate-200 bg-white' %> text-xs">
+                                                <div class="flex items-center gap-2 truncate">
+                                                    <i class="ph-bold <%= version.isActive ? 'ph-check-circle text-indigo-600' : 'ph-file-text text-slate-400' %>"></i>
+                                                    <span class="font-medium text-slate-800 truncate"><%= version.label || version.originalName %></span>
+                                                    <% if (version.isActive) { %>
+                                                        <span class="text-[10px] bg-indigo-100 text-indigo-700 font-bold px-1.5 py-0.5 rounded">Active</span>
+                                                    <% } %>
+                                                </div>
+                                                <div class="flex items-center gap-2 shrink-0">
+                                                    <a href="<%= version.url %>" target="_blank" class="text-indigo-600 hover:underline font-semibold text-[11px]">View</a>
+                                                    <% if (!version.isActive) { %>
+                                                        <form action="/candidate/resume-versions/<%= version._id %>/activate" method="POST" class="inline">
+                                                            <button type="submit" class="text-slate-500 hover:text-slate-800 font-semibold text-[11px] cursor-pointer">Use this</button>
+                                                        </form>
+                                                    <% } %>
+                                                </div>
+                                            </div>
+                                        <% }) %>
+                                    </div>
+                                </div>
+                            <% } %>
+
+                            <!-- Upload / Replace Resume Form -->
+                            <div id="resumeFormWrapper" class="<%= hasResume ? 'hidden' : '' %> space-y-3 pt-1 border-t border-slate-100">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="text-xs font-bold text-slate-700">
+                                        <%= hasResume ? 'Upload & Replace Resume' : 'Upload & Extract Details' %>
+                                    </h3>
+                                    <% if (hasResume) { %>
+                                        <button type="button" id="cancelReplaceBtn" class="text-[11px] text-slate-500 hover:text-slate-800 font-semibold cursor-pointer">
+                                            Cancel
+                                        </button>
+                                    <% } %>
+                                </div>
+
+                                <form id="resumeUploadForm" action="/candidate/parse-resume" method="POST" enctype="multipart/form-data" class="space-y-3">
+                                    <div>
+                                        <label for="resumeLabel" class="block text-[11px] font-semibold text-slate-600 mb-1">Version Label (Optional)</label>
+                                        <input id="resumeLabel" type="text" name="resumeLabel" maxlength="100" placeholder="e.g. Software Engineering Resume 2026"
+                                            class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-indigo-600 outline-none">
+                                    </div>
+
+                                    <div id="resumeDropzone"
+                                        class="border-2 border-dashed border-slate-200 hover:border-indigo-400 bg-slate-50/50 hover:bg-indigo-50/20 rounded-xl p-6 text-center cursor-pointer transition-colors group">
+                                        <div class="flex flex-col items-center justify-center gap-2">
+                                            <div class="w-10 h-10 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                                                <i class="ph-bold ph-cloud-arrow-up"></i>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-bold text-slate-700">Click to choose or drag &amp; drop your resume</p>
+                                                <p class="text-[11px] text-slate-400 mt-0.5">Supported formats: PDF, DOC, DOCX (Max 5MB)</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <input id="resumeInput" type="file" name="resume" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="hidden">
+
+                                    <!-- File selection preview -->
+                                    <div id="fileSelectionPreview" class="hidden bg-slate-50 border border-slate-200 rounded-xl p-3 items-center justify-between gap-3">
+                                        <div class="flex items-center gap-2.5 truncate">
+                                            <i id="previewFileIcon" class="ph-bold ph-file-pdf text-base text-indigo-600"></i>
+                                            <div class="truncate">
+                                                <p id="previewFileName" class="font-bold text-slate-800 truncate text-xs"></p>
+                                                <p id="previewFileSize" class="text-[11px] text-slate-500"></p>
+                                            </div>
+                                        </div>
+                                        <button type="button" id="clearFileBtn" class="text-slate-400 hover:text-rose-600 p-1 rounded-md transition-colors cursor-pointer" title="Remove file">
+                                            <i class="ph-bold ph-x text-sm"></i>
+                                        </button>
+                                    </div>
+
+                                    <!-- Client inline error alert -->
+                                    <div id="resumeClientError" class="hidden bg-rose-50 border border-rose-200 text-rose-700 px-3.5 py-2.5 rounded-xl text-xs flex items-center gap-2">
+                                        <i class="ph-bold ph-warning-circle shrink-0 text-sm"></i>
+                                        <span id="resumeClientErrorText" class="font-medium"></span>
+                                    </div>
+
+                                    <button type="submit" id="resumeSubmitBtn"
+                                        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-2.5 rounded-xl transition-colors shadow-xs flex items-center justify-center gap-1.5 cursor-pointer">
+                                        <i class="ph-bold ph-sparkle text-sm"></i>
+                                        <span><%= hasResume ? 'Upload & Replace Resume' : 'Upload & Extract Details' %></span>
+                                    </button>
+                                </form>
+                            </div>
+
+                            <% if (typeof resumeParse !== 'undefined' && resumeParse) { %><%- include('../partials/resume-parse-summary', { parse: resumeParse, profile: activeUser }) %><% } %>
+                        </div>
+                    </div>
+
+                    <!-- AI Resume Quality Analysis Column -->
+                    <div class="space-y-6">
+                        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                                <h3 class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                    <i class="ph-bold ph-sparkle text-emerald-600"></i>
+                                    Resume Quality Feedback
+                                </h3>
+                                <span class="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">AI Analyzed</span>
+                            </div>
+
+                            <% if (activeUser && activeUser.resumeQuality) { %>
+                                <div class="space-y-3">
+                                    <% if (activeUser.resumeQuality.quantifiableAchievements && activeUser.resumeQuality.quantifiableAchievements.feedback) { %>
+                                        <div class="bg-slate-50/70 border border-slate-100 rounded-xl p-3">
+                                            <p class="text-[11px] font-bold text-slate-700">Quantifiable Achievements</p>
+                                            <p class="text-xs text-slate-600 leading-relaxed mt-0.5"><%= activeUser.resumeQuality.quantifiableAchievements.feedback %></p>
+                                        </div>
+                                    <% } %>
+
+                                    <% if (activeUser.resumeQuality.technicalSkills && activeUser.resumeQuality.technicalSkills.feedback) { %>
+                                        <div class="bg-slate-50/70 border border-slate-100 rounded-xl p-3">
+                                            <p class="text-[11px] font-bold text-slate-700">Technical Skills</p>
+                                            <p class="text-xs text-slate-600 leading-relaxed mt-0.5"><%= activeUser.resumeQuality.technicalSkills.feedback %></p>
+                                        </div>
+                                    <% } %>
+
+                                    <% if (activeUser.resumeQuality.projects && activeUser.resumeQuality.projects.feedback) { %>
+                                        <div class="bg-slate-50/70 border border-slate-100 rounded-xl p-3">
+                                            <p class="text-[11px] font-bold text-slate-700">Projects</p>
+                                            <p class="text-xs text-slate-600 leading-relaxed mt-0.5"><%= activeUser.resumeQuality.projects.feedback %></p>
+                                        </div>
+                                    <% } %>
+
+                                    <% if (activeUser.resumeQuality.overallFeedback) { %>
+                                        <div class="bg-emerald-50/50 border border-emerald-100 rounded-xl p-3">
+                                            <p class="text-[11px] font-bold text-emerald-800">Overall Feedback</p>
+                                            <p class="text-xs text-emerald-700 leading-relaxed mt-0.5"><%= activeUser.resumeQuality.overallFeedback %></p>
+                                        </div>
+                                    <% } %>
+                                </div>
+                            <% } else { %>
+                                <div class="text-center py-8">
+                                    <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl mx-auto mb-2">
+                                        <i class="ph-bold ph-magic-wand"></i>
+                                    </div>
+                                    <p class="text-xs font-bold text-slate-700">Instant AI Resume Review</p>
+                                    <p class="text-[11px] text-slate-400 mt-1 max-w-xs mx-auto">Upload or update your resume above to get automated AI feedback across quantifiable impact, skills, and project clarity.</p>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- TAB 3: Scheme Eligibility & Health        -->
+            <!-- ========================================== -->
+            <div id="tabContent-eligibility" class="hidden space-y-6">
+
+                <!-- Dedicated PMIS Eligibility Status Card -->
+                <div id="pmisEligibilityCard"
+                    class="bg-white border <%= pmisStatus.status === 'eligible' ? 'border-emerald-200' : (pmisStatus.status === 'ineligible' ? 'border-rose-200' : 'border-amber-200') %> rounded-2xl p-6 shadow-sm space-y-5 transition-all">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="w-10 h-10 rounded-xl <%= pmisStatus.status === 'eligible' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : (pmisStatus.status === 'ineligible' ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-amber-50 text-amber-600 border-amber-100') %> flex items-center justify-center text-xl shrink-0 font-bold border">
+                                <i class="ph-bold <%= pmisStatus.badge.icon %>"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h2 class="text-base font-bold text-slate-800">PMIS Eligibility Status</h2>
+                                    <a href="/guidelines" target="_blank"
+                                        class="text-xs text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1"
+                                        title="View official PMIS guidelines">
+                                        <i class="ph-bold ph-info"></i> Guidelines
+                                    </a>
+                                </div>
+                                <p class="text-xs text-slate-500">Evaluated against the Prime Minister's Internship Scheme rules</p>
+                            </div>
+                        </div>
+                        <div class="shrink-0">
+                            <span id="cardEligibilityBadge"
+                                class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold border <%= pmisStatus.badge.bgClass %> shadow-xs">
+                                <i class="ph-bold <%= pmisStatus.badge.icon %> text-sm"></i>
+                                <span><%= pmisStatus.badge.label %></span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Status Feedback Callouts -->
+                    <% if (pmisStatus.status === 'eligible') { %>
+                        <div class="bg-emerald-50/70 border border-emerald-200 rounded-xl p-4 flex items-start gap-3 text-xs text-emerald-800">
+                            <i class="ph-fill ph-check-circle text-emerald-600 text-lg shrink-0 mt-0.5"></i>
+                            <div class="space-y-1">
+                                <p class="font-bold text-emerald-900">You meet all eligibility criteria under the Prime Minister's Internship Scheme!</p>
+                                <p class="text-emerald-700">You are eligible to apply for scheme internships and receive the monthly stipend (₹5,000) and one-time incident grant (₹6,000).</p>
+                            </div>
+                        </div>
+                    <% } else if (pmisStatus.status === 'ineligible') { %>
+                        <div class="bg-rose-50/80 border border-rose-200 rounded-xl p-4 space-y-2.5 text-xs text-rose-800">
+                            <div class="flex items-center gap-2 font-bold text-rose-900 text-sm">
+                                <i class="ph-bold ph-x-circle text-rose-600 text-base shrink-0"></i>
+                                <span>Disqualifying Criteria Identified:</span>
+                            </div>
+                            <ul class="space-y-1.5 pl-6 list-disc text-rose-700 font-medium">
+                                <% pmisStatus.reasons.forEach(reason => { %>
+                                    <li><%= reason %></li>
+                                <% }) %>
+                            </ul>
+                            <% if (pmisStatus.missingFields && pmisStatus.missingFields.length > 0) { %>
+                                <div class="pt-2 border-t border-rose-200/60 text-rose-600">
+                                    <span class="font-semibold">Additionally missing:</span> <%= pmisStatus.missingFields.join('; ') %>
+                                </div>
+                            <% } %>
+                            <p class="text-[11px] text-rose-600 pt-1">
+                                If any information on your profile was entered incorrectly, you can update it by clicking <button type="button" onclick="document.getElementById('openModalBtn').click()" class="underline font-bold hover:text-rose-800 cursor-pointer">Edit Profile</button>.
+                            </p>
+                        </div>
+                    <% } else { %>
+                        <div class="bg-amber-50/80 border border-amber-200 rounded-xl p-4 space-y-2.5 text-xs text-amber-800">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div class="flex items-center gap-2 font-bold text-amber-900 text-sm">
+                                    <i class="ph-bold ph-warning-circle text-amber-600 text-base shrink-0"></i>
+                                    <span>Profile Incomplete — More Information Needed</span>
+                                </div>
+                                <button type="button" onclick="document.getElementById('openModalBtn').click()"
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-lg transition-colors cursor-pointer shadow-xs shrink-0">
+                                    <i class="ph-bold ph-pencil-simple"></i> Complete Profile
+                                </button>
+                            </div>
+                            <p class="text-amber-700">Please provide the following required details on your profile to verify your PMIS scheme eligibility:</p>
+                            <ul class="space-y-1.5 pl-6 list-disc text-amber-900 font-medium">
+                                <% pmisStatus.missingFields.forEach(field => { %>
+                                    <li><%= field %></li>
+                                <% }) %>
+                            </ul>
+                        </div>
+                    <% } %>
+
+                    <!-- Criteria Checklist Breakdown -->
+                    <% if (pmisStatus.criteria && pmisStatus.criteria.length > 0) { %>
+                        <div>
+                            <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">Eligibility Criteria Breakdown</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                <% pmisStatus.criteria.forEach(item => { %>
+                                    <div class="border rounded-xl p-3 flex flex-col justify-between text-xs space-y-2 <%= item.status === 'pass' ? 'border-emerald-100 bg-emerald-50/30' : (item.status === 'fail' ? 'border-rose-100 bg-rose-50/30' : 'border-amber-100 bg-amber-50/30') %>">
+                                        <div class="flex items-start justify-between gap-2">
+                                            <span class="font-bold text-slate-800"><%= item.label %></span>
+                                            <% if (item.status === 'pass') { %>
+                                                <span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full shrink-0">
+                                                    <i class="ph-bold ph-check"></i> Eligible
+                                                </span>
+                                            <% } else if (item.status === 'fail') { %>
+                                                <span class="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full shrink-0">
+                                                    <i class="ph-bold ph-x"></i> Disqualified
+                                                </span>
+                                            <% } else { %>
+                                                <span class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full shrink-0">
+                                                    <i class="ph-bold ph-warning"></i> Missing
+                                                </span>
+                                            <% } %>
+                                        </div>
+                                        <div class="text-[11px] text-slate-600">
+                                            <span class="text-slate-400 block text-[10px] uppercase font-semibold">Your Profile</span>
+                                            <span class="font-semibold text-slate-700"><%= item.value %></span>
+                                        </div>
+                                        <p class="text-[11px] <%= item.status === 'pass' ? 'text-emerald-700' : (item.status === 'fail' ? 'text-rose-700' : 'text-amber-700') %>">
+                                            <%= item.message %>
+                                        </p>
+                                    </div>
+                                <% }) %>
+                            </div>
+                        </div>
+                    <% } %>
+                </div>
+
+                <!-- Profile Completion Indicator Card -->
+                <div id="profileCompletionCard" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-5 transition-all">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3.5">
+                        <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                            <i class="ph-bold ph-chart-pie-slice text-indigo-600 text-lg"></i>
+                            Profile Completion
+                        </h2>
+                        <span id="profileLevelBadge"
+                            class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold border <%= completion.badge.bgClass %> shadow-2xs">
+                            <i id="profileLevelIcon" class="ph-bold <%= completion.badge.icon %>"></i>
+                            <span id="profileLevelLabel"><%= completion.badge.label %></span>
+                        </span>
+                    </div>
+
+                    <!-- Overall Percentage Progress Bar -->
+                    <div class="space-y-2">
+                        <div class="flex items-baseline justify-between">
+                            <span id="profileProgressPercent" class="text-2xl font-extrabold text-slate-800 tracking-tight"><%= completion.percentage %>%</span>
+                            <span id="profileScoreFraction" class="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                                <%= completion.score %> / <%= completion.totalWeight %> pts
+                            </span>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                            <div id="profileProgressBar"
+                                class="h-full rounded-full transition-all duration-500 <%= completion.badge.barClass %>"
+                                <%- progressWidthAttr %>></div>
+                        </div>
+                        <p id="profileSummaryText" class="text-xs text-slate-600 leading-relaxed pt-0.5">
+                            <%= completion.summaryText %>
+                        </p>
+                    </div>
+
+                    <!-- Next Recommended Action Banner -->
+                    <div id="profileNextActionCard" class="<%= completion.isComplete ? 'hidden ' : '' %>bg-indigo-50/60 border border-indigo-100 rounded-xl p-3.5 flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0">
+                                <i class="ph-bold ph-lightning text-sm"></i>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-bold text-indigo-600 uppercase tracking-wider block">Recommended Next Step</span>
+                                <p id="profileNextActionPrompt" class="text-xs text-indigo-950 font-medium">
+                                    <%= completion.nextAction ? `Complete "${completion.nextAction.label}" (+${completion.nextAction.weight}%) to boost your profile strength!` : 'Complete remaining criteria to boost your profile.' %>
+                                </p>
+                            </div>
+                        </div>
+                        <button type="button" id="profileNextActionBtn"
+                            data-action-target="<%= completion.nextAction ? completion.nextAction.actionTarget : 'openModalBtn' %>"
+                            data-action-type="<%= completion.nextAction ? completion.nextAction.actionType : 'modal' %>"
+                            class="shrink-0 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-colors shadow-2xs flex items-center gap-1 cursor-pointer">
+                            <span id="profileNextActionBtnText"><%= completion.nextAction ? completion.nextAction.actionText : 'Complete Details' %></span>
+                            <i class="ph-bold ph-arrow-right text-[11px]"></i>
+                        </button>
+                    </div>
+
+                    <!-- Missing Items & Criteria Checklist Breakdown -->
+                    <div class="space-y-2.5 pt-2 border-t border-slate-100">
+                        <div class="flex items-center justify-between text-xs">
+                            <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Checklist Breakdown</h3>
+                            <span id="profileCompletedCount" class="text-[11px] font-semibold text-slate-500">
+                                <%= completion.completedItems.length %> of <%= completion.items.length %> completed
                             </span>
                         </div>
 
-                        <!-- Persistent Resume Info or Empty Warning -->
-                        <% if (hasResume) { %>
-                            <div class="bg-indigo-50/40 border border-indigo-100 rounded-xl p-4 space-y-3">
-                                <div class="flex items-start gap-3">
-                                    <div class="w-10 h-10 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center text-xl shrink-0">
-                                        <i class="ph-bold ph-file-pdf"></i>
-                                    </div>
-                                    <div class="min-w-0 flex-1">
-                                        <div class="flex flex-wrap items-center gap-2">
-                                            <p class="text-xs font-bold text-slate-900 truncate" title="<%= resumeDisplayName %>">
-                                                Resume uploaded: <span class="text-indigo-900 font-semibold"><%= resumeDisplayName %></span>
+                        <div id="profileCompletionChecklist" class="space-y-2">
+                            <% completion.items.forEach(item => { %>
+                                <div data-completion-item-id="<%= item.id %>"
+                                    class="flex items-start justify-between gap-3 p-2.5 rounded-xl border transition-all text-xs <%= item.completed ? 'bg-emerald-50/40 border-emerald-100' : 'bg-slate-50/70 border-slate-200' %>">
+                                    <div class="flex items-start gap-2.5">
+                                        <div data-completion-icon-wrapper class="w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 <%= item.completed ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-400' %>">
+                                            <i class="ph-bold <%= item.completed ? 'ph-check' : 'ph-circle' %> text-[11px]"></i>
+                                        </div>
+                                        <div>
+                                            <div class="flex items-center gap-1.5">
+                                                <span class="font-bold <%= item.completed ? 'text-slate-800' : 'text-slate-700' %>"><%= item.label %></span>
+                                                <span class="text-[10px] font-semibold <%= item.category === 'required' ? 'text-rose-600 bg-rose-50' : 'text-slate-500 bg-slate-100' %> px-1.5 py-0.2 rounded">
+                                                    <%= item.category === 'required' ? 'Required' : 'Bonus' %>
+                                                </span>
+                                            </div>
+                                            <p class="text-[11px] text-slate-500 mt-0.5">
+                                                <%= item.completed ? 'Completed' : `Add details (+${item.weight} pts)` %>
                                             </p>
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                                                Active
+                                        </div>
+                                    </div>
+
+                                    <div class="shrink-0 flex items-center">
+                                        <% if (item.completed) { %>
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                                                <i class="ph-bold ph-check"></i> +<%= item.weight %>%
                                             </span>
-                                        </div>
-                                        <p class="text-[11px] text-slate-500 mt-0.5">
-                                            <% if (activeUser && activeUser.resumeUploadedAt) { %>
-                                                Uploaded on <%= new Date(activeUser.resumeUploadedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %>
-                                            <% } else { %>
-                                                Active resume on file — visible to recruiters
-                                            <% } %>
-                                        </p>
+                                        <% } else { %>
+                                            <button type="button"
+                                                data-completion-action="<%= item.id %>"
+                                                data-action-target="<%= item.actionTarget %>"
+                                                data-action-type="<%= item.actionType %>"
+                                                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white hover:bg-indigo-50 text-indigo-700 border border-slate-200 hover:border-indigo-300 transition-colors shadow-2xs cursor-pointer">
+                                                <span><%= item.actionText %></span>
+                                                <i class="ph-bold ph-arrow-right text-[10px]"></i>
+                                            </button>
+                                        <% } %>
                                     </div>
                                 </div>
-
-                                <div class="flex items-center gap-2 pt-2 border-t border-indigo-100/70">
-                                    <a href="<%= activeUser.resume || activeUser.resumeUrl %>" target="_blank"
-                                       class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-xs">
-                                        <i class="ph-bold ph-arrow-square-out"></i>
-                                        View Resume
-                                    </a>
-                                    <button type="button" id="toggleReplaceResumeBtn"
-                                            class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition-colors cursor-pointer">
-                                        <i class="ph-bold ph-arrows-clockwise"></i>
-                                        Replace Resume
-                                    </button>
-                                </div>
-                            </div>
-                        <% } else { %>
-                            <div class="bg-amber-50/70 border border-amber-200 rounded-xl p-3.5 flex items-start gap-3 text-xs text-amber-800">
-                                <i class="ph-bold ph-warning-circle text-amber-600 text-lg shrink-0 mt-0.5"></i>
-                                <div class="space-y-1">
-                                    <p class="font-bold text-amber-900">No resume currently on file</p>
-                                    <p class="text-amber-700">Recruiters rely on your resume to evaluate applications. Upload your resume so employers can review your qualifications.</p>
-                                </div>
-                            </div>
-                        <% } %>
-
-                        <% if (savedResumeVersions.length) { %>
-                            <section class="border-t border-slate-100 pt-4" aria-label="Saved resume versions">
-                                <div class="flex items-center justify-between gap-3">
-                                    <div>
-                                        <h3 class="text-xs font-bold text-slate-800">Saved resume versions</h3>
-                                        <p class="mt-0.5 text-[11px] text-slate-500">Select a default for new applications. Submitted kits keep their original file.</p>
-                                    </div>
-                                    <span class="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600"><%= savedResumeVersions.length %></span>
-                                </div>
-                                <div class="mt-3 space-y-2">
-                                    <% savedResumeVersions.slice().reverse().forEach(version => { %>
-                                        <div class="flex flex-col gap-2 rounded-xl border border-slate-200 bg-slate-50/70 p-3 sm:flex-row sm:items-center sm:justify-between">
-                                            <div class="min-w-0">
-                                                <p class="truncate text-xs font-bold text-slate-800"><%= version.label || version.fileName || 'Resume version' %></p>
-                                                <p class="mt-0.5 truncate text-[11px] text-slate-500"><%= version.fileName || 'Resume file' %><% if (version.createdAt) { %> · <%= new Date(version.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %><% } %></p>
-                                            </div>
-                                            <div class="flex flex-wrap items-center gap-2">
-                                                <% if (version.fileUrl) { %><a href="<%= version.fileUrl %>" target="_blank" rel="noopener noreferrer" class="text-[11px] font-semibold text-indigo-700 hover:underline">View</a><% } %>
-                                                <% if (version.isDefault) { %>
-                                                    <span class="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-700">Default</span>
-                                                <% } else { %>
-                                                    <form action="/candidate/profile/resume-versions/<%= version._id %>/default" method="POST"><button type="submit" class="rounded-lg border border-indigo-200 bg-white px-2 py-1 text-[10px] font-bold text-indigo-700 hover:bg-indigo-50">Make default</button></form>
-                                                <% } %>
-                                                <form action="/candidate/profile/resume-versions/<%= version._id %>/delete" method="POST" onsubmit="return confirm('Remove this saved resume version?');"><button type="submit" class="rounded-lg border border-rose-200 bg-white px-2 py-1 text-[10px] font-bold text-rose-700 hover:bg-rose-50">Remove</button></form>
-                                            </div>
-                                        </div>
-                                    <% }) %>
-                                </div>
-                            </section>
-                        <% } %>
-
-                        <!-- Upload / Replace Resume Form -->
-                        <div id="resumeFormWrapper" class="<%= hasResume ? 'hidden' : '' %> space-y-3 pt-1">
-                            <div class="flex items-center justify-between">
-                                <h3 class="text-xs font-bold text-slate-700">
-                                    <%= hasResume ? 'Replace Uploaded Resume' : 'Upload New Resume' %>
-                                </h3>
-                                <% if (hasResume) { %>
-                                    <button type="button" id="cancelReplaceBtn" class="text-[11px] text-slate-500 hover:text-slate-800 font-semibold cursor-pointer">
-                                        Cancel
-                                    </button>
-                                <% } %>
-                            </div>
-
-                            <form id="resumeUploadForm" action="/candidate/parse-resume" method="POST" enctype="multipart/form-data"
-                                class="space-y-3" data-loading-text="<%= hasResume ? 'Replacing & Parsing Resume...' : 'Uploading & Parsing Resume...' %>">
-                                <div>
-                                    <label for="resumeLabel" class="mb-1 block text-xs font-semibold text-slate-700">Resume version label <span class="font-normal text-slate-400">(optional)</span></label>
-                                    <input id="resumeLabel" type="text" name="resumeLabel" maxlength="100" placeholder="e.g. Software engineering resume" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100">
-                                    <p class="mt-1 text-[11px] text-slate-500">This helps you choose the right version in an Application Kit.</p>
-                                </div>
-                                
-                                <div id="resumeDropzone"
-                                    class="border-2 border-dashed border-indigo-200 hover:border-indigo-400 rounded-xl p-5 text-center bg-indigo-50/40 hover:bg-indigo-50 transition-all cursor-pointer">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-indigo-500 mx-auto mb-2 pointer-events-none"
-                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                                    </svg>
-                                    <p class="text-xs font-bold text-indigo-700 mb-0.5 pointer-events-none">
-                                        <%= hasResume ? 'Choose replacement file or drag & drop' : 'Choose resume or drag & drop' %>
-                                    </p>
-                                    <p class="text-[11px] text-slate-500 pointer-events-none">
-                                        Supports PDF or Word documents (.pdf, .docx, .doc) up to 5MB
-                                    </p>
-                                    <input id="resumeInput" type="file" name="resume" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="hidden">
-                                </div>
-
-                                <!-- File selection preview -->
-                                <div id="fileSelectionPreview" class="hidden bg-slate-50 border border-slate-200 rounded-xl p-3 items-center justify-between gap-3 text-xs">
-                                    <div class="flex items-center gap-2.5 min-w-0">
-                                        <div class="w-8 h-8 rounded bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
-                                            <i id="previewFileIcon" class="ph-bold ph-file-pdf text-base"></i>
-                                        </div>
-                                        <div class="min-w-0">
-                                            <p id="previewFileName" class="font-bold text-slate-800 truncate"></p>
-                                            <p id="previewFileSize" class="text-[11px] text-slate-500"></p>
-                                        </div>
-                                    </div>
-                                    <button type="button" id="clearFileBtn" class="text-slate-400 hover:text-rose-600 p-1 rounded-md transition-colors" title="Remove selected file">
-                                        <i class="ph-bold ph-x text-sm"></i>
-                                    </button>
-                                </div>
-
-                                <!-- Client inline error alert -->
-                                <div id="resumeClientError" class="hidden bg-rose-50 border border-rose-200 text-rose-700 px-3.5 py-2.5 rounded-xl text-xs flex items-start gap-2 shadow-xs">
-                                    <i class="ph-bold ph-warning-circle text-rose-600 text-base shrink-0 mt-0.5"></i>
-                                    <span id="resumeClientErrorText" class="font-medium"></span>
-                                </div>
-
-                                <button type="submit" id="resumeSubmitBtn"
-                                    class="w-full bg-slate-800 hover:bg-slate-900 text-white font-semibold text-xs py-2.5 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2 cursor-pointer">
-                                    <i class="ph-bold ph-upload-simple"></i>
-                                    <span><%= hasResume ? 'Upload & Replace Resume' : 'Upload & Extract Details' %></span>
-                                </button>
-                            </form>
+                            <% }) %>
                         </div>
-
-                        <% if (typeof resumeParse !== 'undefined' && resumeParse) { %><%- include('../partials/resume-parse-summary', { parse: resumeParse, profile: activeUser }) %><% } %>
-
-                        <!-- Resume Quality Analysis -->
-                        <% if (activeUser && activeUser.resumeQuality) { %>
-                            <div class="bg-emerald-50/70 border border-emerald-100 rounded-xl p-4 space-y-3">
-                                <div class="flex items-center justify-between border-b border-emerald-100 pb-2">
-                                    <h3 class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                                        <i class="ph-bold ph-sparkle text-emerald-600"></i>
-                                        Resume Quality Feedback
-                                    </h3>
-                                    <span class="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">AI Analyzed</span>
-                                </div>
-
-                                <% if (activeUser.resumeQuality.quantifiableAchievements && activeUser.resumeQuality.quantifiableAchievements.feedback) { %>
-                                <div>
-                                    <p class="text-[11px] font-bold text-slate-700">Quantifiable Achievements</p>
-                                    <p class="text-xs text-slate-600 leading-relaxed"><%= activeUser.resumeQuality.quantifiableAchievements.feedback %></p>
-                                </div>
-                                <% } %>
-
-                                <% if (activeUser.resumeQuality.technicalSkills && activeUser.resumeQuality.technicalSkills.feedback) { %>
-                                <div>
-                                    <p class="text-[11px] font-bold text-slate-700">Technical Skills</p>
-                                    <p class="text-xs text-slate-600 leading-relaxed"><%= activeUser.resumeQuality.technicalSkills.feedback %></p>
-                                </div>
-                                <% } %>
-
-                                <% if (activeUser.resumeQuality.projects && activeUser.resumeQuality.projects.feedback) { %>
-                                <div>
-                                    <p class="text-[11px] font-bold text-slate-700">Projects</p>
-                                    <p class="text-xs text-slate-600 leading-relaxed"><%= activeUser.resumeQuality.projects.feedback %></p>
-                                </div>
-                                <% } %>
-
-                                <% if (activeUser.resumeQuality.overallFeedback) { %>
-                                <div>
-                                    <p class="text-[11px] font-bold text-slate-700">Overall Feedback</p>
-                                    <p class="text-xs text-slate-600 leading-relaxed"><%= activeUser.resumeQuality.overallFeedback %></p>
-                                </div>
-                                <% } %>
-                            </div>
-                        <% } %>
                     </div>
                 </div>
-
             </div>
 
         </div>
@@ -753,18 +1025,6 @@
         <% if (typeof showConflictModal !== 'undefined' && showConflictModal && typeof conflicts !== 'undefined' && conflicts.length > 0) { %>
             <%- include('../partials/profileConflictModal') %>
         <% } %>
-
-<style>
-    .invisible-scrollbar {
-        -ms-overflow-style: none !important;
-        scrollbar-width: none !important;
-    }
-    .invisible-scrollbar::-webkit-scrollbar {
-        display: none !important;
-        width: 0 !important;
-        height: 0 !important;
-    }
-</style>
 
         <div id="editProfileModal"
             class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
@@ -778,7 +1038,7 @@
                 </div>
 
                 <form id="editProfileForm" action="/candidate/profile/edit" method="POST" class="flex flex-col flex-1 overflow-hidden min-h-0 text-xs">
-                    <div class="flex-1 overflow-y-auto invisible-scrollbar px-6 py-4 space-y-3" style="scrollbar-width: none; -ms-overflow-style: none;">
+                    <div class="flex-1 overflow-y-auto invisible-scrollbar px-6 py-4 space-y-3">
                         <div>
                             <label class="block font-semibold text-slate-700 mb-1">Location (District, State)</label>
                             <input type="text" name="location"
@@ -810,7 +1070,7 @@
                                 class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-600 outline-none">
                         </div>
                         <div>
-                            <label class="block font-semibold text-slate-700 mb-1">Institution Name</label>
+                            <label class="block font-semibold text-slate-700 mb-1">Institution</label>
                             <input type="text" name="institution"
                                 value="<%= (activeUser && activeUser.institution) ? activeUser.institution : '' %>"
                                 placeholder="e.g. Delhi University"
@@ -818,51 +1078,52 @@
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
-                                <label class="block font-semibold text-slate-700 mb-1">Formal Education Enrollment</label>
+                                <label class="block font-semibold text-slate-700 mb-1">Formal Education Status</label>
                                 <select name="enrollmentStatus" id="editEnrollmentStatus"
                                     class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-600 outline-none bg-white">
-                                    <option value="">Select Enrollment...</option>
+                                    <option value="" disabled <%= !(activeUser && activeUser.enrollmentStatus) ? 'selected' : '' %>>Select status</option>
                                     <option value="not_enrolled" <%= (activeUser && activeUser.enrollmentStatus === 'not_enrolled') ? 'selected' : '' %>>Not Enrolled / Completed</option>
-                                    <option value="part_time_or_distance" <%= (activeUser && activeUser.enrollmentStatus === 'part_time_or_distance') ? 'selected' : '' %>>Part-time / Distance Learning</option>
-                                    <option value="full_time" <%= (activeUser && activeUser.enrollmentStatus === 'full_time') ? 'selected' : '' %>>Full-time Formal Education (Ineligible)</option>
+                                    <option value="part_time_or_distance" <%= (activeUser && activeUser.enrollmentStatus === 'part_time_or_distance') ? 'selected' : '' %>>Part-time / Distance</option>
+                                    <option value="full_time" <%= (activeUser && activeUser.enrollmentStatus === 'full_time') ? 'selected' : '' %>>Full-time Student (Ineligible)</option>
                                 </select>
                             </div>
                             <div>
                                 <label class="block font-semibold text-slate-700 mb-1">Employment Status</label>
                                 <select name="employmentStatus" id="editEmploymentStatus"
                                     class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-600 outline-none bg-white">
-                                    <option value="">Select Employment...</option>
+                                    <option value="" disabled <%= !(activeUser && activeUser.employmentStatus) ? 'selected' : '' %>>Select status</option>
                                     <option value="unemployed" <%= (activeUser && activeUser.employmentStatus === 'unemployed') ? 'selected' : '' %>>Unemployed / Seeking Internship</option>
                                     <option value="part_time_or_freelance" <%= (activeUser && activeUser.employmentStatus === 'part_time_or_freelance') ? 'selected' : '' %>>Part-time / Freelance</option>
-                                    <option value="full_time" <%= (activeUser && activeUser.employmentStatus === 'full_time') ? 'selected' : '' %>>Full-time Regular Employment (Ineligible)</option>
+                                    <option value="full_time" <%= (activeUser && activeUser.employmentStatus === 'full_time') ? 'selected' : '' %>>Full-time Employed (Ineligible)</option>
                                 </select>
                             </div>
                         </div>
-                        <div>
-                            <div class="flex items-center justify-between gap-3 mb-1">
-                                <label class="block font-semibold text-slate-700">Skills and proficiency</label>
+
+                        <!-- Skill proficiencies builder -->
+                        <div class="space-y-2 border-t border-slate-100 pt-3">
+                            <div class="flex items-center justify-between">
+                                <label class="block font-semibold text-slate-700">Skills with Proficiencies</label>
                                 <button type="button" id="addSkillProfileBtn"
-                                    class="text-indigo-700 hover:text-indigo-800 font-bold inline-flex items-center gap-1 cursor-pointer">
-                                    <i class="ph-bold ph-plus"></i> Add skill
+                                    class="text-indigo-600 hover:text-indigo-800 font-bold text-xs flex items-center gap-1 cursor-pointer">
+                                    <i class="ph-bold ph-plus"></i> Add Skill
                                 </button>
                             </div>
-                            <p class="text-[11px] text-slate-500 mb-2">Choose the level that best reflects your current ability.</p>
-                            <div id="skillProfileFields" class="space-y-2 max-h-48 overflow-y-auto invisible-scrollbar w-full" style="scrollbar-width: none; -ms-overflow-style: none;">
-                                <% const editableSkillEntries = profileSkillEntries.length ? profileSkillEntries : [{ name: '', proficiency: 'Intermediate' }]; %>
-                                <% editableSkillEntries.forEach(skill => { %>
-                                    <div data-skill-profile-row class="flex items-center gap-2 w-full">
-                                        <label class="sr-only">Skill name</label>
+                            <div id="skillProfileFields" class="space-y-2">
+                                <% profileSkillEntries.forEach((skill) => { %>
+                                    <div class="flex items-center gap-2 w-full" data-skill-profile-row>
                                         <input type="text" name="skillName" value="<%= skill.name %>" maxlength="80"
                                             placeholder="e.g. JavaScript"
+                                            aria-label="Skill name"
                                             class="flex-1 min-w-0 px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-600 outline-none text-xs">
-                                        <label class="sr-only">Proficiency</label>
-                                        <select name="skillProficiency" aria-label="Proficiency for <%= skill.name || 'skill' %>"
+                                        <select name="skillProficiency"
+                                            aria-label="Proficiency for <%= skill.name %>"
                                             class="shrink-0 w-28 sm:w-32 px-2.5 py-2 border border-slate-200 rounded-lg bg-white focus:ring-2 focus:ring-indigo-600 outline-none text-xs cursor-pointer">
-                                            <% ['Beginner', 'Intermediate', 'Advanced'].forEach(level => { %>
-                                                <option value="<%= level %>" <%= skill.proficiency === level ? 'selected' : '' %>><%= level %></option>
-                                            <% }) %>
+                                            <option value="Beginner" <%= skill.proficiency === 'Beginner' ? 'selected' : '' %>>Beginner</option>
+                                            <option value="Intermediate" <%= skill.proficiency === 'Intermediate' ? 'selected' : '' %>>Intermediate</option>
+                                            <option value="Advanced" <%= skill.proficiency === 'Advanced' ? 'selected' : '' %>>Advanced</option>
                                         </select>
-                                        <button type="button" data-remove-skill-profile aria-label="Remove <%= skill.name || 'skill' %>"
+                                        <button type="button" data-remove-skill-profile
+                                            aria-label="Remove <%= skill.name %>"
                                             class="shrink-0 p-2 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 cursor-pointer transition-colors">
                                             <i class="ph-bold ph-trash text-base"></i>
                                         </button>
@@ -871,143 +1132,204 @@
                             </div>
                         </div>
 
-                        <!-- Live PMIS Eligibility Status Preview Box in Modal -->
+                        <!-- Reactive PMIS Preview in Modal -->
                         <div id="liveEligibilityPreview"
-                            class="rounded-xl p-3 border border-slate-200 bg-slate-50 transition-all text-xs space-y-1.5">
-                            <div class="flex items-center justify-between gap-2">
-                                <span class="font-bold text-slate-700 flex items-center gap-1.5">
-                                    <i class="ph-bold ph-shield-check text-indigo-600"></i>
-                                    Live PMIS Status Preview
+                            class="rounded-xl p-3 border transition-all text-xs space-y-1.5 <%= pmisStatus.status === 'eligible' ? 'bg-emerald-50/70 border-emerald-200' : (pmisStatus.status === 'ineligible' ? 'bg-rose-50/70 border-rose-200' : 'bg-amber-50/70 border-amber-200') %>">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-slate-800">PMIS Live Evaluation</span>
+                                <span id="liveBadge"
+                                    class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold text-[11px] border <%= pmisStatus.status === 'eligible' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : (pmisStatus.status === 'ineligible' ? 'bg-rose-100 text-rose-700 border-rose-200' : 'bg-amber-100 text-amber-800 border-amber-200') %>">
+                                    <i class="ph-bold <%= pmisStatus.badge.icon %>"></i>
+                                    <%= pmisStatus.badge.label %>
                                 </span>
-                                <span id="liveBadge" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold text-[11px] border"></span>
                             </div>
-                            <p id="liveFeedback" class="text-[11px] leading-relaxed text-slate-600"></p>
+                            <p id="liveFeedback" class="text-[11px] <%= pmisStatus.status === 'eligible' ? 'text-emerald-700' : (pmisStatus.status === 'ineligible' ? 'text-rose-700' : 'text-amber-800') %>">
+                                <%= pmisStatus.status === 'eligible' ? '✓ All criteria met under the PM Internship Scheme.' : (pmisStatus.reasons[0] || (pmisStatus.missingFields && pmisStatus.missingFields.length ? 'Missing: ' + pmisStatus.missingFields.join(', ') : 'Incomplete details.')) %>
+                            </p>
                         </div>
                     </div>
 
-                    <div class="px-6 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2 shrink-0">
-                        <button type="button" id="cancelModalBtn"
-                            class="px-4 py-2 font-semibold text-slate-600 hover:bg-slate-200/70 rounded-lg border border-slate-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">Cancel</button>
-                        <button type="submit" id="saveProfileBtn"
-                            class="px-4 py-2 font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">Save
-                            Profile</button>
+                    <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50/50 shrink-0">
+                        <button id="cancelModalBtn" type="button"
+                            class="px-4 py-2 border border-slate-200 rounded-lg text-slate-600 font-semibold hover:bg-slate-100 transition-colors cursor-pointer">
+                            Cancel
+                        </button>
+                        <button id="saveProfileBtn" type="submit"
+                            class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2 cursor-pointer">
+                            Save Changes
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
 
-
-        <div id="certModal"
-            class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-            <div class="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
-                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <!-- Certification Modal -->
+        <div id="certModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+            <div class="bg-white border border-slate-200 rounded-2xl max-w-md w-full shadow-2xl overflow-hidden text-xs">
+                <div class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-slate-100">
                     <h3 id="certModalTitle" class="text-base font-bold text-slate-900">Add Certification</h3>
-                    <button type="button" data-close-modal="certModal"
-                        class="text-slate-400 hover:text-slate-600 p-1 text-lg font-bold">✕</button>
+                    <button type="button" data-close-modal="certModal" class="text-slate-400 hover:text-slate-600 p-1 text-lg font-bold cursor-pointer">✕</button>
                 </div>
-
-                <form id="certForm" action="/candidate/profile/certifications" method="POST"
-                    enctype="multipart/form-data" class="mt-4 space-y-3 text-xs">
+                <form id="certForm" action="/candidate/profile/certifications" method="POST" enctype="multipart/form-data" class="p-6 space-y-3">
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Certification Name *</label>
                         <input type="text" name="name" id="certName" required maxlength="120"
-                            placeholder="e.g. Google Data Analytics"
-                            class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-200">
+                            class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-600 outline-none">
                     </div>
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Issuing Organization</label>
-                        <input type="text" name="issuer" id="certIssuer" maxlength="120" placeholder="e.g. Coursera"
-                            class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-200">
+                        <input type="text" name="issuer" id="certIssuer" maxlength="120"
+                            class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-600 outline-none">
                     </div>
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Issue Date</label>
                         <input type="date" name="issueDate" id="certIssueDate" data-max-today
-                            class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-200">
+                            class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-600 outline-none bg-white">
                     </div>
                     <div>
-                        <label class="block font-semibold text-slate-700 mb-1">Credential Link</label>
-                        <input type="url" name="link" id="certLink" placeholder="https://..."
-                            class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-200">
+                        <label class="block font-semibold text-slate-700 mb-1">Credential URL</label>
+                        <input type="url" name="link" id="certLink" maxlength="500" placeholder="https://"
+                            class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-600 outline-none">
                     </div>
                     <div>
-                        <label class="block font-semibold text-slate-700 mb-1">Certificate File (PDF/PNG/JPG, max
-                            5MB)</label>
-                        <input type="file" name="certificate" accept=".pdf,.png,.jpg,.jpeg" data-max-size="5242880"
-                            class="w-full border border-slate-200 rounded-lg px-3 py-2 file:mr-3 file:py-1 file:px-2 file:rounded file:border-0 file:bg-slate-100 file:text-slate-700">
-                        <p class="text-slate-400 mt-1" id="certFileHint">Leave empty to keep the existing file.</p>
-                        <p class="text-rose-600 font-semibold mt-1 hidden" data-file-error></p>
+                        <label class="block font-semibold text-slate-700 mb-1">Certificate Document (PDF or Image)</label>
+                        <input type="file" name="certFile" accept=".pdf,.png,.jpg,.jpeg" data-max-size="5242880"
+                            class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-600 outline-none bg-white">
+                        <p id="certFileHint" class="text-[11px] text-slate-400 mt-1">Optional. PDF, PNG or JPG up to 5MB.</p>
+                        <p data-file-error class="text-[11px] text-rose-600 mt-1 hidden font-medium"></p>
                     </div>
-
-                    <div class="flex items-center justify-end gap-2 pt-2">
-                        <button type="button" data-close-modal="certModal"
-                            class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-4 py-2 rounded-lg">Cancel</button>
-                        <button type="submit"
-                            class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-lg">Save
-                            Certification</button>
+                    <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                        <button type="button" data-close-modal="certModal" class="px-4 py-2 border border-slate-200 rounded-lg text-slate-600 font-semibold hover:bg-slate-100 cursor-pointer">Cancel</button>
+                        <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-sm cursor-pointer">Save</button>
                     </div>
                 </form>
             </div>
         </div>
 
-        <div id="projectModal"
-            class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-            <div class="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
-                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <!-- Project Modal -->
+        <div id="projectModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+            <div class="bg-white border border-slate-200 rounded-2xl max-w-md w-full shadow-2xl overflow-hidden text-xs">
+                <div class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-slate-100">
                     <h3 id="projectModalTitle" class="text-base font-bold text-slate-900">Add Project</h3>
-                    <button type="button" data-close-modal="projectModal"
-                        class="text-slate-400 hover:text-slate-600 p-1 text-lg font-bold">✕</button>
+                    <button type="button" data-close-modal="projectModal" class="text-slate-400 hover:text-slate-600 p-1 text-lg font-bold cursor-pointer">✕</button>
                 </div>
-
-                <form id="projectForm" action="/candidate/profile/projects" method="POST"
-                    enctype="multipart/form-data" class="mt-4 space-y-3 text-xs">
+                <form id="projectForm" action="/candidate/profile/projects" method="POST" enctype="multipart/form-data" class="p-6 space-y-3">
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Project Title *</label>
                         <input type="text" name="title" id="projectTitle" required maxlength="120"
-                            placeholder="e.g. InternPilot Clone"
-                            class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-200">
+                            class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-600 outline-none">
                     </div>
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Description</label>
                         <textarea name="description" id="projectDescription" rows="3" maxlength="1000"
-                            placeholder="What does the project do?"
-                            class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-200"></textarea>
+                            class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-600 outline-none"></textarea>
                     </div>
                     <div>
-                        <label class="block font-semibold text-slate-700 mb-1">Tech Stack (Comma Separated)</label>
-                        <input type="text" name="techStack" id="projectTechStack" placeholder="Node.js, MongoDB, EJS"
-                            class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-200">
+                        <label class="block font-semibold text-slate-700 mb-1">Technologies (comma separated)</label>
+                        <input type="text" name="techStack" id="projectTechStack" placeholder="React, Node.js, Tailwind"
+                            class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-600 outline-none">
                     </div>
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Project Link</label>
-                        <input type="url" name="link" id="projectLink" placeholder="https://github.com/..."
-                            class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-200">
+                        <input type="url" name="link" id="projectLink" maxlength="500" placeholder="https://"
+                            class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-600 outline-none">
                     </div>
                     <div>
-                        <label class="block font-semibold text-slate-700 mb-1">Supporting File (PDF/PNG/JPG, max
-                            5MB)</label>
-                        <input type="file" name="attachment" accept=".pdf,.png,.jpg,.jpeg" data-max-size="5242880"
-                            class="w-full border border-slate-200 rounded-lg px-3 py-2 file:mr-3 file:py-1 file:px-2 file:rounded file:border-0 file:bg-slate-100 file:text-slate-700">
-                        <p class="text-slate-400 mt-1" id="projectFileHint">Leave empty to keep the existing file.</p>
-                        <p class="text-rose-600 font-semibold mt-1 hidden" data-file-error></p>
+                        <label class="block font-semibold text-slate-700 mb-1">Project File / Screenshot (PDF or Image)</label>
+                        <input type="file" name="projectFile" accept=".pdf,.png,.jpg,.jpeg" data-max-size="5242880"
+                            class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-600 outline-none bg-white">
+                        <p id="projectFileHint" class="text-[11px] text-slate-400 mt-1">Optional. PDF, PNG or JPG up to 5MB.</p>
+                        <p data-file-error class="text-[11px] text-rose-600 mt-1 hidden font-medium"></p>
                     </div>
-
-                    <div class="flex items-center justify-end gap-2 pt-2">
-                        <button type="button" data-close-modal="projectModal"
-                            class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-4 py-2 rounded-lg">Cancel</button>
-                        <button type="submit"
-                            class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-lg">Save
-                            Project</button>
+                    <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                        <button type="button" data-close-modal="projectModal" class="px-4 py-2 border border-slate-200 rounded-lg text-slate-600 font-semibold hover:bg-slate-100 cursor-pointer">Cancel</button>
+                        <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-sm cursor-pointer">Save</button>
                     </div>
                 </form>
             </div>
         </div>
 
+        <script id="candidateStateData" type="application/json">
+            <%- JSON.stringify({
+                hasName: Boolean(typeof activeUser !== 'undefined' && activeUser && activeUser.name),
+                hasEmail: Boolean(typeof activeUser !== 'undefined' && activeUser && activeUser.email),
+                hasResume: Boolean(typeof hasResume !== 'undefined' && hasResume),
+                projectsCount: (typeof activeUser !== 'undefined' && activeUser && Array.isArray(activeUser.projects)) ? activeUser.projects.length : 0,
+                certificationsCount: (typeof activeUser !== 'undefined' && activeUser && Array.isArray(activeUser.certifications)) ? activeUser.certifications.length : 0
+            }) %>
+        </script>
 
         <script>
             document.addEventListener('DOMContentLoaded', () => {
                 const MAX_FILE_BYTES = 5 * 1024 * 1024;
                 const ALLOWED_EXTENSIONS = ['.pdf', '.png', '.jpg', '.jpeg'];
 
+                // ── Tab Navigation Engine ────────────────────────────────
+                const tabButtons = document.querySelectorAll('.profile-tab-btn');
+                const tabContents = {
+                    portfolio: document.getElementById('tabContent-portfolio'),
+                    resumes: document.getElementById('tabContent-resumes'),
+                    eligibility: document.getElementById('tabContent-eligibility')
+                };
+
+                window.switchTab = function (targetTab) {
+                    if (!tabContents[targetTab]) return;
+
+                    Object.keys(tabContents).forEach(tabKey => {
+                        const panel = tabContents[tabKey];
+                        const btn = document.querySelector(`[data-tab-target="${tabKey}"]`);
+                        if (panel) {
+                            if (tabKey === targetTab) {
+                                panel.classList.remove('hidden');
+                            } else {
+                                panel.classList.add('hidden');
+                            }
+                        }
+                        if (btn) {
+                            if (tabKey === targetTab) {
+                                btn.setAttribute('aria-selected', 'true');
+                                btn.className = 'profile-tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer bg-white text-indigo-700 shadow-sm border border-slate-200';
+                            } else {
+                                btn.setAttribute('aria-selected', 'false');
+                                btn.className = 'profile-tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 border border-transparent';
+                            }
+                        }
+                    });
+
+                    if (window.history && window.history.replaceState) {
+                        window.history.replaceState(null, '', `#${targetTab}`);
+                    }
+                };
+
+                tabButtons.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const target = btn.dataset.tabTarget;
+                        if (target) window.switchTab(target);
+                    });
+                });
+
+                // Check URL hash for direct deep-linking
+                const initialHash = (window.location.hash || '').replace('#', '').toLowerCase();
+                if (initialHash === 'resumes' || initialHash === 'resumeuploadcard' || initialHash === 'resumeparsesummary') {
+                    window.switchTab('resumes');
+                } else if (initialHash === 'eligibility' || initialHash === 'pmiseligibilitycard' || initialHash === 'profilecompletioncard') {
+                    window.switchTab('eligibility');
+                } else {
+                    window.switchTab('portfolio');
+                }
+
+                window.addEventListener('hashchange', () => {
+                    const h = (window.location.hash || '').replace('#', '').toLowerCase();
+                    if (h === 'resumes' || h === 'resumeuploadcard' || h === 'resumeparsesummary') {
+                        window.switchTab('resumes');
+                    } else if (h === 'eligibility' || h === 'pmiseligibilitycard' || h === 'profilecompletioncard') {
+                        window.switchTab('eligibility');
+                    } else if (h === 'portfolio') {
+                        window.switchTab('portfolio');
+                    }
+                });
+
+                // ── Entry Modals (Projects & Certs) ──────────────────────
                 const openEntryModal = (id) => {
                     const el = document.getElementById(id);
                     if (!el) return;
@@ -1160,8 +1482,6 @@
                     const disqualifications = [];
                     const missing = [];
 
-                    // Disqualification checks
-                    // Values <= 0 are treated as missing, not disqualifying
                     if (age !== null && !isNaN(age) && age > 0) {
                         if (age < 21) disqualifications.push(`Age (${age}) is below minimum requirement of 21 years.`);
                         if (age > 24) disqualifications.push(`Age (${age}) exceeds maximum limit of 24 years.`);
@@ -1191,7 +1511,6 @@
                         missing.push('Employment Status');
                     }
 
-                    // Reset classes
                     livePreviewBox.className = 'rounded-xl p-3 border transition-all text-xs space-y-1.5';
                     liveBadge.className = 'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold text-[11px] border';
 
@@ -1316,6 +1635,7 @@
                 const resumeUploadForm = document.getElementById('resumeUploadForm');
 
                 window.showResumeReplace = function () {
+                    if (window.switchTab) window.switchTab('resumes');
                     if (resumeFormWrapper) resumeFormWrapper.classList.remove('hidden');
                     if (resumeUploadCard) resumeUploadCard.scrollIntoView({ behavior: 'smooth' });
                     if (resumeInput) resumeInput.click();
@@ -1376,7 +1696,6 @@
                     const allowedExts = ['.pdf', '.doc', '.docx'];
                     const ext = '.' + (file.name.split('.').pop() || '').toLowerCase();
 
-                    // Check file extension
                     if (!allowedExts.includes(ext)) {
                         if (resumeClientError && resumeClientErrorText) {
                             resumeClientErrorText.textContent = `Invalid file format (${ext}). Only PDF (.pdf) and Word (.docx, .doc) resumes are supported.`;
@@ -1390,7 +1709,6 @@
                         return;
                     }
 
-                    // Check file size
                     if (file.size > maxBytes) {
                         const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
                         if (resumeClientError && resumeClientErrorText) {
@@ -1405,7 +1723,6 @@
                         return;
                     }
 
-                    // Valid file
                     if (resumeClientError) resumeClientError.classList.add('hidden');
                     if (filePreview && previewName && previewSize && previewIcon) {
                         previewName.textContent = file.name;
@@ -1445,6 +1762,255 @@
                             }
                             return;
                         }
+                    });
+                }
+
+                // ── Interactive Profile Completion Engine ──────────────
+                const profileProgressBar = document.getElementById('profileProgressBar');
+                const profileProgressPercent = document.getElementById('profileProgressPercent');
+                const profileScoreFraction = document.getElementById('profileScoreFraction');
+                const profileSummaryText = document.getElementById('profileSummaryText');
+                const profileLevelBadge = document.getElementById('profileLevelBadge');
+                const profileLevelLabel = document.getElementById('profileLevelLabel');
+                const profileLevelIcon = document.getElementById('profileLevelIcon');
+                const headerCompletionBadge = document.getElementById('headerCompletionBadge');
+                const headerCompletionText = document.getElementById('headerCompletionText');
+                const headerCompletionIcon = document.getElementById('headerCompletionIcon');
+                const profileNextActionCard = document.getElementById('profileNextActionCard');
+                const profileNextActionPrompt = document.getElementById('profileNextActionPrompt');
+                const profileNextActionBtn = document.getElementById('profileNextActionBtn');
+                const profileNextActionBtnText = document.getElementById('profileNextActionBtnText');
+                const profileCompletedCount = document.getElementById('profileCompletedCount');
+
+                const candidateStateEl = document.getElementById('candidateStateData');
+                const initialCandidateState = candidateStateEl ? JSON.parse(candidateStateEl.textContent || '{}') : {
+                    hasName: false,
+                    hasEmail: false,
+                    hasResume: false,
+                    projectsCount: 0,
+                    certificationsCount: 0
+                };
+
+                const handleCompletionAction = (actionType, target) => {
+                    if (actionType === 'modal' || target === 'openModalBtn') {
+                        const btn = document.getElementById('openModalBtn');
+                        if (btn) btn.click();
+                    } else if (actionType === 'scroll' || target === 'resumeUploadCard') {
+                        if (window.switchTab) window.switchTab('resumes');
+                        const card = document.getElementById('resumeUploadCard');
+                        if (card) {
+                            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            if (typeof window.showResumeReplace === 'function') {
+                                window.showResumeReplace();
+                            }
+                        }
+                    } else if (actionType === 'entryModal') {
+                        if (window.switchTab) window.switchTab('portfolio');
+                        if (typeof openEntryModal === 'function') {
+                            openEntryModal(target);
+                        } else {
+                            const modalEl = document.getElementById(target);
+                            if (modalEl) {
+                                modalEl.classList.remove('hidden');
+                                modalEl.classList.add('flex');
+                            }
+                        }
+                    }
+                };
+
+                document.querySelectorAll('[data-completion-action]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        handleCompletionAction(btn.dataset.actionType, btn.dataset.actionTarget);
+                    });
+                });
+
+                if (profileNextActionBtn) {
+                    profileNextActionBtn.addEventListener('click', () => {
+                        handleCompletionAction(profileNextActionBtn.dataset.actionType, profileNextActionBtn.dataset.actionTarget);
+                    });
+                }
+
+                const updateLiveProfileCompletion = () => {
+                    if (!profileProgressBar) return;
+
+                    const locInput = document.querySelector('input[name="location"]');
+                    const qualInput = document.getElementById('editQualification');
+                    const instInput = document.querySelector('input[name="institution"]');
+
+                    const hasLocation = Boolean(locInput && locInput.value.trim());
+                    const contactComplete = initialCandidateState.hasName && initialCandidateState.hasEmail && hasLocation;
+
+                    const qualVal = qualInput ? qualInput.value.trim() : '';
+                    const instVal = instInput ? instInput.value.trim() : '';
+                    const educationComplete = Boolean(qualVal && instVal);
+
+                    let skillCount = 0;
+                    if (skillProfileFields) {
+                        skillProfileFields.querySelectorAll('input[name="skillName"]').forEach(input => {
+                            if (input.value && input.value.trim()) skillCount++;
+                        });
+                    }
+                    const skillsComplete = skillCount > 0;
+
+                    const hasUploadedResume = initialCandidateState.hasResume || Boolean(resumeInput && resumeInput.files && resumeInput.files.length > 0);
+                    const resumeComplete = hasUploadedResume;
+
+                    const projectsComplete = initialCandidateState.projectsCount > 0;
+                    const certsComplete = initialCandidateState.certificationsCount > 0;
+
+                    const ruleStatuses = [
+                        { id: 'contactInfo', label: 'Contact & Location', weight: 15, category: 'required', completed: contactComplete, actionTarget: 'openModalBtn', actionType: 'modal', actionText: 'Update Location' },
+                        { id: 'education', label: 'Education Details', weight: 20, category: 'required', completed: educationComplete, actionTarget: 'openModalBtn', actionType: 'modal', actionText: 'Add Education' },
+                        { id: 'skills', label: 'Skills & Proficiencies', weight: 20, category: 'required', completed: skillsComplete, actionTarget: 'openModalBtn', actionType: 'modal', actionText: 'Add Skills' },
+                        { id: 'resume', label: 'Resume Upload', weight: 20, category: 'required', completed: resumeComplete, actionTarget: 'resumeUploadCard', actionType: 'scroll', actionText: 'Upload Resume' },
+                        { id: 'projects', label: 'Projects & Portfolio', weight: 15, category: 'recommended', completed: projectsComplete, actionTarget: 'projectModal', actionType: 'entryModal', actionText: 'Add Project' },
+                        { id: 'certifications', label: 'Certifications & Credentials', weight: 10, category: 'recommended', completed: certsComplete, actionTarget: 'certModal', actionType: 'entryModal', actionText: 'Add Certificate' }
+                    ];
+
+                    let earnedWeight = 0;
+                    let completedItemsCount = 0;
+                    const missingItems = [];
+
+                    ruleStatuses.forEach(rule => {
+                        if (rule.completed) {
+                            earnedWeight += rule.weight;
+                            completedItemsCount++;
+                        } else {
+                            missingItems.push(rule);
+                        }
+
+                        const itemRow = document.querySelector(`[data-completion-item-id="${rule.id}"]`);
+                        if (itemRow) {
+                            const iconWrapper = itemRow.querySelector('[data-completion-icon-wrapper]');
+                            const rightContainer = itemRow.children[1];
+
+                            if (rule.completed) {
+                                itemRow.className = 'flex items-start justify-between gap-3 p-2.5 rounded-xl border transition-all text-xs bg-emerald-50/40 border-emerald-100';
+                                if (iconWrapper) {
+                                    iconWrapper.className = 'w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 bg-emerald-100 text-emerald-700';
+                                    iconWrapper.innerHTML = '<i class="ph-bold ph-check text-[11px]"></i>';
+                                }
+                                if (rightContainer) {
+                                    rightContainer.innerHTML = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-800"><i class="ph-bold ph-check"></i> +${rule.weight}%</span>`;
+                                }
+                            } else {
+                                itemRow.className = 'flex items-start justify-between gap-3 p-2.5 rounded-xl border transition-all text-xs bg-slate-50/70 border-slate-200';
+                                if (iconWrapper) {
+                                    iconWrapper.className = 'w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 bg-slate-200 text-slate-400';
+                                    iconWrapper.innerHTML = '<i class="ph-bold ph-circle text-[11px]"></i>';
+                                }
+                                if (rightContainer) {
+                                    rightContainer.innerHTML = `<button type="button" data-completion-action="${rule.id}" data-action-target="${rule.actionTarget}" data-action-type="${rule.actionType}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white hover:bg-indigo-50 text-indigo-700 border border-slate-200 hover:border-indigo-300 transition-colors shadow-2xs cursor-pointer"><span>${rule.actionText}</span> <i class="ph-bold ph-arrow-right text-[10px]"></i></button>`;
+                                    const newBtn = rightContainer.querySelector('button');
+                                    if (newBtn) {
+                                        newBtn.addEventListener('click', () => handleCompletionAction(rule.actionType, rule.actionTarget));
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    const percentage = Math.min(100, Math.max(0, earnedWeight));
+
+                    profileProgressBar.style.width = percentage + '%';
+                    if (profileProgressPercent) profileProgressPercent.textContent = percentage + '%';
+                    if (profileScoreFraction) profileScoreFraction.textContent = `${earnedWeight} / 100 pts`;
+                    if (headerCompletionText) headerCompletionText.textContent = `Profile: ${percentage}%`;
+                    if (profileCompletedCount) profileCompletedCount.textContent = `${completedItemsCount} of 6 completed`;
+
+                    let tier = {
+                        label: 'Getting Started',
+                        icon: 'ph-warning-circle',
+                        badgeBg: 'bg-rose-50 text-rose-700 border-rose-200',
+                        barBg: 'bg-rose-500'
+                    };
+                    if (percentage >= 100) {
+                        tier = {
+                            label: 'All-Star Profile',
+                            icon: 'ph-check-circle',
+                            badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                            barBg: 'bg-emerald-500'
+                        };
+                    } else if (percentage >= 80) {
+                        tier = {
+                            label: 'Strong Profile',
+                            icon: 'ph-sparkle',
+                            badgeBg: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+                            barBg: 'bg-indigo-600'
+                        };
+                    } else if (percentage >= 50) {
+                        tier = {
+                            label: 'Intermediate',
+                            icon: 'ph-trend-up',
+                            badgeBg: 'bg-amber-50 text-amber-800 border-amber-200',
+                            barBg: 'bg-amber-500'
+                        };
+                    }
+
+                    profileProgressBar.className = `h-full rounded-full transition-all duration-500 ${tier.barBg}`;
+                    if (profileLevelLabel) profileLevelLabel.textContent = tier.label;
+                    if (profileLevelBadge) profileLevelBadge.className = `inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold border ${tier.badgeBg} shadow-2xs`;
+                    if (profileLevelIcon) profileLevelIcon.className = `ph-bold ${tier.icon}`;
+                    if (headerCompletionBadge) headerCompletionBadge.className = `inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${tier.badgeBg} shadow-xs hover:opacity-90 transition-all cursor-pointer`;
+                    if (headerCompletionIcon) headerCompletionIcon.className = `ph-bold ${tier.icon}`;
+
+                    if (percentage === 100) {
+                        if (profileSummaryText) profileSummaryText.textContent = 'Your profile is 100% complete and fully optimized for recruiters!';
+                        if (profileNextActionCard) profileNextActionCard.classList.add('hidden');
+                    } else {
+                        const requiredMissing = missingItems.filter(i => i.category === 'required');
+                        if (profileSummaryText) {
+                            if (requiredMissing.length > 0) {
+                                profileSummaryText.textContent = `${requiredMissing.length} essential item${requiredMissing.length === 1 ? '' : 's'} remaining to complete your profile.`;
+                            } else {
+                                profileSummaryText.textContent = `All essential fields completed! Add ${missingItems.length} recommended item${missingItems.length === 1 ? '' : 's'} to stand out.`;
+                            }
+                        }
+
+                        if (profileNextActionCard && missingItems.length > 0) {
+                            profileNextActionCard.classList.remove('hidden');
+                            missingItems.sort((a, b) => {
+                                if (a.category === 'required' && b.category !== 'required') return -1;
+                                if (b.category === 'required' && a.category !== 'required') return 1;
+                                return b.weight - a.weight;
+                            });
+                            const topMissing = missingItems[0];
+                            if (profileNextActionPrompt) {
+                                profileNextActionPrompt.textContent = `Complete "${topMissing.label}" (+${topMissing.weight}%) to boost your profile strength!`;
+                            }
+                            if (profileNextActionBtn && profileNextActionBtnText) {
+                                profileNextActionBtn.dataset.actionTarget = topMissing.actionTarget;
+                                profileNextActionBtn.dataset.actionType = topMissing.actionType;
+                                profileNextActionBtnText.textContent = topMissing.actionText;
+                            }
+                        }
+                    }
+                };
+
+                const profileLocationInput = document.querySelector('input[name="location"]');
+                const profileInstitutionInput = document.querySelector('input[name="institution"]');
+                [profileLocationInput, editQualificationInput, profileInstitutionInput].forEach(inp => {
+                    if (inp) {
+                        inp.addEventListener('input', updateLiveProfileCompletion);
+                        inp.addEventListener('change', updateLiveProfileCompletion);
+                    }
+                });
+
+                if (skillProfileFields) {
+                    skillProfileFields.addEventListener('input', updateLiveProfileCompletion);
+                    skillProfileFields.addEventListener('change', updateLiveProfileCompletion);
+                }
+                if (addSkillProfileBtn) {
+                    addSkillProfileBtn.addEventListener('click', () => {
+                        setTimeout(updateLiveProfileCompletion, 50);
+                    });
+                }
+                if (resumeInput) {
+                    resumeInput.addEventListener('change', updateLiveProfileCompletion);
+                }
+                if (clearFileBtn) {
+                    clearFileBtn.addEventListener('click', () => {
+                        setTimeout(updateLiveProfileCompletion, 50);
                     });
                 }
             });

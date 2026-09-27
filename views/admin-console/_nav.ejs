@@ -1,0 +1,38 @@
+<%
+    const current = typeof consoleSection !== 'undefined' ? consoleSection : '';
+    const consoleLinks = [
+        { key: 'overview', href: '/admin/overview', icon: 'ph-chart-line-up', label: 'Overview' },
+        { key: 'users', href: '/admin/users', icon: 'ph-users', label: 'Users' },
+        { key: 'listings', href: '/admin/listings', icon: 'ph-briefcase', label: 'Listings' },
+        { key: 'applications', href: '/admin/applications', icon: 'ph-files', label: 'Applications' },
+        { key: 'announcements', href: '/admin/announcements', icon: 'ph-megaphone', label: 'Announcements' },
+        { key: 'audit', href: '/admin/audit', icon: 'ph-clipboard-text', label: 'Audit log' }
+    ];
+    const moreLinks = [
+        { href: '/admin/grievances', icon: 'ph-shield-warning', label: 'Grievance desk' },
+        { href: '/admin/dashboard', icon: 'ph-seal-check', label: 'Company verification' }
+    ];
+%>
+<nav aria-label="Admin console" class="mb-5 lg:mb-0">
+    <div class="lg:sticky lg:top-24 bg-white border border-slate-200 rounded-xl shadow-sm p-2">
+        <p class="hidden lg:block text-[10px] uppercase tracking-wider font-bold text-slate-400 px-3 pt-2 pb-1">Admin console</p>
+        <ul class="flex lg:flex-col gap-1 overflow-x-auto">
+            <% consoleLinks.forEach(link => { %>
+                <li class="shrink-0">
+                    <a href="<%= link.href %>" <%= current === link.key ? 'aria-current=page' : '' %>
+                        class="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors <%= current === link.key ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' %>">
+                        <i class="ph-bold <%= link.icon %> text-base" aria-hidden="true"></i><%= link.label %>
+                    </a>
+                </li>
+            <% }) %>
+            <li class="hidden lg:block border-t border-slate-100 my-1" aria-hidden="true"></li>
+            <% moreLinks.forEach(link => { %>
+                <li class="shrink-0">
+                    <a href="<%= link.href %>" class="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                        <i class="ph-bold <%= link.icon %> text-base" aria-hidden="true"></i><%= link.label %>
+                    </a>
+                </li>
+            <% }) %>
+        </ul>
+    </div>
+</nav>

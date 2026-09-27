@@ -13,6 +13,7 @@
         if (normalized === 'withdrawn') return 'Withdrawn';
         if (normalized === 'rejected') return 'Rejected';
         if (normalized === 'hired' || normalized === 'accepted') return 'Hired';
+        if (normalized === 'offer declined') return 'Offer Declined';
         return value || 'Submitted';
     };
     const activeStageIndex = value => {
@@ -22,7 +23,7 @@
         if (normalized === 'interview') return 3;
         return 0;
     };
-    const isTerminatedStatus = value => ['withdrawn', 'rejected', 'hired', 'accepted'].includes(normalizeStatus(value));
+    const isTerminatedStatus = value => ['withdrawn', 'rejected', 'hired', 'accepted', 'offer declined'].includes(normalizeStatus(value));
     const asValidDate = value => {
         const date = value ? new Date(value) : null;
         return date && !Number.isNaN(date.getTime()) ? date : null;
@@ -58,17 +59,22 @@
     const clearFiltersUrl = activeSort !== 'applied_desc'
         ? `/candidate/applications?sort=${encodeURIComponent(activeSort)}`
         : '/candidate/applications';
+    const submittedCount = safeApplications.filter(a => ['Submitted','submitted','pending'].includes(String(a.status))).length;
+    const underRevCount = safeApplications.filter(a => ['Under Review','under_review'].includes(String(a.status))).length;
+    const shortCount = safeApplications.filter(a => ['Shortlisted','shortlisted'].includes(String(a.status))).length;
+    const rejCount = safeApplications.filter(a => ['Rejected','rejected'].includes(String(a.status))).length;
+    const withdrawnCount = safeApplications.filter(a => ['Withdrawn','withdrawn'].includes(String(a.status))).length;
 %>
 
 <div class="max-w-7xl mx-auto space-y-6">
-    <header class="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
+    <header class="ip-hero flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-indigo-600">Candidate portal</p>
-            <h1 class="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">My Applications</h1>
-            <p class="mt-1 text-sm text-slate-500">Follow each application from submission to interview in one consistent view.</p>
+            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-indigo-100/80">Candidate portal</p>
+            <h1 class="mt-1 text-2xl font-bold tracking-tight text-white sm:text-3xl">My Applications</h1>
+            <p class="mt-1 text-sm text-indigo-100/90">Follow each application from submission to interview in one consistent view.</p>
         </div>
         <a href="/internships"
-            class="inline-flex w-fit items-center gap-2 rounded-xl bg-indigo-700 px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-indigo-800 focus:outline-none focus:ring-4 focus:ring-indigo-200">
+            class="inline-flex w-fit items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-semibold text-indigo-700 shadow-sm transition-colors hover:bg-indigo-50 focus:outline-none focus:ring-4 focus:ring-indigo-200">
             <i class="ph-bold ph-magnifying-glass" aria-hidden="true"></i>
             Find More Internships
         </a>
@@ -89,7 +95,7 @@
                     <label for="application-status" class="mb-1.5 block text-xs font-bold text-slate-700">Status</label>
                     <select id="application-status" name="status" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100">
                         <option value="all" <%= activeStatusFilter === 'all' ? 'selected' : '' %>>All statuses</option>
-                        <% ['Submitted', 'Under Review', 'Shortlisted', 'Interview', 'Rejected', 'Hired', 'Withdrawn'].forEach(status => { %>
+                        <% ['Submitted', 'Under Review', 'Shortlisted', 'Interview', 'Rejected', 'Hired', 'Offer Declined', 'Withdrawn'].forEach(status => { %>
                             <option value="<%= status %>" <%= activeStatusFilter === status ? 'selected' : '' %>><%= status %></option>
                         <% }) %>
                     </select>
@@ -136,9 +142,7 @@
         </section>
     <% } else if (safeApplications.length === 0) { %>
         <section class="rounded-2xl border border-slate-200 bg-white px-6 py-14 text-center shadow-sm">
-            <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
-                <i class="ph-bold ph-paper-plane-tilt text-3xl" aria-hidden="true"></i>
-            </div>
+            <%- include('../partials/plane-3d') %>
             <h2 class="text-lg font-bold text-slate-800">No applications submitted yet</h2>
             <p class="mx-auto mt-1 max-w-md text-sm text-slate-500">Browse internships and click Apply Now to start tracking your progress here.</p>
             <a href="/internships"
@@ -148,7 +152,7 @@
             </a>
         </section>
     <% } else { %>
-        <div class="space-y-4" aria-label="Submitted applications">
+        <div class="space-y-4" aria-label="Submitted applications" data-animate-stagger>
             <% safeApplications.forEach(app => { %>
                 <%
                     const normalizedStatus = normalizeStatus(app.status);
@@ -173,6 +177,9 @@
                     const safeMeetingLink = interview ? (safeUrl(interview.meetingLink).url || '') : '';
                     const statusUpdatedAt = asValidDate(app.statusUpdatedAt || app.appliedAt);
                     const hasApplicationKit = Boolean(app.applicationKit);
+                    const issuedDocuments = (typeof issuedDocumentsByApplication !== 'undefined' && issuedDocumentsByApplication[String(app._id)])
+                        ? issuedDocumentsByApplication[String(app._id)]
+                        : [];
                 %>
 
                 <article id="app-card-<%= app._id %>"
@@ -243,8 +250,8 @@
                                 </div>
                             <% } else { %>
                                 <div data-terminal-status class="mt-3">
-                                    <span class="inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold <%= isWithdrawn ? 'border-slate-300 bg-slate-100 text-slate-700' : normalizedStatus === 'rejected' ? 'border-rose-200 bg-rose-50 text-rose-700' : 'border-emerald-200 bg-emerald-50 text-emerald-700' %>">
-                                        <span class="h-2 w-2 rounded-full <%= isWithdrawn ? 'bg-slate-500' : normalizedStatus === 'rejected' ? 'bg-rose-500' : 'bg-emerald-500' %>"></span>
+                                    <span class="inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold <%= isWithdrawn ? 'border-slate-300 bg-slate-100 text-slate-700' : (normalizedStatus === 'rejected' || normalizedStatus === 'offer declined') ? 'border-rose-200 bg-rose-50 text-rose-700' : 'border-emerald-200 bg-emerald-50 text-emerald-700' %>">
+                                        <span class="h-2 w-2 rounded-full <%= isWithdrawn ? 'bg-slate-500' : (normalizedStatus === 'rejected' || normalizedStatus === 'offer declined') ? 'bg-rose-500' : 'bg-emerald-500' %>"></span>
                                         <%= stageLabel %>
                                     </span>
                                     <p class="mt-2 text-xs text-slate-500"><%= isWithdrawn ? 'This application is no longer active.' : 'This application has reached a final decision.' %></p>
@@ -278,7 +285,17 @@
                                         Withdraw
                                     </button>
                                 <% } else { %>
-                                    <span data-action-state="unavailable" class="inline-flex items-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-500">No actions available</span>
+                                    <% const compId = (internship && (internship.companyId || (internship.company && internship.company._id))) || app.company; %>
+                                    <% if (normalizedStatus === 'hired' && compId) { %>
+                                        <a href="/companies/<%= compId %>/reviews/new"
+                                            class="inline-flex items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800 transition-colors hover:bg-amber-100 shadow-2xs"
+                                            title="Share your verified intern experience">
+                                            <i class="ph-bold ph-star text-amber-600"></i>
+                                            Write Review
+                                        </a>
+                                    <% } else { %>
+                                        <span data-action-state="unavailable" class="inline-flex items-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-500">No actions available</span>
+                                    <% } %>
                                 <% } %>
 
                                 <% if (internship._id) { %>
@@ -296,6 +313,14 @@
                                         <i class="ph-bold ph-briefcase" aria-hidden="true"></i>
                                     </a>
                                 <% } %>
+
+                                <% issuedDocuments.forEach(type => { %>
+                                    <a href="/candidate/applications/<%= app._id %>/certificates/<%= type %>"
+                                        class="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 focus:outline-none focus:ring-4 focus:ring-emerald-100">
+                                        <i class="ph-bold ph-download-simple" aria-hidden="true"></i>
+                                        <%= type === 'internship-certificate' ? 'Certificate PDF' : 'LOR PDF' %>
+                                    </a>
+                                <% }) %>
                             </div>
                         </section>
                     </div>

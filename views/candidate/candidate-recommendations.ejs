@@ -95,7 +95,7 @@
                 </a>
             </div>
         <% } else { %>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" data-animate-stagger>
                 <% recommendations.forEach(rec => { %>
                     <div
                         class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between p-5">
@@ -106,9 +106,10 @@
                                     class="text-xs font-semibold tracking-wider uppercase bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md border border-slate-200 truncate">
                                     <%= (rec.role && rec.role.sector) ? rec.role.sector : 'General' %>
                                 </span>
-                                <span
-                                    class="shrink-0 text-xs font-bold <%= (rec.matchScore >= 75) ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : ((rec.matchScore >= 40) ? 'bg-amber-100 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-700 border-slate-200') %> px-2.5 py-1 rounded-md border">
-                                    <%= rec.matchScore %>% Match
+                                <% const ringScore = Math.max(0, Math.min(100, Number(rec.matchScore) || 0)); %>
+                                <span class="ip-ring" style="--ring-value: <%= ringScore %>; --ring-color: <%= ringScore >= 75 ? '#10b981' : (ringScore >= 40 ? '#f59e0b' : '#94a3b8') %>" role="img" aria-label="<%= ringScore %>% match">
+                                    <svg viewBox="0 0 36 36" aria-hidden="true"><circle class="ip-ring__track" cx="18" cy="18" r="15.9155" fill="none" stroke-width="3.4"></circle><circle class="ip-ring__value" cx="18" cy="18" r="15.9155" fill="none" stroke-width="3.4" pathLength="100"></circle></svg>
+                                    <span class="ip-ring__label" aria-hidden="true"><span data-count-up><%= ringScore %>%</span><br><small>match</small></span>
                                 </span>
                             </div>
 
@@ -199,7 +200,7 @@
                                     <i class="ph-bold ph-briefcase"></i> <%= hasListingQuestions ? 'Prepare Application Kit' : 'Tailor Application' %>
                                 </a>
                                 <% if (!hasListingQuestions) { %>
-                                    <form action="/internships/<%= rec.role._id %>/apply" method="POST" data-loading-text="Applying..." class="mt-2">
+                                    <form action="/internships/<%= rec.role._id %>/apply" method="POST" class="mt-2" data-quick-apply-form data-no-loading data-internship-title="<%= rec.role.title %>" data-company-name="<%= rec.role.companyName || rec.role.company || '' %>">
                                         <button type="submit" class="w-full py-2.5 px-4 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold text-sm rounded-xl transition-colors flex items-center justify-center gap-1.5 cursor-pointer"><i class="ph-bold ph-paper-plane-tilt"></i> Quick Apply</button>
                                     </form>
                                 <% } %>

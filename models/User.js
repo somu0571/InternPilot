@@ -118,7 +118,35 @@ const userSchema = new mongoose.Schema({
         contactPhone: { type: String, default: '', trim: true },
         contactInformation: { type: String, default: '', trim: true },
         companySize: { type: String, default: '', trim: true },
-        isVerified: { type: Boolean, default: false }
+        // isVerified remains for legacy views and records. New verification
+        // checks use verificationStatus, which records the full review state.
+        isVerified: { type: Boolean, default: false },
+        verificationStatus: {
+            type: String,
+            enum: ['pending', 'approved', 'rejected', 'suspended'],
+            default: undefined,
+            index: true
+        },
+        verificationReason: { type: String, default: '', trim: true, maxlength: 1000 },
+        verificationSubmittedAt: { type: Date },
+        verificationReviewedAt: { type: Date },
+        verificationReviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        verificationDocuments: [{
+            fileName: { type: String, required: true, trim: true, maxlength: 180 },
+            fileUrl: { type: String, required: true, trim: true },
+            uploadedAt: { type: Date, default: Date.now },
+            uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+        }],
+        verificationHistory: [{
+            status: {
+                type: String,
+                enum: ['pending', 'approved', 'rejected', 'suspended'],
+                required: true
+            },
+            reason: { type: String, default: '', trim: true, maxlength: 1000 },
+            changedAt: { type: Date, default: Date.now },
+            changedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+        }]
     },
 
     isEmailVerified: { type: Boolean, default: false },

@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const { isCompanyVerified } = require('../utils/companyVerification');
 
 // A company owner is the Admin for its organisation. Recruiters can publish
 // and review candidates, while hiring managers have read-only access.
@@ -82,6 +83,28 @@ function requireCompanyPermission(...permissions) {
     };
 }
 
+function denyUnverifiedCompany(req, res) {
+    const message = 'Your company must be verified before publishing or resuming internships.';
+    if (req.flash) req.flash('error_msg', message);
+
+    if (req.accepts && req.accepts(['html', 'json']) === 'json') {
+        return res.status(403).json({ error: message, verificationRequired: true });
+    }
+
+    return res.redirect('/company/profile');
+}
+
+// This middleware must follow requireCompanyPermission, which resolves the
+// parent company record into req.company. Drafts are intentionally allowed so
+// an organisation can prepare a listing while its review is pending.
+function requireVerifiedCompany({ allowDraft = false } = {}) {
+    return (req, res, next) => {
+        if (allowDraft && req.body?.action === 'draft') return next();
+        if (isCompanyVerified(req.company)) return next();
+        return denyUnverifiedCompany(req, res);
+    };
+}
+
 function companyName(company) {
     return company.companyDetails?.companyName || company.name;
 }
@@ -114,6 +137,8 @@ module.exports = {
     companyPermissions,
     hasCompanyPermission,
     requireCompanyPermission,
+    requireVerifiedCompany,
+    denyUnverifiedCompany,
     companyName,
     companyInternshipQuery,
     belongsToCompany

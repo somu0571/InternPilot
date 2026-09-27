@@ -3,6 +3,7 @@ const Internship = require('../models/Internship');
 const Notification = require('../models/Notification');
 const { parseISTEndOfDay } = require('./dateUtils');
 const { runSavedSearchDigests } = require('./notifications');
+const { expireDueOffers } = require('./offers');
 
 const APPROACHING_DEADLINE_DAYS = parseInt(process.env.APPROACHING_DEADLINE_DAYS, 10) || 3;
 
@@ -92,4 +93,15 @@ cron.schedule('0 9 * * 1', async () => {
     }
 }, { timezone: 'Asia/Kolkata' });
 
-module.exports = { runSavedSearchDigests };
+// Offer expiry is also checked when a candidate opens or responds to an offer.
+// This lightweight sweep makes the final state and notifications timely even
+// when neither party revisits the offer page.
+cron.schedule('*/5 * * * *', async () => {
+    try {
+        await expireDueOffers();
+    } catch (error) {
+        console.error('[Scheduler] Error expiring internship offers:', error);
+    }
+});
+
+module.exports = { runSavedSearchDigests, expireDueOffers };

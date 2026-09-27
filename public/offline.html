@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <meta name="theme-color" content="#4f46e5">
+    <title>You're offline | InternPilot</title>
+    <!-- Self-contained on purpose: this page is shown when nothing else can load. -->
+    <style>
+        :root {
+            color-scheme: light dark;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: #f8fafc;
+            color: #0f172a;
+            font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+        }
+
+        main {
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 32px 24px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+        }
+
+        img {
+            display: block;
+            margin: 0 auto 16px;
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 22px;
+        }
+
+        p {
+            margin: 0 0 12px;
+            color: #475569;
+        }
+
+        .hint {
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        button {
+            margin-top: 12px;
+            width: 100%;
+            padding: 12px 16px;
+            border: 0;
+            border-radius: 12px;
+            background: #4f46e5;
+            color: #ffffff;
+            font: 600 15px/1 inherit;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #4338ca;
+        }
+
+        button:focus-visible {
+            outline: 3px solid #818cf8;
+            outline-offset: 3px;
+        }
+
+        .status {
+            margin-top: 12px;
+            font-size: 13px;
+            min-height: 1.5em;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #020617;
+                color: #e2e8f0;
+            }
+
+            main {
+                background: #0f172a;
+                border-color: #1e293b;
+            }
+
+            p {
+                color: #cbd5e1;
+            }
+
+            .hint,
+            .status {
+                color: #94a3b8;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <img src="/images/internpilot-logo.svg" alt="" width="72" height="72">
+        <h1>You're offline</h1>
+        <p>InternPilot can't reach the internet right now. Check your mobile data or Wi-Fi, then try again.</p>
+        <p class="hint">Pages need a connection to load, so none of your personal details are stored on this device.</p>
+        <button type="button" id="retry">Try again</button>
+        <p class="status" id="status" role="status" aria-live="polite"></p>
+    </main>
+    <script>
+        (function () {
+            var status = document.getElementById('status');
+            document.getElementById('retry').addEventListener('click', function () {
+                status.textContent = 'Checking your connection...';
+                window.location.reload();
+            });
+            // Reload on its own as soon as the connection comes back.
+            window.addEventListener('online', function () {
+                status.textContent = 'Back online. Loading...';
+                window.location.reload();
+            });
+        })();
+    </script>
+</body>
+
+</html>

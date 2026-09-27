@@ -11,7 +11,7 @@ const MAX_LIST_ITEMS = 20;
 
 // Pipeline order, used for the status options and chips. 'pending' is the
 // legacy spelling of Submitted from before the enum was expanded.
-const STATUS_ORDER = ['Submitted', 'Under Review', 'Shortlisted', 'Interview', 'Hired', 'Rejected', 'Withdrawn'];
+const STATUS_ORDER = ['Submitted', 'Under Review', 'Shortlisted', 'Interview', 'Hired', 'Offer Declined', 'Rejected', 'Withdrawn'];
 const STATUS_ALIASES = { pending: 'Submitted', withdrawn: 'Withdrawn' };
 
 // There is no experience field on the profile, so experience means the

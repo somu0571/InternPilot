@@ -1,0 +1,258 @@
+/*
+ * InternPilot motion layer (#211). Everything that moves is skipped for people
+ * who have asked their device for reduced motion.
+ */
+
+/* Smooth page-to-page transitions with the View Transitions API. Works for a
+   multi-page app like ours; browsers without it simply navigate as before. */
+@media (prefers-reduced-motion: no-preference) {
+    @view-transition {
+        navigation: auto;
+    }
+
+    /* Short on purpose: a transition should never make navigation feel slower. */
+    ::view-transition-old(root) {
+        animation: 90ms ease-out both ip-page-out;
+    }
+
+    ::view-transition-new(root) {
+        animation: 160ms ease-out both ip-page-in;
+    }
+
+    /* The header stays put while the page underneath changes. */
+    body > header {
+        view-transition-name: ip-site-header;
+    }
+}
+
+@keyframes ip-page-out {
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes ip-page-in {
+    from {
+        opacity: 0;
+    }
+}
+
+/* Content marked for a reveal stays hidden only until its animation starts.
+   The motion-pending class is added by a tiny script in <head> and removed if
+   anything goes wrong, so content is never left hidden. */
+.motion-pending [data-animate]:not([data-animated]),
+.motion-pending [data-animate-stagger] > :not([data-animated]) {
+    opacity: 0;
+}
+
+/* Cards that lean toward the pointer, on devices with a mouse. */
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    /* No permanent will-change: dozens of cards each on their own layer costs memory. */
+    [data-tilt] {
+        transition: transform 0.2s ease-out, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    [data-tilt]:hover {
+        box-shadow: 0 18px 40px -18px rgba(79, 70, 229, 0.35);
+    }
+}
+
+/* Toasts */
+.ip-toasts {
+    position: fixed;
+    top: 76px;
+    right: 16px;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: min(420px, calc(100vw - 32px));
+    pointer-events: none;
+}
+
+.ip-toast {
+    position: relative;
+    overflow: hidden;
+    pointer-events: auto;
+    box-shadow: 0 12px 32px -12px rgba(15, 23, 42, 0.28) !important;
+}
+
+.ip-toast__timer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    background: currentColor;
+    opacity: 0.35;
+    transform-origin: left center;
+}
+
+@media (max-width: 639px) {
+    .ip-toasts {
+        top: 68px;
+        left: 16px;
+        right: 16px;
+        width: auto;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ip-toast__timer {
+        display: none;
+    }
+}
+
+/* The 3D paper plane: the logo shows until the 3D canvas has drawn, then they crossfade. */
+.ip-plane3d {
+    position: relative;
+    width: 180px;
+    height: 128px;
+    margin: 0 auto 12px;
+}
+
+.ip-plane3d--lg {
+    width: 280px;
+    height: 200px;
+}
+
+.ip-plane3d__fallback,
+.ip-plane3d__canvas {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    transition: opacity 0.6s ease;
+}
+
+.ip-plane3d__fallback {
+    width: 72px;
+    height: 72px;
+}
+
+.ip-plane3d__canvas {
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+}
+
+.ip-plane3d.is-3d .ip-plane3d__canvas {
+    opacity: 1;
+}
+
+.ip-plane3d.is-3d .ip-plane3d__fallback {
+    opacity: 0;
+}
+
+/* Phones: a floating Apply button until the apply section is on screen. */
+.ip-apply-jump {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    z-index: 45;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 13px 16px;
+    border-radius: 14px;
+    background: #4f46e5;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 14px 30px -12px rgba(79, 70, 229, 0.6);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.ip-apply-jump[hidden] {
+    display: none;
+}
+
+.ip-apply-jump.is-away {
+    opacity: 0;
+    transform: translateY(12px);
+    pointer-events: none;
+}
+
+@media (min-width: 768px) {
+    .ip-apply-jump {
+        display: none;
+    }
+}
+
+/* Confirmation dialog (native <dialog>) */
+.ip-dialog {
+    width: min(420px, calc(100vw - 32px));
+    padding: 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    background: #ffffff;
+    color: #0f172a;
+    box-shadow: 0 24px 60px -20px rgba(15, 23, 42, 0.45);
+}
+
+.ip-dialog::backdrop {
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(3px);
+}
+
+.ip-dialog form {
+    padding: 20px;
+}
+
+.ip-dialog__message {
+    margin: 0 0 18px;
+    font-size: 15px;
+    line-height: 1.5;
+    font-weight: 600;
+}
+
+.ip-dialog__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.ip-dialog__actions button {
+    border: 0;
+    border-radius: 10px;
+    padding: 9px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.ip-dialog__cancel {
+    background: #f1f5f9;
+    color: #334155;
+}
+
+.ip-dialog__cancel:hover {
+    background: #e2e8f0;
+}
+
+.ip-dialog__confirm {
+    background: #4f46e5;
+    color: #ffffff;
+}
+
+.ip-dialog--danger .ip-dialog__confirm {
+    background: #e11d48;
+}
+
+.ip-dialog__actions button:focus-visible {
+    outline: 3px solid #818cf8;
+    outline-offset: 2px;
+}
+
+html.dark .ip-dialog {
+    background: #0f172a;
+    color: #e2e8f0;
+    border-color: #1e293b;
+}
+
+html.dark .ip-dialog__cancel {
+    background: #1e293b;
+    color: #e2e8f0;
+}

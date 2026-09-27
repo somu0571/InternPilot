@@ -2,49 +2,178 @@
 
 <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mb-12 mt-16">
     <!-- Header Section -->
-    <div class="mb-8">
-        <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-            <i class="ph-bold ph-bookmark-simple text-rose-500"></i> Saved Internships
-        </h1>
-        <p class="text-slate-500 text-sm mt-1">Keep track of the opportunities you're interested in applying to later.</p>
+    <div class="ip-hero flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div class="relative">
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2">
+                <i class="ph-bold ph-bookmark-simple text-rose-200"></i> Saved Internships
+            </h1>
+            <p class="text-indigo-100/90 text-sm mt-1">Keep track of the opportunities you're interested in applying to later.</p>
+        </div>
+        <div id="savedCounterContainer">
+            <span id="savedCounterBadge" class="<%= (!internships || internships.length === 0) ? 'hidden' : 'inline-flex' %> items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                <i class="ph-bold ph-bookmark"></i>
+                <span id="savedCounterDisplay"><span id="visibleCount"><%= internships ? internships.length : 0 %></span> of <span id="totalCount"><%= internships ? internships.length : 0 %></span> saved</span>
+            </span>
+        </div>
     </div>
 
-    <% if (!internships || internships.length === 0) { %>
-        <div class="bg-white border border-slate-200 rounded-xl p-12 text-center shadow-sm">
-            <i class="ph-bold ph-bookmark-simple text-4xl text-slate-300 mb-2"></i>
-            <h3 class="text-base font-bold text-slate-800">No Saved Internships</h3>
-            <p class="text-xs text-slate-500 mt-1 mb-4">You haven't bookmarked any internships yet.</p>
-            <a href="/internships" class="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm">
-                Browse Opportunities
-            </a>
+    <!-- Empty State (No bookmarks saved) -->
+    <div id="noSavedState" class="<%= (!internships || internships.length === 0) ? '' : 'hidden' %> bg-white border border-slate-200 rounded-xl p-12 text-center shadow-sm">
+        <%- include('../partials/plane-3d') %>
+        <h3 class="text-base font-bold text-slate-800">No Saved Internships</h3>
+        <p class="text-xs text-slate-500 mt-1 mb-5 max-w-sm mx-auto">You haven't bookmarked any internships yet. Explore open roles and save ones that catch your eye.</p>
+        <a href="/internships" class="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm">
+            <i class="ph-bold ph-magnifying-glass"></i> Browse Opportunities
+        </a>
+    </div>
+
+    <!-- Search & Filter Controls Toolbar -->
+    <div id="savedFiltersToolbar" class="<%= (!internships || internships.length === 0) ? 'hidden' : '' %> bg-white border border-slate-200 rounded-xl p-4 mb-6 shadow-sm">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-center">
+            <!-- Quick Search Input -->
+            <div class="lg:col-span-5 relative">
+                <label for="savedSearchInput" class="sr-only">Search saved internships</label>
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <i class="ph-bold ph-magnifying-glass text-sm"></i>
+                </div>
+                <input
+                    type="text"
+                    id="savedSearchInput"
+                    value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>"
+                    placeholder="Search by role title or company..."
+                    class="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                />
+                <button
+                    type="button"
+                    id="clearSearchBtn"
+                    class="hidden absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600"
+                    title="Clear search"
+                    aria-label="Clear search"
+                >
+                    <i class="ph-bold ph-x text-xs"></i>
+                </button>
+            </div>
+
+            <!-- Sector Filter -->
+            <div class="lg:col-span-3">
+                <label for="sectorFilter" class="sr-only">Filter by sector</label>
+                <select
+                    id="sectorFilter"
+                    class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                >
+                    <option value="">All Sectors <%= (typeof sectors !== 'undefined' && sectors && sectors.length) ? `(${sectors.length})` : '' %></option>
+                    <% if (typeof sectors !== 'undefined' && sectors && sectors.length > 0) { %>
+                        <% sectors.forEach(sector => { %>
+                            <option value="<%= sector %>"<%= (typeof selectedSector !== 'undefined' && selectedSector === sector) ? ' selected' : '' %>><%= sector %></option>
+                        <% }) %>
+                    <% } %>
+                </select>
+            </div>
+
+            <!-- Status / Deadline Urgency Filter -->
+            <div class="lg:col-span-3">
+                <label for="statusFilter" class="sr-only">Filter by deadline / status</label>
+                <select
+                    id="statusFilter"
+                    class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                >
+                    <option value="">All Statuses</option>
+                    <option value="closing_soon"<%= (typeof selectedStatus !== 'undefined' && selectedStatus === 'closing_soon') ? ' selected' : '' %>>Closing Soon (&le; 3 days)</option>
+                    <option value="open"<%= (typeof selectedStatus !== 'undefined' && selectedStatus === 'open') ? ' selected' : '' %>>Open</option>
+                    <option value="applied"<%= (typeof selectedStatus !== 'undefined' && selectedStatus === 'applied') ? ' selected' : '' %>>Applied</option>
+                    <option value="closed"<%= (typeof selectedStatus !== 'undefined' && selectedStatus === 'closed') ? ' selected' : '' %>>Application Closed</option>
+                </select>
+            </div>
+
+            <!-- Reset Filters Button -->
+            <div class="lg:col-span-1 flex justify-end">
+                <button
+                    type="button"
+                    id="resetFiltersBtn"
+                    class="hidden w-full lg:w-auto px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition-colors items-center justify-center gap-1"
+                    title="Reset all filters"
+                >
+                    <i class="ph-bold ph-arrow-counter-clockwise"></i>
+                    <span class="lg:hidden">Reset</span>
+                </button>
+            </div>
         </div>
-    <% } else { %>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="saved-grid">
+    </div>
+
+    <!-- Filter Empty State (when search/filters yield 0 results) -->
+    <div id="filterEmptyState" class="hidden bg-white border border-slate-200 rounded-xl p-10 text-center shadow-sm mb-6">
+        <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+            <i class="ph-bold ph-funnel text-2xl"></i>
+        </div>
+        <h3 class="text-sm font-bold text-slate-800">No matching saved internships</h3>
+        <p class="text-xs text-slate-500 mt-1 mb-4">No bookmarks matched your current search and filter criteria.</p>
+        <button
+            type="button"
+            id="clearAllFiltersBtn"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+        >
+            <i class="ph-bold ph-arrow-counter-clockwise"></i> Clear Filters
+        </button>
+    </div>
+
+    <!-- Saved Internships Grid -->
+    <% if (internships && internships.length > 0) { %>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="saved-grid" data-animate-stagger>
             <% internships.forEach(item => { %>
                 <% const isItemPaused = item.status === 'paused' || item.isPaused; %>
-                <div class="internship-card bg-white border <%= isItemPaused ? 'border-amber-300' : 'border-slate-200' %> rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between relative group" id="card-<%= item._id %>">
-                    
-                    
-
+                <% const deadline = item.deadlineInfo || (typeof formatDeadlineUrgency === 'function' ? formatDeadlineUrgency(item.applicationDeadline) : null); %>
+                <div data-tilt
+                    class="internship-card bg-white border <%= isItemPaused ? 'border-amber-300' : 'border-slate-200' %> rounded-xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative group"
+                    id="card-<%= item._id %>"
+                    data-id="<%= item._id %>"
+                    data-title="<%= (item.title || '').toLowerCase() %>"
+                    data-company="<%= (item.companyId?.companyName || item.companyName || item.company || '').toLowerCase() %>"
+                    data-sector="<%= (item.sector || 'General') %>"
+                    data-applied="<%= item.hasApplied ? 'true' : 'false' %>"
+                    data-is-closed="<%= (deadline && deadline.isClosed) ? 'true' : 'false' %>"
+                    data-urgency="<%= (deadline ? deadline.urgency : 'none') %>"
+                    data-days-left="<%= (deadline ? deadline.daysLeft : 999) %>"
+                >
                     <div>
-                        <div class="flex items-center justify-between mb-3">
+                        <!-- Top Badges Row -->
+                        <div class="flex items-center justify-between gap-2 mb-3 flex-wrap">
                             <div class="flex items-center gap-1.5 flex-wrap">
+                                <!-- Sector Badge -->
                                 <span class="text-[11px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100 px-2.5 py-0.5 rounded-full">
                                     <%= item.sector || "General" %>
                                 </span>
+
+                                <!-- Paused Badge -->
                                 <% if (isItemPaused) { %>
                                     <span class="text-[11px] font-bold text-amber-800 bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-full flex items-center gap-1">
                                         <i class="ph-bold ph-pause-circle"></i> Paused
                                     </span>
                                 <% } %>
+
+                                <!-- Applied Status Badge -->
+                                <% if (item.hasApplied) { %>
+                                    <span class="applied-badge text-[11px] font-bold text-emerald-800 bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 rounded-full flex items-center gap-1" title="<%= item.applicationStatus ? 'Application Status: ' + item.applicationStatus : 'Application Submitted' %>">
+                                        <i class="ph-bold ph-check-circle"></i> Applied
+                                    </span>
+                                <% } %>
                             </div>
+
+                            <!-- Deadline Urgency Badge -->
+                            <% if (deadline) { %>
+                                <span class="deadline-badge text-[11px] font-semibold <%= deadline.badgeClass %> px-2.5 py-0.5 rounded-full flex items-center gap-1 border flex-shrink-0" title="Deadline: <%= deadline.formattedDate %>">
+                                    <i class="<%= deadline.icon %>"></i> <%= deadline.label %>
+                                </span>
+                            <% } %>
                         </div>
 
-                        <h3 class="text-[17px] font-bold text-slate-900 leading-tight mb-1 truncate pr-8" title="<%= item.title %>">
+                        <!-- Role Title -->
+                        <h3 class="text-[17px] font-bold text-slate-900 leading-tight mb-1 truncate pr-2" title="<%= item.title %>">
                             <a href="/internships/<%= item._id %>" class="hover:text-indigo-600 transition-colors">
                                 <%= item.title %>
                             </a>
                         </h3>
+
+                        <!-- Company Name -->
                         <p class="text-[13px] font-medium text-indigo-600 mb-3 flex items-center gap-1">
                             <i class="ph-bold ph-buildings"></i>
                             <% if (item.companyId) { %>
@@ -56,6 +185,7 @@
                             <% } %>
                         </p>
 
+                        <!-- Key Details -->
                         <div class="flex items-center gap-x-4 gap-y-2 mb-4 text-xs font-medium text-slate-600 flex-wrap">
                             <span class="flex items-center gap-1">
                                 <i class="ph-bold ph-map-pin text-slate-400"></i>
@@ -80,11 +210,12 @@
                         </div>
                     </div>
 
+                    <!-- Footer Details & Actions -->
                     <div class="pt-4 mt-auto border-t border-slate-100 flex items-center justify-between">
                         <div class="text-[10px] text-slate-400 font-medium">
                             <% 
                                 let timeAgo = 'Just now';
-                                if (item.createdAt || item._id.getTimestamp) {
+                                if (item.createdAt || (item._id && item._id.getTimestamp)) {
                                     const created = item.createdAt || item._id.getTimestamp();
                                     const diff = Math.floor((new Date() - created) / 86400000);
                                     if (diff > 0) timeAgo = `${diff}d ago`;
@@ -92,12 +223,18 @@
                             %>
                             Posted <%= timeAgo %>
                         </div>
-                        <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-2">
                             <a href="/internships/<%= item._id %>" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 group/btn transition-colors">
                                 View Details
                                 <i class="ph-bold ph-arrow-right group-hover/btn:translate-x-0.5 transition-transform"></i>
                             </a>
-                            <button class="bookmark-btn flex-shrink-0 w-8 h-8 flex items-center justify-center bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-indigo-600 transition-all active:scale-95 shadow-sm" data-id="<%= item._id %>" title="Remove Bookmark">
+                            <button
+                                type="button"
+                                class="bookmark-btn flex-shrink-0 w-8 h-8 flex items-center justify-center bg-white hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 border border-slate-200 rounded-lg text-rose-500 transition-all active:scale-95 shadow-sm cursor-pointer"
+                                data-id="<%= item._id %>"
+                                title="Remove from saved"
+                                aria-label="Remove from saved"
+                            >
                                 <i class="ph-fill ph-bookmark-simple text-base"></i>
                             </button>
                         </div>
@@ -110,55 +247,223 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        const searchInput = document.getElementById('savedSearchInput');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+        const sectorFilter = document.getElementById('sectorFilter');
+        const statusFilter = document.getElementById('statusFilter');
+        const resetFiltersBtn = document.getElementById('resetFiltersBtn');
+        const clearAllFiltersBtn = document.getElementById('clearAllFiltersBtn');
+        const filterEmptyState = document.getElementById('filterEmptyState');
+        const visibleCountEl = document.getElementById('visibleCount');
+        const totalCountEl = document.getElementById('totalCount');
+        const savedGrid = document.getElementById('saved-grid');
+        const savedFiltersToolbar = document.getElementById('savedFiltersToolbar');
+        const noSavedState = document.getElementById('noSavedState');
+        const savedCounterBadge = document.getElementById('savedCounterBadge');
+
+        const getActiveCards = () => {
+            return Array.from(document.querySelectorAll('.internship-card')).filter(card => {
+                return card.getAttribute('data-removed') !== 'true';
+            });
+        };
+
+        const updateResetButtonVisibility = () => {
+            const hasQuery = Boolean(searchInput && searchInput.value.trim());
+            const hasSector = Boolean(sectorFilter && sectorFilter.value);
+            const hasStatus = Boolean(statusFilter && statusFilter.value);
+            const anyActive = hasQuery || hasSector || hasStatus;
+
+            if (resetFiltersBtn) {
+                if (anyActive) {
+                    resetFiltersBtn.classList.remove('hidden');
+                    resetFiltersBtn.classList.add('inline-flex');
+                } else {
+                    resetFiltersBtn.classList.add('hidden');
+                    resetFiltersBtn.classList.remove('inline-flex');
+                }
+            }
+
+            if (clearSearchBtn) {
+                if (hasQuery) {
+                    clearSearchBtn.classList.remove('hidden');
+                } else {
+                    clearSearchBtn.classList.add('hidden');
+                }
+            }
+        };
+
+        const applyFilters = () => {
+            const activeCards = getActiveCards();
+            const totalActive = activeCards.length;
+
+            if (totalCountEl) {
+                totalCountEl.textContent = String(totalActive);
+            }
+
+            if (totalActive === 0) {
+                if (savedGrid) savedGrid.classList.add('hidden');
+                if (savedFiltersToolbar) savedFiltersToolbar.classList.add('hidden');
+                if (filterEmptyState) filterEmptyState.classList.add('hidden');
+                if (savedCounterBadge) {
+                    savedCounterBadge.classList.add('hidden');
+                    savedCounterBadge.classList.remove('inline-flex');
+                }
+                if (noSavedState) noSavedState.classList.remove('hidden');
+                return;
+            }
+
+            const query = (searchInput ? searchInput.value : '').toLowerCase().trim();
+            const selectedSector = sectorFilter ? sectorFilter.value : '';
+            const selectedStatus = statusFilter ? statusFilter.value : '';
+
+            updateResetButtonVisibility();
+
+            let visibleCount = 0;
+
+            activeCards.forEach(card => {
+                const title = card.getAttribute('data-title') || '';
+                const company = card.getAttribute('data-company') || '';
+                const sector = card.getAttribute('data-sector') || '';
+                const isApplied = card.getAttribute('data-applied') === 'true';
+                const isClosed = card.getAttribute('data-is-closed') === 'true';
+                const urgency = card.getAttribute('data-urgency') || '';
+                const daysLeft = parseInt(card.getAttribute('data-days-left') || '999', 10);
+
+                const matchesQuery = !query || title.includes(query) || company.includes(query);
+                const matchesSector = !selectedSector || sector === selectedSector;
+
+                let matchesStatus = true;
+                if (selectedStatus === 'closing_soon') {
+                    matchesStatus = !isClosed && (urgency === 'critical' || urgency === 'warning' || (daysLeft > 0 && daysLeft <= 3));
+                } else if (selectedStatus === 'open') {
+                    matchesStatus = !isClosed;
+                } else if (selectedStatus === 'applied') {
+                    matchesStatus = isApplied;
+                } else if (selectedStatus === 'closed') {
+                    matchesStatus = isClosed;
+                }
+
+                if (matchesQuery && matchesSector && matchesStatus) {
+                    card.style.display = 'flex';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            if (visibleCountEl) {
+                visibleCountEl.textContent = String(visibleCount);
+            }
+
+            if (filterEmptyState) {
+                if (visibleCount === 0 && totalActive > 0) {
+                    filterEmptyState.classList.remove('hidden');
+                    if (savedGrid) savedGrid.classList.add('hidden');
+                } else {
+                    filterEmptyState.classList.add('hidden');
+                    if (savedGrid) savedGrid.classList.remove('hidden');
+                }
+            }
+        };
+
+        const resetAllFilters = () => {
+            if (searchInput) searchInput.value = '';
+            if (sectorFilter) sectorFilter.value = '';
+            if (statusFilter) statusFilter.value = '';
+            applyFilters();
+            if (searchInput) searchInput.focus();
+        };
+
+        if (searchInput) {
+            searchInput.addEventListener('input', applyFilters);
+        }
+
+        if (clearSearchBtn) {
+            clearSearchBtn.addEventListener('click', () => {
+                if (searchInput) {
+                    searchInput.value = '';
+                    applyFilters();
+                    searchInput.focus();
+                }
+            });
+        }
+
+        if (sectorFilter) {
+            sectorFilter.addEventListener('change', applyFilters);
+        }
+
+        if (statusFilter) {
+            statusFilter.addEventListener('change', applyFilters);
+        }
+
+        if (resetFiltersBtn) {
+            resetFiltersBtn.addEventListener('click', resetAllFilters);
+        }
+
+        if (clearAllFiltersBtn) {
+            clearAllFiltersBtn.addEventListener('click', resetAllFilters);
+        }
+
+        // Single-click remove from saved bookmarks
         const bookmarkBtns = document.querySelectorAll('.bookmark-btn');
         bookmarkBtns.forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                const icon = btn.querySelector('i');
+
                 const internshipId = btn.getAttribute('data-id');
                 const card = document.getElementById(`card-${internshipId}`);
-                
-                // Optimistically hide the card with animation
-                card.style.transition = 'all 0.3s ease';
+                if (!card || card.getAttribute('data-removed') === 'true') return;
+
+                btn.disabled = true;
+
+                // Optimistically animate removal
+                card.style.transition = 'all 0.25s ease';
                 card.style.transform = 'scale(0.95)';
                 card.style.opacity = '0';
-                
+
                 setTimeout(async () => {
                     card.style.display = 'none';
-                    
+                    card.setAttribute('data-removed', 'true');
+                    applyFilters();
+
                     try {
                         const response = await fetch(`/candidate/saved-internships/${internshipId}/toggle`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' }
                         });
                         const data = await response.json();
-                        if (!data.success) {
+
+                        if (!data || !data.success) {
                             // Revert on failure
+                            card.removeAttribute('data-removed');
                             card.style.display = 'flex';
                             setTimeout(() => {
                                 card.style.transform = 'scale(1)';
                                 card.style.opacity = '1';
                             }, 10);
+                            btn.disabled = false;
+                            applyFilters();
                             alert('Failed to remove bookmark. Please try again.');
-                        } else {
-                            // If grid is empty now, we might want to refresh to show empty state, or just leave it blank
-                            const visibleCards = document.querySelectorAll('.internship-card[style*="display: flex"], .internship-card:not([style*="display: none"])');
-                            if (visibleCards.length === 0) {
-                                window.location.reload();
-                            }
                         }
                     } catch (err) {
-                        console.error(err);
-                        // Revert on error
+                        console.error('Error toggling saved bookmark:', err);
+                        // Revert on network error
+                        card.removeAttribute('data-removed');
                         card.style.display = 'flex';
                         setTimeout(() => {
                             card.style.transform = 'scale(1)';
                             card.style.opacity = '1';
                         }, 10);
+                        btn.disabled = false;
+                        applyFilters();
+                        alert('A network error occurred. Please try again.');
                     }
-                }, 300);
+                }, 250);
             });
         });
+
+        // Initial filter application in case query params were populated
+        applyFilters();
     });
 </script>

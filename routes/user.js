@@ -23,6 +23,8 @@ const { formatRelativeTime, formatLocalizedDateTime } = require('../utils/dateFo
 const { buildSkillProfiles, parseSkillProfiles, skillNames } = require('../utils/skillProfiles');
 const { sanitizeHttpUrl } = require('../utils/safeUrl');
 const { filterAndSortApplications } = require('../utils/applicationSearch');
+const { getIssuedDocumentsByApplication } = require('../utils/internshipDocuments');
+const { calculateProfileCompletion } = require('../utils/profileCompletion');
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -250,12 +252,18 @@ ${text}
 router.get('/candidate/profile', isAuthenticated, authorize('candidate'), async (req, res) => {
     try {
         const userId = req.user._id || req.user.id;
-        const freshUser = await User.findById(userId);
+        const [freshUser, activeApplicationsCount] = await Promise.all([
+            User.findById(userId),
+            Application.countDocuments({ candidate: userId, status: { $nin: ['Withdrawn', 'withdrawn', 'Rejected'] } })
+        ]);
 
         res.render('candidate/candidate-profile', {
             user: freshUser,
             candidate: freshUser,
-            skillProfiles: buildSkillProfiles(freshUser)
+            skillProfiles: buildSkillProfiles(freshUser),
+            profileCompletion: calculateProfileCompletion(freshUser),
+            activeApplicationsCount,
+            savedInternshipsCount: (freshUser && Array.isArray(freshUser.savedInternships)) ? freshUser.savedInternships.length : 0
         });
     } catch (error) {
         console.error('Error fetching candidate profile:', error);
@@ -477,7 +485,8 @@ router.post('/candidate/parse-resume', isAuthenticated, authorize('candidate'), 
                 resumeOriginalName,
                 resumeVersionLabel,
                 resumeQuality,
-                showConflictModal: true
+                showConflictModal: true,
+                profileCompletion: calculateProfileCompletion(existingProfile)
             });
         }
 
@@ -1034,11 +1043,13 @@ router.get('/candidate/applications', isAuthenticated, authorize('candidate'), a
             .sort(sortObj);
 
         const applicationSearch = filterAndSortApplications(applications, req.query);
+        const issuedDocumentsByApplication = await getIssuedDocumentsByApplication(applicationSearch.applications, userId);
 
         res.render('candidate/candidate-tracker', {
             candidate,
             currentUser: req.user,
             applications: applicationSearch.applications,
+            issuedDocumentsByApplication,
             stats,
             searchQuery: applicationSearch.search,
             statusFilter: applicationSearch.status,

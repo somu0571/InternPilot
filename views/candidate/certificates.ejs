@@ -1,0 +1,209 @@
+<% layout('layouts/boilerplate') %>
+
+<div class="max-w-6xl mx-auto space-y-8 py-2">
+
+    <!-- Header Banner -->
+    <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
+        <div class="absolute -right-8 -bottom-8 opacity-10 pointer-events-none">
+            <i class="ph-bold ph-certificate text-[160px] text-white"></i>
+        </div>
+
+        <div class="relative z-10 space-y-2 max-w-2xl">
+            <div class="inline-flex items-center gap-2 bg-indigo-500/20 text-indigo-200 border border-indigo-400/30 px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm">
+                <i class="ph-bold ph-seal-check text-amber-400"></i>
+                PMIS Official Credentials
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+                My Certificates & Achievements
+            </h1>
+            <p class="text-slate-300 text-xs sm:text-sm leading-relaxed">
+                Verifiable proof of your internship completions, demonstrated skills, and official Letters of Recommendation. Use these credentials to claim academic degree credits and showcase on your professional profiles.
+            </p>
+        </div>
+
+        <div class="relative z-10 flex items-center gap-3 shrink-0">
+            <a href="/verify/certificate"
+                class="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-xl border border-white/20 transition-all flex items-center gap-1.5 backdrop-blur-sm shadow-sm">
+                <i class="ph-bold ph-shield-check text-amber-400 text-sm"></i>
+                Verify a Credential
+            </a>
+            <a href="/internships"
+                class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center gap-1.5">
+                <i class="ph-bold ph-magnifying-glass text-sm"></i>
+                Explore Roles
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Stats Metric Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-2xl shrink-0">
+                <i class="ph-bold ph-certificate"></i>
+            </div>
+            <div>
+                <span class="text-2xl font-black text-slate-800"><%= (typeof stats !== 'undefined' && stats.totalCertificates) || certificates.length %></span>
+                <span class="block text-xs font-medium text-slate-500">Earned Certificates</span>
+            </div>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-2xl shrink-0">
+                <i class="ph-bold ph-file-text"></i>
+            </div>
+            <div>
+                <span class="text-2xl font-black text-slate-800"><%= (typeof stats !== 'undefined' && stats.withLORCount) || 0 %></span>
+                <span class="block text-xs font-medium text-slate-500">Recommendation Letters</span>
+            </div>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl shrink-0">
+                <i class="ph-bold ph-code"></i>
+            </div>
+            <div>
+                <span class="text-2xl font-black text-slate-800"><%= (typeof stats !== 'undefined' && stats.totalSkills) || 0 %></span>
+                <span class="block text-xs font-medium text-slate-500">Verified Competencies</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Certificates List Section -->
+    <div class="space-y-4">
+        <div class="flex items-center justify-between">
+            <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                <i class="ph-bold ph-seal-check text-indigo-600"></i>
+                Credential Records
+            </h2>
+            <span class="text-xs text-slate-500 font-medium">
+                <%= certificates.length %> <%= certificates.length === 1 ? 'Credential' : 'Credentials' %> Available
+            </span>
+        </div>
+
+        <% if (certificates && certificates.length > 0) { %>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <% certificates.forEach(cert => { %>
+                    <%
+                        const compDate = cert.completionDate ? new Date(cert.completionDate) : new Date();
+                        const formattedDate = compDate.toLocaleDateString('en-IN', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                        });
+                        const year = compDate.getFullYear();
+                        const month = compDate.getMonth() + 1;
+                        const verifyPath = '/verify/certificate/' + cert.certificateId;
+                        const linkedInCertUrl = 'https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME'
+                            + '&name=' + encodeURIComponent(cert.internshipTitle + ' Internship')
+                            + '&organizationName=' + encodeURIComponent(cert.companyName)
+                            + '&issueYear=' + encodeURIComponent(year)
+                            + '&issueMonth=' + encodeURIComponent(month)
+                            + '&certUrl=' + encodeURIComponent(verifyPath)
+                            + '&certId=' + encodeURIComponent(cert.certificateId);
+                    %>
+
+                    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all space-y-5 flex flex-col justify-between">
+
+                        <!-- Top Information -->
+                        <div class="space-y-3">
+                            <div class="flex items-start justify-between gap-3">
+                                <div>
+                                    <span class="text-xs font-semibold text-slate-400 block"><%= cert.companyName %></span>
+                                    <h3 class="text-lg font-bold text-slate-900 tracking-tight mt-0.5"><%= cert.internshipTitle %></h3>
+                                </div>
+                                <span class="px-2.5 py-1 text-[11px] font-bold rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 shrink-0">
+                                    <%= cert.performanceRating %>
+                                </span>
+                            </div>
+
+                            <div class="flex items-center gap-4 text-xs text-slate-500 flex-wrap">
+                                <span class="flex items-center gap-1">
+                                    <i class="ph-bold ph-calendar text-slate-400"></i> Completed <%= formattedDate %>
+                                </span>
+                                <span>&bull;</span>
+                                <span class="flex items-center gap-1">
+                                    <i class="ph-bold ph-clock text-slate-400"></i> <%= cert.duration %>
+                                </span>
+                            </div>
+
+                            <% if (cert.skills && cert.skills.length > 0) { %>
+                                <div class="flex flex-wrap gap-1.5 pt-1">
+                                    <% cert.skills.slice(0, 4).forEach(skill => { %>
+                                        <span class="text-[10px] font-semibold px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded border border-indigo-100">
+                                            <%= skill %>
+                                        </span>
+                                    <% }); %>
+                                    <% if (cert.skills.length > 4) { %>
+                                        <span class="text-[10px] font-medium text-slate-400 self-center">
+                                            +<%= cert.skills.length - 4 %> more
+                                        </span>
+                                    <% } %>
+                                </div>
+                            <% } %>
+
+                            <% if (cert.letterOfRecommendation) { %>
+                                <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-800 bg-indigo-50/70 px-3 py-1 rounded-lg border border-indigo-100">
+                                    <i class="ph-bold ph-file-text text-indigo-600"></i>
+                                    Includes Official Recommendation Letter
+                                </div>
+                            <% } %>
+                        </div>
+
+                        <!-- Bottom Controls -->
+                        <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                            <div class="font-mono text-[11px] font-semibold text-slate-500">
+                                ID: <%= cert.certificateId %>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <a href="<%= linkedInCertUrl %>" target="_blank" rel="noopener noreferrer"
+                                    title="Add credential to LinkedIn Profile"
+                                    class="p-2 text-slate-600 hover:text-[#0077b5] bg-slate-50 hover:bg-slate-100 rounded-lg border border-slate-200 transition-colors flex items-center justify-center">
+                                    <i class="ph-bold ph-linkedin-logo text-base"></i>
+                                </a>
+
+                                <a href="/verify/certificate/<%= cert.certificateId %>" target="_blank"
+                                    title="Public Verification Link"
+                                    class="p-2 text-slate-600 hover:text-emerald-700 bg-slate-50 hover:bg-slate-100 rounded-lg border border-slate-200 transition-colors flex items-center justify-center">
+                                    <i class="ph-bold ph-shield-check text-base"></i>
+                                </a>
+
+                                <a href="/certificates/<%= cert.certificateId %>/view"
+                                    class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-sm hover:shadow transition-all flex items-center gap-1.5 justify-center">
+                                    <i class="ph-bold ph-certificate text-sm"></i> View & Print
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>
+                <% }); %>
+            </div>
+        <% } else { %>
+
+            <!-- Empty State -->
+            <div class="bg-white border-2 border-dashed border-slate-200 rounded-3xl p-10 sm:p-14 text-center space-y-4">
+                <div class="w-16 h-16 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center text-3xl mx-auto">
+                    <i class="ph-bold ph-certificate"></i>
+                </div>
+                <div class="space-y-1 max-w-md mx-auto">
+                    <h3 class="text-lg font-bold text-slate-800">No Certificates Earned Yet</h3>
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        Once you complete your internship tenure and your host company issues your completion credential, your verified certificate and Letter of Recommendation will appear here.
+                    </p>
+                </div>
+                <div class="pt-2 flex items-center justify-center gap-3">
+                    <a href="/candidate/applications"
+                        class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors">
+                        View Applications
+                    </a>
+                    <a href="/internships"
+                        class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm hover:shadow transition-all">
+                        Browse Opportunities
+                    </a>
+                </div>
+            </div>
+
+        <% } %>
+    </div>
+
+</div>

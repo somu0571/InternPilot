@@ -356,6 +356,25 @@ test('the admin dashboard shows the grievance card only when counts are loaded',
     assert.doesNotMatch(render('admin/dashboard.ejs', locals), /id="grievanceDeskCard"/);
 });
 
+test('the admin dashboard collects company rejection reasons in a modal', () => {
+    const html = render('admin/dashboard.ejs', {
+        user: { name: 'Admin User' },
+        stats: { candidates: 1, companies: 1, pendingVerifications: 1 },
+        pendingCompanies: [{
+            _id: 'company-123',
+            name: 'Acme',
+            email: 'admin@acme.test',
+            companyDetails: { companyName: 'Acme Labs', cin: 'CIN-123' }
+        }],
+        approvedCompanies: [],
+        recentUsers: []
+    });
+    assert.match(html, /data-reject-action="\/admin\/reject-company\/company-123"/);
+    assert.match(html, /<dialog id="rejectCompanyDialog"/);
+    assert.match(html, /<textarea id="rejectCompanyReason" name="reason" required/);
+    assert.doesNotMatch(html, /placeholder="Reason for rejection"/);
+});
+
 test('the grievance routes are mounted before the admin and page routes', () => {
     const app = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
     const mount = app.indexOf("require('./routes/grievances')");

@@ -6,7 +6,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 // Order the pipeline bar is drawn in. 'pending' is a legacy value from before
 // the status enum was expanded and means the same thing as 'Submitted'.
-const PIPELINE_STAGES = ['Submitted', 'Under Review', 'Shortlisted', 'Interview', 'Hired', 'Rejected', 'Withdrawn'];
+const PIPELINE_STAGES = ['Submitted', 'Under Review', 'Shortlisted', 'Interview', 'Hired', 'Offer Declined', 'Rejected', 'Withdrawn'];
 const STATUS_ALIASES = { pending: 'Submitted' };
 
 const ACTIVE_INTERVIEW_STATES = ['Scheduled', 'Rescheduled'];
@@ -22,7 +22,10 @@ const ACTIVE_INTERVIEW_STATES = ['Scheduled', 'Rescheduled'];
  */
 function isActiveListing(internship) {
     const status = internship.status || 'published';
-    return status === 'published' && internship.isPaused !== true;
+    const capacity = Number(internship.vacancies) > 0 ? Number(internship.vacancies) : 1;
+    return status === 'published'
+        && internship.isPaused !== true
+        && Number(internship.filledSeats || 0) < capacity;
 }
 
 /**

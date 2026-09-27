@@ -65,3 +65,28 @@ test('the profile route passes the reviewer permissions to the view', () => {
     const locals = routes.slice(start, routes.indexOf('});', start));
     assert.match(locals, /permissions:\s*req\.companyPermissions/);
 });
+
+test('reviewers get status dropdown with Interview and Hired options', () => {
+    const html = render({ permissions: ['applications:view', 'applications:review'] });
+    assert.ok(html.includes(statusForm));
+    assert.match(html, /<option value="Interview"/);
+    assert.match(html, /<option value="Hired"/);
+});
+
+test('candidates in Interview status keep an active status dropdown for reviewers', () => {
+    const interviewApp = { ...application, status: 'Interview' };
+    const html = render({ application: interviewApp, permissions: ['applications:view', 'applications:review'] });
+    assert.ok(html.includes(`action="/company/applications/${interviewApp._id}/status"`));
+    assert.match(html, /<option value="Interview"\s+selected/);
+    assert.match(html, /<option value="Hired"/);
+    assert.match(html, /<option value="Rejected"/);
+});
+
+test('the company status update route allows Interview and Hired', () => {
+    const routes = fs.readFileSync(path.join(__dirname, '..', 'routes', 'company.js'), 'utf8');
+    const start = routes.indexOf("router.post('/company/applications/:id/status'");
+    assert.notEqual(start, -1);
+    const handler = routes.slice(start, routes.indexOf('});', start));
+    assert.match(handler, /allowedStatuses\s*=\s*\[[^\]]*'Interview'[^\]]*\]/);
+    assert.match(handler, /allowedStatuses\s*=\s*\[[^\]]*'Hired'[^\]]*\]/);
+});

@@ -1,0 +1,25 @@
+<aside class="ip-console-nav lg:sticky lg:top-24 lg:h-fit" style="view-transition-name: ip-console-nav">
+    <div class="flex items-center gap-3 px-2 pb-4 pt-1">
+        <span class="grid h-10 w-10 place-items-center rounded-xl bg-white/10 ring-1 ring-white/15"><i class="ph-bold ph-shield-star text-xl text-indigo-200" aria-hidden="true"></i></span>
+        <div>
+            <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-200/80">Admin console</p>
+            <p class="text-sm font-bold text-white">Control centre</p>
+        </div>
+    </div>
+    <% const links = [
+        ['overview', '/admin/console', 'SquaresFour', 'Overview'],
+        ['users', '/admin/console/users', 'UsersThree', 'Users'],
+        ['listings', '/admin/console/listings', 'ShieldWarning', 'Listing moderation'],
+        ['applications', '/admin/console/applications', 'Files', 'Applications'],
+        ['announcements', '/admin/console/announcements', 'MegaphoneSimple', 'Announcements'],
+        ['audit', '/admin/console/audit-log', 'ClipboardText', 'Audit log']
+    ]; %>
+    <nav aria-label="Admin console" class="grid gap-1 sm:grid-cols-2 lg:grid-cols-1">
+        <% links.forEach(([key, href, icon, label]) => { const active = section === key; %>
+            <a href="<%= href %>" class="ip-console-link<%= active ? ' is-active' : '' %>"<%- active ? ' style="view-transition-name: ip-console-active" aria-current="page"' : '' %>>
+                <i class="ph-bold ph-<%= icon.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`).replace(/^-/, '') %> text-base" aria-hidden="true"></i><span><%= label %></span>
+            </a>
+        <% }) %>
+    </nav>
+    <a href="/admin/dashboard" class="mt-4 flex items-center gap-2 border-t border-white/10 px-2 pt-3 text-xs font-semibold text-indigo-200/80 hover:text-white"><i class="ph-bold ph-arrow-left" aria-hidden="true"></i> Legacy dashboard</a>
+</aside>

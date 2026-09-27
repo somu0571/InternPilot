@@ -32,7 +32,7 @@
     <!-- Quick Stats Cards -->
     <% 
         const totalApps = Array.isArray(applications) ? applications.length : 0;
-        const activeApps = Array.isArray(applications) ? applications.filter(a => ['Submitted', 'submitted', 'pending', 'Under Review', 'under_review', 'Shortlisted', 'shortlisted'].includes(a.status)).length : 0;
+        const activeApps = Array.isArray(applications) ? applications.filter(a => ['Submitted', 'submitted', 'pending', 'Under Review', 'under_review', 'Shortlisted', 'shortlisted', 'Interview', 'interview'].includes(a.status)).length : 0;
         const withdrawnApps = Array.isArray(applications) ? applications.filter(a => ['Withdrawn', 'withdrawn'].includes(a.status)).length : 0;
     %>
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -74,12 +74,13 @@
                     const isWithdrawn = ['Withdrawn', 'withdrawn'].includes(app.status);
                     const isRejected = ['Rejected', 'rejected'].includes(app.status);
                     const isHired = ['Hired', 'hired', 'Accepted', 'accepted'].includes(app.status);
-                    const canWithdraw = !isWithdrawn && !isRejected && !isHired;
+                    const isOfferDeclined = ['Offer Declined', 'offer declined'].includes(app.status);
+                    const canWithdraw = !isWithdrawn && !isRejected && !isHired && !isOfferDeclined;
                     const internshipTitle = (app.internship && app.internship.title) ? app.internship.title : 'Internship Posting';
                     const companyName = (app.internship && (app.internship.companyName || app.internship.company)) ? (app.internship.companyName || app.internship.company) : 'Company';
                     const statusUpdatedAt = app.statusUpdatedAt || app.appliedAt;
-                    const relativeStatusUpdatedAt = formatRelativeTime(statusUpdatedAt);
-                    const localizedStatusUpdatedAt = formatLocalizedDateTime(statusUpdatedAt);
+                    const relativeStatusUpdatedAt = typeof formatRelativeTime === 'function' ? formatRelativeTime(statusUpdatedAt) : '';
+                    const localizedStatusUpdatedAt = typeof formatLocalizedDateTime === 'function' ? formatLocalizedDateTime(statusUpdatedAt) : '';
                 %>
 
                 <div class="bg-white border <%= isWithdrawn ? 'border-slate-200 bg-slate-50/60 opacity-90' : 'border-slate-200 hover:border-indigo-200' %> rounded-2xl p-5 sm:p-6 shadow-xs hover:shadow-sm transition-all flex flex-col md:flex-row md:items-center justify-between gap-6"
@@ -166,10 +167,25 @@
                                     <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                                     Shortlisted
                                 </span>
+                            <% } else if (app.status === 'Interview' || app.status === 'interview') { %>
+                                <span class="inline-flex items-center gap-1.5 text-xs font-medium text-indigo-800 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-lg">
+                                    <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                                    Interview
+                                </span>
+                            <% } else if (app.status === 'Hired' || app.status === 'hired') { %>
+                                <span class="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-800 bg-emerald-100 border border-emerald-300 px-3 py-1.5 rounded-lg">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+                                    Hired
+                                </span>
                             <% } else if (isRejected) { %>
                                 <span class="inline-flex items-center gap-1.5 text-xs font-medium text-rose-800 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-lg">
                                     <span class="w-2 h-2 rounded-full bg-rose-500"></span>
                                     Rejected
+                                </span>
+                            <% } else if (isOfferDeclined) { %>
+                                <span class="inline-flex items-center gap-1.5 text-xs font-medium text-rose-800 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-lg">
+                                    <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                                    Offer Declined
                                 </span>
                             <% } else { %>
                                 <span class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg">
@@ -206,6 +222,10 @@
                             <% } else if (isRejected) { %>
                                 <span class="text-xs text-slate-400 italic px-2">
                                     Position finalized
+                                </span>
+                            <% } else if (isOfferDeclined) { %>
+                                <span class="text-xs text-slate-400 italic px-2">
+                                    Offer declined
                                 </span>
                             <% } %>
 

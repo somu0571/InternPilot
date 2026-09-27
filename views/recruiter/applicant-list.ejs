@@ -111,9 +111,11 @@
                                     </span>
                                 <% } else { %>
                                     <span class="text-[10px] font-bold px-2 py-0.5 rounded border <%= 
-                                        app.status === 'Shortlisted' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                        app.status === 'Hired' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                        (app.status === 'Shortlisted' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                                         (app.status === 'Under Review' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                                        (app.status === 'Rejected' ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-slate-100 text-slate-700 border-slate-200')) %>">
+                                        (app.status === 'Rejected' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                                        (app.status === 'Interview' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-slate-100 text-slate-700 border-slate-200')))) %>">
                                         <%= app.status %>
                                     </span>
                                 <% } %>
@@ -173,6 +175,8 @@
                                     <option value="Submitted" <%= app.status === 'Submitted' ? 'selected' : '' %>>Submitted</option>
                                     <option value="Under Review" <%= app.status === 'Under Review' ? 'selected' : '' %>>Under Review</option>
                                     <option value="Shortlisted" <%= app.status === 'Shortlisted' ? 'selected' : '' %>>Shortlisted</option>
+                                    <option value="Interview" <%= app.status === 'Interview' ? 'selected' : '' %>>Interview</option>
+                                    <option value="Hired" <%= app.status === 'Hired' ? 'selected' : '' %>>Hired</option>
                                     <option value="Rejected" <%= app.status === 'Rejected' ? 'selected' : '' %>>Rejected</option>
                                 </select>
                             </form>

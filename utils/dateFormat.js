@@ -36,8 +36,92 @@ function formatLocalizedDateTime(value, locale = DEFAULT_LOCALE, timeZone = DEFA
     }).format(date);
 }
 
+/**
+ * Calculates deadline urgency and returns presentation metadata for UI badges.
+ * @param {Date|string|number} deadline - The application deadline.
+ * @param {Date|string|number} [now=new Date()] - Reference time for calculation.
+ * @param {string} [locale=DEFAULT_LOCALE] - Locale for formatting.
+ * @param {string} [timeZone=DEFAULT_TIME_ZONE] - TimeZone for formatting.
+ * @returns {object|null} Urgency metadata object or null if deadline is invalid/missing.
+ */
+function formatDeadlineUrgency(deadline, now = new Date(), locale = DEFAULT_LOCALE, timeZone = DEFAULT_TIME_ZONE) {
+    const deadlineDate = asValidDate(deadline);
+    const currentDate = asValidDate(now);
+    if (!deadlineDate || !currentDate) return null;
+
+    const diffMs = deadlineDate.getTime() - currentDate.getTime();
+    const formattedDate = new Intl.DateTimeFormat(locale, {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        timeZone
+    }).format(deadlineDate);
+
+    if (diffMs <= 0) {
+        return {
+            label: 'Application Closed',
+            urgency: 'closed',
+            isClosed: true,
+            daysLeft: 0,
+            formattedDate,
+            badgeClass: 'bg-rose-100 text-rose-800 border-rose-300',
+            icon: 'ph-bold ph-x-circle'
+        };
+    }
+
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 1) {
+        return {
+            label: 'Closing in 1 day',
+            urgency: 'critical',
+            isClosed: false,
+            daysLeft: 1,
+            formattedDate,
+            badgeClass: 'bg-rose-50 text-rose-700 border-rose-200',
+            icon: 'ph-bold ph-warning'
+        };
+    }
+
+    if (diffDays <= 3) {
+        return {
+            label: `Closing in ${diffDays} days`,
+            urgency: 'warning',
+            isClosed: false,
+            daysLeft: diffDays,
+            formattedDate,
+            badgeClass: 'bg-amber-100 text-amber-800 border-amber-300',
+            icon: 'ph-bold ph-hourglass-medium'
+        };
+    }
+
+    if (diffDays <= 7) {
+        return {
+            label: `Closing in ${diffDays} days`,
+            urgency: 'soon',
+            isClosed: false,
+            daysLeft: diffDays,
+            formattedDate,
+            badgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
+            icon: 'ph-bold ph-clock'
+        };
+    }
+
+    return {
+        label: `${diffDays} days left`,
+        urgency: 'normal',
+        isClosed: false,
+        daysLeft: diffDays,
+        formattedDate,
+        badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+        icon: 'ph-bold ph-calendar-check'
+    };
+}
+
 module.exports = {
     asValidDate,
     formatRelativeTime,
-    formatLocalizedDateTime
+    formatLocalizedDateTime,
+    formatDeadlineUrgency
 };
+

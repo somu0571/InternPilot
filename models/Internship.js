@@ -54,7 +54,13 @@ const internshipSchema = new mongoose.Schema({
     requiredSkills: [String],
     monthlyStipend: { type: Number, default: 5000 },
     duration: { type: String, default: "12 Months" },
-    vacancies: { type: Number, default: 1 },
+    vacancies: { type: Number, default: 1, min: 1 },
+    // `vacancies` remains the advertised total. Filled seats are incremented
+    // through a conditional atomic update when an offer is accepted.
+    filledSeats: { type: Number, default: 0, min: 0 },
+    // Only capacity closures are reopened automatically if a reserved seat is
+    // released during error recovery. Manually closed listings stay closed.
+    closedReason: { type: String, enum: ['capacity', null], default: null },
     description: { type: String, default: '' },
     responsibilities: { type: [String], default: [] },
     eligibilityCriteria: { type: [String], default: [] },
@@ -91,6 +97,21 @@ const internshipSchema = new mongoose.Schema({
 // Secondary safety net: ensure isPaused always agrees with status.
 // Status is the canonical field; isPaused is a convenience mirror.
 internshipSchema.pre('save', function (next) {
+    const capacity = Number(this.vacancies) > 0 ? Number(this.vacancies) : 1;
+    if (Number(this.filledSeats || 0) > capacity) {
+        return next(new Error('Filled seats cannot exceed the listing vacancies.'));
+    }
+
+    // A listing closed because all seats were accepted must not be reopened by
+    // an unrelated resume/edit form. Increasing `vacancies` first is the
+    // explicit way for a company to advertise more seats.
+    if (this.status === 'published' && Number(this.filledSeats || 0) >= capacity) {
+        this.status = 'closed';
+        this.closedReason = 'capacity';
+    } else if (this.status === 'published' && this.closedReason === 'capacity') {
+        this.closedReason = null;
+    }
+
     if (this.status === 'paused') {
         this.isPaused = true;
     } else {

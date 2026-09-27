@@ -1,0 +1,321 @@
+<% if (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'candidate') { %>
+    <% 
+        let resumeFilename = null;
+        const rawResume = currentUser.resume || currentUser.resumeUrl;
+        if (rawResume && typeof rawResume === 'string' && rawResume.trim() !== '') {
+            try {
+                const parts = rawResume.split('/');
+                const rawName = parts[parts.length - 1] || 'resume.pdf';
+                resumeFilename = decodeURIComponent(rawName.replace(/^\d+_\d+_|^\d+_/, ''));
+            } catch (_) {
+                resumeFilename = 'Attached Resume';
+            }
+        }
+    %>
+
+    <!-- Quick Apply Confirmation Modal -->
+    <div id="quickApplyModal" class="fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="quickApplyModalTitle">
+        <!-- Backdrop -->
+        <div id="quickApplyBackdrop" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity"></div>
+
+        <!-- Modal Dialog Positioning -->
+        <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+            <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-slate-200">
+                <!-- Header -->
+                <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4 bg-slate-50/50">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center">
+                            <i class="ph-bold ph-paper-plane-tilt text-base"></i>
+                        </div>
+                        <h3 class="text-base font-bold text-slate-900" id="quickApplyModalTitle">
+                            Confirm Application
+                        </h3>
+                    </div>
+                    <button type="button" id="quickApplyCloseBtn" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg transition-colors" aria-label="Close modal">
+                        <i class="ph-bold ph-x text-base"></i>
+                    </button>
+                </div>
+
+                <!-- Body -->
+                <div class="px-6 py-5 space-y-5">
+                    <p class="text-xs text-slate-500">
+                        Please review your application details below before submitting.
+                    </p>
+
+                    <!-- Internship Summary Card -->
+                    <div class="bg-indigo-50/60 border border-indigo-100 rounded-xl p-4 space-y-1">
+                        <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider block">Target Position</span>
+                        <h4 id="quickApplyInternshipTitle" class="text-sm font-bold text-slate-900">
+                            Loading Position...
+                        </h4>
+                        <p id="quickApplyCompanyName" class="text-xs font-semibold text-slate-600 flex items-center gap-1">
+                            <i class="ph-bold ph-buildings text-indigo-500"></i>
+                            <span>Organization</span>
+                        </p>
+                    </div>
+
+                    <!-- Candidate Review Information -->
+                    <div class="space-y-3">
+                        <h5 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Candidate Details</h5>
+                        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-xs space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-500">Applicant Name:</span>
+                                <span class="font-bold text-slate-800"><%= currentUser.name || 'Candidate' %></span>
+                            </div>
+                            <div class="flex items-center justify-between border-t border-slate-200/60 pt-2">
+                                <span class="text-slate-500">Contact Email:</span>
+                                <span class="font-medium text-slate-700"><%= currentUser.email || 'N/A' %></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Resume Review Information -->
+                    <div class="space-y-3">
+                        <h5 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Attached Resume</h5>
+                        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-xs">
+                            <% if (rawResume && resumeFilename) { %>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <i class="ph-bold ph-file-pdf text-indigo-600 text-lg shrink-0"></i>
+                                        <span class="font-semibold text-slate-800 truncate" title="<%= resumeFilename %>">
+                                            <%= resumeFilename %>
+                                        </span>
+                                    </div>
+                                    <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 shrink-0 ml-2">
+                                        Attached
+                                    </span>
+                                </div>
+                            <% } else { %>
+                                <div class="flex items-center gap-2 text-rose-700 bg-rose-50 border border-rose-100 p-2.5 rounded-lg">
+                                    <i class="ph-bold ph-warning-circle text-base shrink-0"></i>
+                                    <span class="font-medium">No resume attached to profile. You can still apply, or update your profile first.</span>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Actions -->
+                <div class="border-t border-slate-100 px-6 py-4 bg-slate-50/50 flex flex-col-reverse sm:flex-row items-center justify-end gap-2">
+                    <button type="button" id="quickApplyCancelBtn" class="w-full sm:w-auto px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold rounded-xl transition-colors cursor-pointer">
+                        Cancel
+                    </button>
+                    <button type="button" id="quickApplyConfirmBtn" class="w-full sm:w-auto px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl transition-colors shadow-sm flex items-center justify-center gap-1.5 cursor-pointer">
+                        <i class="ph-bold ph-paper-plane-tilt text-sm" id="quickApplyConfirmIcon"></i>
+                        <span id="quickApplyConfirmText">Confirm Application</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Apply Client Handler Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('quickApplyModal');
+            const backdrop = document.getElementById('quickApplyBackdrop');
+            const closeBtn = document.getElementById('quickApplyCloseBtn');
+            const cancelBtn = document.getElementById('quickApplyCancelBtn');
+            const confirmBtn = document.getElementById('quickApplyConfirmBtn');
+            const confirmIcon = document.getElementById('quickApplyConfirmIcon');
+            const confirmText = document.getElementById('quickApplyConfirmText');
+            const titleEl = document.getElementById('quickApplyInternshipTitle');
+            const companyEl = document.getElementById('quickApplyCompanyName');
+
+            if (!modal || !confirmBtn) return;
+
+            let activeForm = null;
+            let activeActionUrl = '';
+            let isSubmitting = false;
+
+            function showToastNotification(message, isSuccess = true) {
+                const mainContainer = document.querySelector('main');
+                if (!mainContainer) return;
+
+                let flashContainer = mainContainer.querySelector('.space-y-2.mb-6');
+                if (!flashContainer) {
+                    flashContainer = document.createElement('div');
+                    flashContainer.className = 'space-y-2 mb-6';
+                    mainContainer.insertBefore(flashContainer, mainContainer.firstChild);
+                }
+
+                const alertDiv = document.createElement('div');
+                alertDiv.setAttribute('data-flash-alert', '');
+                alertDiv.setAttribute('role', 'alert');
+                
+                if (isSuccess) {
+                    alertDiv.className = 'flex items-center justify-between p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl shadow-sm transition-all';
+                    alertDiv.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
+                                <i class="ph-bold ph-check text-base"></i>
+                            </div>
+                            <span class="text-xs sm:text-sm font-medium">${message}</span>
+                        </div>
+                        <button type="button" onclick="this.parentElement.remove()" class="text-emerald-500 hover:text-emerald-700 p-1 rounded-md transition-colors" aria-label="Close">
+                            <i class="ph-bold ph-x text-sm"></i>
+                        </button>
+                    `;
+                } else {
+                    alertDiv.className = 'flex items-center justify-between p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl shadow-sm transition-all';
+                    alertDiv.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center text-rose-600 shrink-0">
+                                <i class="ph-bold ph-warning-circle text-base"></i>
+                            </div>
+                            <span class="text-xs sm:text-sm font-medium">${message}</span>
+                        </div>
+                        <button type="button" onclick="this.parentElement.remove()" class="text-rose-500 hover:text-rose-700 p-1 rounded-md transition-colors" aria-label="Close">
+                            <i class="ph-bold ph-x text-sm"></i>
+                        </button>
+                    `;
+                }
+
+                flashContainer.appendChild(alertDiv);
+
+                setTimeout(() => {
+                    if (alertDiv && alertDiv.parentElement) {
+                        alertDiv.style.transition = 'opacity 0.4s ease-out, transform 0.4s ease-out';
+                        alertDiv.style.opacity = '0';
+                        alertDiv.style.transform = 'translateY(-6px)';
+                        setTimeout(() => {
+                            if (alertDiv.parentElement) alertDiv.remove();
+                        }, 400);
+                    }
+                }, 6000);
+            }
+
+            function openModal(form, title, company) {
+                activeForm = form;
+                activeActionUrl = form.getAttribute('action') || form.action;
+                if (titleEl) titleEl.textContent = title || 'Internship Opportunity';
+                if (companyEl) {
+                    const span = companyEl.querySelector('span');
+                    if (span) span.textContent = company || 'Organization';
+                    else companyEl.textContent = company || 'Organization';
+                }
+                
+                resetLoadingState();
+                modal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeModal() {
+                if (isSubmitting) return;
+                modal.classList.add('hidden');
+                document.body.style.overflow = '';
+                activeForm = null;
+                activeActionUrl = '';
+            }
+
+            function setLoadingState() {
+                isSubmitting = true;
+                confirmBtn.disabled = true;
+                if (cancelBtn) cancelBtn.disabled = true;
+                if (closeBtn) closeBtn.disabled = true;
+                if (confirmIcon) confirmIcon.className = 'ph-bold ph-spinner spinner text-sm animate-spin';
+                if (confirmText) confirmText.textContent = 'Submitting...';
+            }
+
+            function resetLoadingState() {
+                isSubmitting = false;
+                confirmBtn.disabled = false;
+                if (cancelBtn) cancelBtn.disabled = false;
+                if (closeBtn) closeBtn.disabled = false;
+                if (confirmIcon) confirmIcon.className = 'ph-bold ph-paper-plane-tilt text-sm';
+                if (confirmText) confirmText.textContent = 'Confirm Application';
+            }
+
+            // Bind click interception to all Quick Apply forms
+            document.body.addEventListener('submit', (e) => {
+                const form = e.target;
+                if (!form || !form.action) return;
+
+                const isApplyForm = form.getAttribute('data-quick-apply-form') !== null ||
+                    (form.action.includes('/apply') && !form.action.includes('/application-kit/submit'));
+
+                if (isApplyForm) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    // Read title and company from form data attributes or parent card context
+                    let title = form.getAttribute('data-internship-title');
+                    let company = form.getAttribute('data-company-name');
+
+                    if (!title) {
+                        const card = form.closest('.bg-white, .applicant-card, div');
+                        if (card) {
+                            const titleHeader = card.querySelector('h2, h3, h4, .font-bold');
+                            if (titleHeader) title = titleHeader.textContent.trim();
+                        }
+                    }
+
+                    openModal(form, title || 'Internship Opportunity', company || 'Organization');
+                }
+            }, true);
+
+            // Modal Controls
+            if (closeBtn) closeBtn.addEventListener('click', closeModal);
+            if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+            if (backdrop) backdrop.addEventListener('click', closeModal);
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && !modal.classList.contains('hidden') && !isSubmitting) {
+                    closeModal();
+                }
+            });
+
+            // Confirm Application Handler
+            confirmBtn.addEventListener('click', async () => {
+                if (!activeActionUrl || isSubmitting) return;
+
+                const targetForm = activeForm;
+                setLoadingState();
+
+                try {
+                    const response = await fetch(activeActionUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    const data = await response.json().catch(() => ({}));
+
+                    if (response.ok && data.success) {
+                        isSubmitting = false;
+
+                        // Update Quick Apply form to "Applied" button state
+                        if (targetForm) {
+                            const appliedBadge = document.createElement('button');
+                            appliedBadge.disabled = true;
+                            appliedBadge.className = 'w-full text-center py-2 px-4 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold rounded-lg sm:rounded-xl flex items-center justify-center gap-1.5 cursor-not-allowed';
+                            appliedBadge.innerHTML = '<i class="ph-bold ph-check-circle text-base"></i> Applied';
+
+                            const parent = targetForm.parentElement;
+                            if (parent) {
+                                targetForm.replaceWith(appliedBadge);
+                            }
+                        }
+
+                        closeModal();
+                        showToastNotification('Application submitted successfully!', true);
+                    } else if (data.applicationKitUrl) {
+                        isSubmitting = false;
+                        closeModal();
+                        window.location.href = data.applicationKitUrl;
+                    } else {
+                        resetLoadingState();
+                        const errorMsg = data.error || 'Unable to submit application. Please try again.';
+                        showToastNotification(errorMsg, false);
+                    }
+                } catch (err) {
+                    console.error('Quick apply submit error:', err);
+                    resetLoadingState();
+                    showToastNotification('Network connection error. Please try again.', false);
+                }
+            });
+        });
+    </script>
+<% } %>

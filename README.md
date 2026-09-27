@@ -259,7 +259,9 @@ Create a `.env` file in the root directory.
 PORT=8080
 
 # MongoDB Configuration
-MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/internpilot
+# Transactions are required for company verification and listing moderation.
+# Use MongoDB Atlas, a replica set, or a sharded cluster (not standalone mongod).
+ATLASDB_URL=mongodb+srv://username:password@cluster.mongodb.net/internpilot
 
 # Express Session
 SESSION_SECRET=your_session_secret
@@ -485,10 +487,30 @@ START2CODE is an initiative event owned and organized by the **GitHub Club under
                 </a>
             </td>
             <td align="center">
+                <a href="https://github.com/huzaifa069HUZ">
+                    <img src="https://avatars.githubusercontent.com/u/223731712?v=4" width="100;" alt="huzaifa069HUZ"/>
+                <a href="https://github.com/rajeevsahani">
+                    <img src="https://avatars.githubusercontent.com/u/10737960?v=4" width="100;" alt="rajeevsahani"/>
+                    <br />
+                    <sub><b>Rajeev Kumar</b></sub>
+                </a>
+            </td>
+            <td align="center">
                 <a href="https://github.com/archlight20">
                     <img src="https://avatars.githubusercontent.com/u/120593356?v=4" width="100;" alt="archlight20"/>
                     <br />
                     <sub><b>archlight20</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/Tanmoysahacodes">
+                    <img src="https://avatars.githubusercontent.com/u/132278570?v=4" width="100;" alt="Tanmoysahacodes"/>
+                    <br />
+                    <sub><b>TANMOY SAHA</b></sub>
+                <a href="https://github.com/Dushyant-web">
+                    <img src="https://avatars.githubusercontent.com/u/76154071?v=4" width="100;" alt="Dushyant-web"/>
+                    <br />
+                    <sub><b>Dushyant Prajapati</b></sub>
                 </a>
             </td>
             <td align="center">
@@ -499,24 +521,17 @@ START2CODE is an initiative event owned and organized by the **GitHub Club under
                 </a>
             </td>
             <td align="center">
+                <a href="https://github.com/archlight20">
+                    <img src="https://avatars.githubusercontent.com/u/120593356?v=4" width="100;" alt="archlight20"/>
+                    <br />
+                    <sub><b>archlight20</b></sub>
+                </a>
+            </td>
+            <td align="center">
                 <a href="https://github.com/rajeevsahani">
                     <img src="https://avatars.githubusercontent.com/u/10737960?v=4" width="100;" alt="rajeevsahani"/>
                     <br />
                     <sub><b>Rajeev Kumar</b></sub>
-                </a>
-            </td>
-            <td align="center">
-                <a href="https://github.com/Dushyant-web">
-                    <img src="https://avatars.githubusercontent.com/u/76154071?v=4" width="100;" alt="Dushyant-web"/>
-                    <br />
-                    <sub><b>Dushyant Prajapati</b></sub>
-                </a>
-            </td>
-            <td align="center">
-                <a href="https://github.com/Tanmoysahacodes">
-                    <img src="https://avatars.githubusercontent.com/u/132278570?v=4" width="100;" alt="Tanmoysahacodes"/>
-                    <br />
-                    <sub><b>TANMOY SAHA</b></sub>
                 </a>
             </td>
 		</tr>

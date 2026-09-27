@@ -83,8 +83,28 @@
                 <% } %>
             </div>
             <% } else { %>
-                <div class="space-y-4">
+                <!-- Bulk Candidate Comparison Control Bar -->
+                <form id="compareForm" action="/company/internships/<%= internship._id %>/compare" method="GET" class="mb-4">
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white border border-slate-200 rounded-xl p-3.5 shadow-sm">
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" id="selectAllCandidates" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer">
+                            <label for="selectAllCandidates" class="text-xs font-bold text-slate-700 cursor-pointer select-none">
+                                Select All
+                            </label>
+                            <span id="selectedCountText" class="ml-1 text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full">
+                                0 selected (Select 2–4 to compare)
+                            </span>
+                        </div>
 
+                        <button type="submit" id="compareBtn" disabled
+                            class="px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-lg shadow-sm hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-300 transition-all flex items-center gap-1.5 shrink-0">
+                            <i class="ph-bold ph-scales text-sm"></i>
+                            Compare Candidates
+                        </button>
+                    </div>
+                </form>
+
+                <div class="space-y-4">
                     <div class="flex items-center justify-between">
                         <h3 class="text-sm font-bold text-slate-900">Ranked Applicants (AI Skill Fit)</h3>
                         <span class="text-xs text-slate-400">Sorted by highest match %</span>
@@ -106,6 +126,13 @@
 
                                 <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
                                     <div class="flex items-start gap-3.5 min-w-0 flex-1">
+                                        <!-- Selection Checkbox -->
+                                        <div class="flex items-center pt-2">
+                                            <input type="checkbox" form="compareForm" name="appIds" value="<%= app._id %>"
+                                                class="candidate-select-checkbox w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer shrink-0"
+                                                aria-label="Select <%= (app.candidate && app.candidate.name) ? app.candidate.name : 'candidate' %> for comparison">
+                                        </div>
+
                                         <!-- Rank Badge -->
                                         <div
                                             class="w-8 h-8 rounded-full bg-slate-100 font-bold text-slate-600 text-xs flex items-center justify-center border border-slate-200 shrink-0">
@@ -320,29 +347,22 @@
                                                     <i class="ph-bold ph-arrow-u-up-left text-slate-500"></i>
                                                     Withdrawn
                                                 </div>
-                                            <% } else if (app.status === 'Interview') { %>
-                                                <div class="w-full text-center px-3 py-1.5 bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-semibold rounded-lg flex items-center justify-center gap-1 shadow-sm"
-                                                    title="Candidate is in the interview stage">
-                                                    <i class="ph-bold ph-calendar text-indigo-600"></i>
-                                                    Interview
-                                                </div>
                                             <% } else if (canReviewApplications) { %>
                                                 <form action="/company/applications/<%= app._id %>/status"
                                                     method="POST" class="w-full" data-loading-text="Updating...">
                                                     <select name="status" onchange="if (this.form.requestSubmit) { this.form.requestSubmit(); } else { this.form.submit(); }" class="w-full text-center px-3 py-1.5 text-xs font-semibold rounded-lg border shadow-sm cursor-pointer outline-none transition-colors <%=
+                                                    app.status === 'Hired' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                                                     app.status === 'Shortlisted' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                                                     app.status === 'Rejected' ? 'bg-rose-50 text-rose-700 border-rose-200' :
                                                     app.status === 'Under Review' ? 'bg-amber-50 text-amber-700 border-amber-200' :
                                                     'bg-indigo-50 text-indigo-700 border-indigo-200'
                                                 %>">
-                                                        <option value="Submitted" <%=app.status==='Submitted'
-                                                            ? 'selected' : '' %>>Submitted</option>
-                                                        <option value="Under Review" <%=app.status==='Under Review'
-                                                            ? 'selected' : '' %>>Under Review</option>
-                                                        <option value="Shortlisted" <%=app.status==='Shortlisted'
-                                                            ? 'selected' : '' %>>Shortlisted</option>
-                                                        <option value="Rejected" <%=app.status==='Rejected'
-                                                            ? 'selected' : '' %>>Rejected</option>
+                                                        <option value="Submitted" <%=app.status==='Submitted' ? 'selected' : '' %>>Submitted</option>
+                                                        <option value="Under Review" <%=app.status==='Under Review' ? 'selected' : '' %>>Under Review</option>
+                                                        <option value="Shortlisted" <%=app.status==='Shortlisted' ? 'selected' : '' %>>Shortlisted</option>
+                                                        <option value="Interview" <%=app.status==='Interview' ? 'selected' : '' %>>Interview</option>
+                                                        <option value="Hired" <%=app.status==='Hired' ? 'selected' : '' %>>Hired</option>
+                                                        <option value="Rejected" <%=app.status==='Rejected' ? 'selected' : '' %>>Rejected</option>
                                                     </select>
                                                 </form>
                                             <% } else { %>
@@ -484,12 +504,84 @@
         const emptyState = document.getElementById('searchEmptyState');
         const proficiencyRank = { Beginner: 0, Intermediate: 1, Advanced: 2 };
 
-        if (!searchInput) return;
+        const checkboxes = document.querySelectorAll('.candidate-select-checkbox');
+        const selectAllCheckbox = document.getElementById('selectAllCandidates');
+        const compareBtn = document.getElementById('compareBtn');
+        const selectedCountText = document.getElementById('selectedCountText');
+        const compareForm = document.getElementById('compareForm');
+
+        function updateCompareState() {
+            const checked = Array.from(document.querySelectorAll('.candidate-select-checkbox')).filter(cb => cb.checked && cb.closest('.applicant-card').style.display !== 'none');
+            const count = checked.length;
+
+            if (selectedCountText) {
+                if (count === 0) {
+                    selectedCountText.textContent = '0 selected (Select 2–4 to compare)';
+                    selectedCountText.className = 'ml-1 text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full';
+                } else if (count === 1) {
+                    selectedCountText.textContent = '1 selected (Select at least 1 more)';
+                    selectedCountText.className = 'ml-1 text-xs font-semibold text-amber-700 bg-amber-100 px-2.5 py-1 rounded-full';
+                } else if (count >= 2 && count <= 4) {
+                    selectedCountText.textContent = `${count} selected (Ready to compare)`;
+                    selectedCountText.className = 'ml-1 text-xs font-semibold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full';
+                } else {
+                    selectedCountText.textContent = `${count} selected (Max 4 candidates allowed)`;
+                    selectedCountText.className = 'ml-1 text-xs font-semibold text-rose-700 bg-rose-100 px-2.5 py-1 rounded-full';
+                }
+            }
+
+            if (compareBtn) {
+                compareBtn.disabled = count < 2 || count > 4;
+            }
+
+            if (selectAllCheckbox) {
+                const visibleCheckboxes = Array.from(document.querySelectorAll('.candidate-select-checkbox')).filter(cb => cb.closest('.applicant-card').style.display !== 'none');
+                selectAllCheckbox.checked = visibleCheckboxes.length > 0 && visibleCheckboxes.every(cb => cb.checked);
+            }
+        }
+
+        document.querySelectorAll('.candidate-select-checkbox').forEach(cb => {
+            cb.addEventListener('change', (e) => {
+                const checkedCount = Array.from(document.querySelectorAll('.candidate-select-checkbox')).filter(c => c.checked).length;
+                if (checkedCount > 4 && e.target.checked) {
+                    e.target.checked = false;
+                    alert('You can select a maximum of 4 candidates to compare.');
+                }
+                updateCompareState();
+            });
+        });
+
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', (e) => {
+                const visibleCheckboxes = Array.from(document.querySelectorAll('.candidate-select-checkbox')).filter(cb => cb.closest('.applicant-card').style.display !== 'none');
+                if (e.target.checked) {
+                    if (visibleCheckboxes.length > 4) {
+                        alert('You can select a maximum of 4 candidates to compare. Selecting the first 4.');
+                        visibleCheckboxes.slice(0, 4).forEach(cb => cb.checked = true);
+                        visibleCheckboxes.slice(4).forEach(cb => cb.checked = false);
+                    } else {
+                        visibleCheckboxes.forEach(cb => cb.checked = true);
+                    }
+                } else {
+                    visibleCheckboxes.forEach(cb => cb.checked = false);
+                }
+                updateCompareState();
+            });
+        }
+
+        if (compareForm) {
+            compareForm.addEventListener('submit', (e) => {
+                const checked = Array.from(document.querySelectorAll('.candidate-select-checkbox')).filter(cb => cb.checked);
+                if (checked.length < 2 || checked.length > 4) {
+                    e.preventDefault();
+                    alert('Please select between 2 and 4 candidates to compare.');
+                }
+            });
+        }
 
         const applyFilters = () => {
-            const searchTerm = searchInput.value.toLowerCase().trim();
+            const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
             const minimumLevel = proficiencyFilter ? proficiencyFilter.value : '';
-            // Re-read on every run: the candidate filters swap the cards in place.
             const candidateCards = document.querySelectorAll('.applicant-card');
             let visibleCount = 0;
 
@@ -500,11 +592,6 @@
                     skillProfiles = JSON.parse(card.getAttribute('data-skill-profiles') || '[]');
                 } catch (_) { /* ignore malformed legacy data */ }
 
-                // The text search can match a candidate name, qualification,
-                // location, or skill. Keep that generic search independent
-                // from the minimum-proficiency filter so, for example,
-                // searching "Alice" still finds Alice when she has any
-                // Advanced skill.
                 const hasMinimumLevel = !minimumLevel || skillProfiles.some(profile =>
                     (proficiencyRank[profile.proficiency] ?? -1) >= proficiencyRank[minimumLevel]
                 );
@@ -519,13 +606,17 @@
             });
 
             if (visibleCount === 0 && candidateCards.length > 0) {
-                emptyState.classList.remove('hidden');
+                if (emptyState) emptyState.classList.remove('hidden');
             } else {
-                emptyState.classList.add('hidden');
+                if (emptyState) emptyState.classList.add('hidden');
             }
+
+            updateCompareState();
         };
 
-        searchInput.addEventListener('input', applyFilters);
+        if (searchInput) searchInput.addEventListener('input', applyFilters);
         if (proficiencyFilter) proficiencyFilter.addEventListener('change', applyFilters);
+
+        updateCompareState();
     });
 </script>

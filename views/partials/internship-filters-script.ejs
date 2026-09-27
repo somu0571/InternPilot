@@ -140,6 +140,50 @@
             load(urlFromForm());
         });
 
+        // Clear Filters: reset the form to default values and reload.
+        const clearBtn = document.getElementById('clear-filters-btn');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                clearTimeout(timer);
+
+                // Text / number inputs → empty
+                form.querySelectorAll('input[type="text"], input[type="number"]').forEach(el => { el.value = ''; });
+
+                // Select dropdowns → first (default) option
+                if (form.elements.sector)  form.elements.sector.selectedIndex  = 0;
+                if (form.elements.sort)    form.elements.sort.value            = 'latest';
+
+                // Un-check all skill and duration checkboxes
+                form.querySelectorAll('input[name="skills"], input[name="duration"]').forEach(box => { box.checked = false; });
+                updateSkillsSummary();
+
+                // Close the skills dropdown if open
+                const dd = form.querySelector('[data-skills-dropdown]');
+                if (dd) dd.removeAttribute('open');
+
+                // Reset the skill search field
+                const skillSearch = form.querySelector('[data-skills-search]');
+                if (skillSearch) {
+                    skillSearch.value = '';
+                    form.querySelectorAll('[data-skill-option]').forEach(opt => opt.classList.remove('hidden'));
+                    const empty = form.querySelector('[data-skills-empty]');
+                    if (empty) empty.classList.add('hidden');
+                }
+
+                // Preserve the status (All / Active / Paused) tab only
+                const status = form.elements.status ? form.elements.status.value : 'all';
+                const clearUrl = (status && status !== 'all')
+                    ? '/internships?status=' + encodeURIComponent(status)
+                    : '/internships';
+
+                // Wipe persisted session filters
+                storage.set('');
+
+                // Load the unfiltered results in-place
+                load(clearUrl, { scroll: true });
+            });
+        }
+
         // Checkboxes and selects apply straight away; typing waits for a pause.
         form.addEventListener('change', (e) => {
             if (e.target.matches('[data-skills-search]')) return;

@@ -1,0 +1,26 @@
+<%
+    // Previous / next links that keep the current filters.
+    const pagerBaseUrl = typeof pagerBase !== 'undefined' ? pagerBase : '';
+    const pagerFilters = typeof pagerParams !== 'undefined' && pagerParams ? pagerParams : {};
+    const pagerHref = target => {
+        const params = new URLSearchParams();
+        Object.entries(pagerFilters).forEach(([key, value]) => {
+            if (value !== '' && value !== undefined && value !== null && value !== false) params.set(key, value === true ? '1' : value);
+        });
+        params.set('page', target);
+        return pagerBaseUrl + '?' + params.toString();
+    };
+%>
+<% if (pages > 1) { %>
+    <nav class="flex items-center justify-between text-xs" aria-label="Pages">
+        <span class="text-slate-500">Page <%= page %> of <%= pages %></span>
+        <span class="flex gap-2">
+            <% if (page > 1) { %>
+                <a href="<%= pagerHref(page - 1) %>" class="px-3 py-1.5 border border-slate-200 rounded-lg bg-white hover:bg-slate-50 font-semibold text-slate-700">Previous</a>
+            <% } %>
+            <% if (page < pages) { %>
+                <a href="<%= pagerHref(page + 1) %>" class="px-3 py-1.5 border border-slate-200 rounded-lg bg-white hover:bg-slate-50 font-semibold text-slate-700">Next</a>
+            <% } %>
+        </span>
+    </nav>
+<% } %>

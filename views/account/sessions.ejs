@@ -1,0 +1,55 @@
+<% layout('layouts/boilerplate') %>
+<%
+const deviceIcons = { phone: 'ph-device-mobile', tablet: 'ph-device-tablet', desktop: 'ph-desktop' };
+%>
+
+<div class="max-w-3xl w-full mx-auto space-y-5">
+    <div class="flex flex-wrap items-end justify-between gap-3 border-b border-slate-200 pb-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Where you're signed in</h1>
+            <p class="text-sm text-slate-500 mt-1">Browsers and devices signed in to your account. Sign-ins last 7 days from the last visit.</p>
+        </div>
+        <% if (otherCount > 0) { %>
+            <form action="/account/sessions/sign-out-others" method="POST" data-sign-out-others
+                onsubmit="return confirm('Sign out every other device? They will need to sign in again.');">
+                <button type="submit" class="inline-flex items-center gap-2 rounded-lg border border-rose-200 bg-white px-3.5 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500">
+                    <i class="ph-bold ph-sign-out"></i> Sign out all other devices
+                </button>
+            </form>
+        <% } %>
+    </div>
+
+    <ul class="space-y-3" data-session-list>
+        <% sessions.forEach(item => { %>
+            <li class="bg-white border <%= item.current ? 'border-emerald-200' : 'border-slate-200' %> rounded-xl shadow-sm p-4 flex flex-wrap items-center gap-4" data-session="<%= item.handle %>">
+                <div class="h-11 w-11 shrink-0 rounded-full flex items-center justify-center <%= item.current ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-600' %>">
+                    <i class="ph-bold <%= deviceIcons[item.deviceType] || 'ph-question' %> text-xl" aria-hidden="true"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <p class="font-semibold text-slate-900 flex flex-wrap items-center gap-2">
+                        <%= item.label %>
+                        <% if (item.current) { %>
+                            <span class="px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold uppercase tracking-wide" data-current-device>This device</span>
+                        <% } %>
+                    </p>
+                    <p class="text-xs text-slate-500 mt-0.5"><%= item.activeLabel %> · Signed in <%= item.signedInLabel %></p>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Network <%= item.ip %></p>
+                </div>
+                <% if (!item.current) { %>
+                    <form action="/account/sessions/<%= item.handle %>/sign-out" method="POST">
+                        <button type="submit" class="rounded-lg px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500" aria-label="Sign out <%= item.label %>">Sign out</button>
+                    </form>
+                <% } %>
+            </li>
+        <% }) %>
+    </ul>
+
+    <% if (otherCount === 0) { %>
+        <p class="text-sm text-slate-500 text-center" data-only-this-device>Only this device is signed in.</p>
+    <% } %>
+
+    <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600 flex gap-3">
+        <i class="ph-bold ph-shield-check text-indigo-600 text-lg shrink-0" aria-hidden="true"></i>
+        <p>Don't recognise a device? Sign it out, then reset your password from the sign-in page. Changing your password signs out every other device automatically. Only the browser, operating system and part of the network address are kept for each sign-in.</p>
+    </div>
+</div>

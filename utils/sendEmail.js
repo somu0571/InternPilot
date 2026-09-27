@@ -164,6 +164,8 @@ const sendStatusUpdateEmail = async (email, candidateName, internshipTitle, stat
     const statusColors = {
         'Under Review': '#d97706',
         'Shortlisted': '#059669',
+        'Interview': '#7c3aed',
+        'Hired': '#10b981',
         'Rejected': '#dc2626',
         'Submitted': '#4f46e5'
     };
@@ -395,11 +397,75 @@ const sendSavedSearchAlertEmail = async (
     return sendWithRetry(mailOptions);
 };
 
+/**
+ * Sends a certificate issued notification email to the candidate.
+ * 
+ * @param {string} email 
+ * @param {string} candidateName 
+ * @param {string} companyName 
+ * @param {string} internshipTitle 
+ * @param {string} certificateId 
+ * @param {string} viewUrl 
+ * @returns {Promise<Object>}
+ */
+const sendCertificateIssuedEmail = async (email, candidateName, companyName, internshipTitle, certificateId, viewUrl) => {
+    const cleanEmail = (email || '').trim().toLowerCase();
+
+    if (!cleanEmail || !isValidEmail(cleanEmail)) {
+        return null;
+    }
+
+    const senderEmail = process.env.EMAIL_USER || process.env.SMTP_USER || 'no-reply@internpilot.com';
+    const safeCandidateName = escapeHtml(candidateName || 'Intern');
+    const safeCompanyName = escapeHtml(companyName || 'Company');
+    const safeTitle = escapeHtml(internshipTitle || 'Internship');
+    const safeCertId = escapeHtml(certificateId || '');
+    const safeViewUrl = escapeHtml(viewUrl || '#');
+
+    const mailOptions = {
+        from: `"InternPilot Credentials" <${senderEmail}>`,
+        to: cleanEmail,
+        subject: `Certificate of Completion Issued - ${internshipTitle}`,
+        text: `Congratulations ${candidateName}!\n\n${companyName} has issued your official Certificate of Completion for "${internshipTitle}".\n\nCertificate ID: ${certificateId}\nView and download your certificate: ${viewUrl}\n\nInternPilot Team`,
+        html: `
+            <div style="font-family: Arial, sans-serif; padding: 24px; color: #1e293b; max-width: 620px; margin: auto; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff;">
+                <div style="text-align: center; margin-bottom: 24px;">
+                    <h1 style="color: #4338ca; margin: 0; font-size: 24px; letter-spacing: -0.5px;">InternPilot</h1>
+                    <p style="color: #64748b; font-size: 13px; margin: 4px 0 0 0;">Official PMIS Credential Service</p>
+                </div>
+                <div style="background: linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%); border: 1px solid #c7d2fe; border-radius: 10px; padding: 20px; text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 32px; margin-bottom: 8px;">🎓</div>
+                    <h2 style="color: #312e81; margin: 0 0 6px 0; font-size: 18px;">Certificate of Completion Issued!</h2>
+                    <p style="color: #4338ca; margin: 0; font-size: 14px; font-weight: 500;">Congratulations, <strong>${safeCandidateName}</strong>!</p>
+                </div>
+                <p style="font-size: 14px; line-height: 1.6; color: #334155;">
+                    <strong>${safeCompanyName}</strong> has officially certified your successful internship completion for the role of <strong>${safeTitle}</strong>.
+                </p>
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; margin: 18px 0; font-size: 13px;">
+                    <p style="margin: 0 0 6px 0; color: #64748b;">Official Credential ID:</p>
+                    <p style="margin: 0; font-family: monospace; font-size: 16px; font-weight: bold; color: #1e1b4b; letter-spacing: 1px;">${safeCertId}</p>
+                </div>
+                <div style="text-align: center; margin: 28px 0 16px 0;">
+                    <a href="${safeViewUrl}" style="display: inline-block; background: #4f46e5; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-weight: bold; font-size: 14px; box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);">
+                        View & Download Certificate
+                    </a>
+                </div>
+                <p style="font-size: 12px; color: #94a3b8; text-align: center; margin-top: 30px; border-top: 1px solid #f1f5f9; padding-top: 16px;">
+                    This certificate is cryptographically verifiable online via the InternPilot Public Verification Portal.
+                </p>
+            </div>
+        `
+    };
+
+    return sendWithRetry(mailOptions);
+};
+
 module.exports = {
     sendOTPEmail,
     sendStatusUpdateEmail,
     sendInterviewScheduledEmail,
     sendInterviewRescheduledEmail,
     sendInterviewCancelledEmail,
-    sendSavedSearchAlertEmail
+    sendSavedSearchAlertEmail,
+    sendCertificateIssuedEmail
 };

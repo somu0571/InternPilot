@@ -1,442 +1,561 @@
 <% layout('layouts/boilerplate') %>
 
-<!-- 1. Animation & Icon Libraries -->
-<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-<script src="https://unpkg.com/phosphor-icons"></script>
+    <!-- 1. Animation & Icon Libraries -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/phosphor-icons"></script>
+    <link href="/css/GradientWaves.css" rel="stylesheet">
+    <link href="/css/TechText.css" rel="stylesheet">
+    <link href="/css/Dither.css" rel="stylesheet">
 
-<style>
-    /* Continuous background glow shift for AI gradient text */
-    @keyframes gradientShift {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-    }
-    .animate-gradient-text {
-        background-size: 200% auto;
-        animation: gradientShift 5s ease infinite;
-    }
+    <style>
+        /* Continuous background glow shift for AI gradient text */
+        @keyframes gradientShift {
+            0% {
+                background-position: 0% 50%;
+            }
 
-    /* Ambient background glow behind hero */
-    .hero-glow {
-        position: absolute;
-        top: -10%;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 100%;
-        max-width: 900px;
-        height: 450px;
-        background: radial-gradient(circle, rgba(99, 102, 241, 0.18) 0%, rgba(168, 85, 247, 0.10) 45%, transparent 70%);
-        filter: blur(70px);
-        pointer-events: none;
-        z-index: 0;
-    }
+            50% {
+                background-position: 100% 50%;
+            }
 
-    /* Shimmer effect for skeleton loading state */
-    @keyframes shimmer {
-        0% { background-position: -200% 0; }
-        100% { background-position: 200% 0; }
-    }
-    .skeleton-pulse {
-        background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 37%, #f1f5f9 63%);
-        background-size: 200% 100%;
-        animation: shimmer 1.5s infinite;
-    }
-</style>
-
-<div class="relative min-h-screen bg-slate-50/60 -mx-4 px-4 sm:-mx-6 sm:px-6 py-10 text-slate-900 overflow-hidden">
-    
-    <!-- Ambient Background Glow -->
-    <div class="hero-glow"></div>
-
-    <!-- Interactive Canvas Background Layer -->
-    <canvas id="interactiveCanvas" class="absolute inset-0 pointer-events-auto z-0 opacity-40"></canvas>
-
-    <div class="relative max-w-6xl mx-auto space-y-16 sm:space-y-20 z-10">
-
-        <!-- HERO SECTION -->
-        <section class="text-center space-y-6 max-w-4xl mx-auto pt-4" data-aos="fade-up" data-aos-duration="800">
-            
-            <!-- PMIS Badge -->
-            <div class="inline-flex items-center gap-2.5 px-4 py-2 bg-indigo-50/90 border border-indigo-200/80 text-indigo-700 rounded-full text-xs font-bold shadow-xs backdrop-blur-md hover:scale-105 transition-all duration-300">
-                <span class="relative flex h-2.5 w-2.5">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-indigo-600"></span>
-                </span>
-                <span>Prime Minister's Internship Scheme Portal</span>
-            </div>
-
-            <!-- Main Headline -->
-            <h1 class="text-4xl sm:text-6xl font-extrabold text-slate-900 tracking-tight leading-tight">
-                Bridging India's Youth with <br class="hidden sm:inline" />
-                <span class="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent animate-gradient-text">
-                    AI-Driven Internships
-                </span>
-            </h1>
-
-            <!-- Subtitle -->
-            <p class="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed" data-aos="fade-up" data-aos-delay="150">
-                InternPilot leverages neural skill-matching algorithms to connect eligible youth aged 18–24 with top private & public sector leaders across India in real-time.
-            </p>
-
-            <!-- Action Button -->
-            <div class="flex items-center justify-center pt-2" data-aos="fade-up" data-aos-delay="250">
-                <a href="/internships"
-                    class="group relative inline-flex items-center justify-center gap-2.5 px-8 py-3.5 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-semibold text-sm rounded-xl shadow-lg shadow-indigo-600/25 hover:shadow-indigo-600/40 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200">
-                    <i class="ph-bold ph-magnifying-glass text-lg group-hover:scale-110 transition-transform duration-300"></i>
-                    <span>Explore Opportunities</span>
-                </a>
-            </div>
-        </section>
-
-        <!-- DYNAMIC STATS SECTION -->
-        <section id="stats-section" class="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-5xl mx-auto" data-aos="fade-up" data-aos-delay="300">
-            <!-- Card 1: Candidates -->
-            <div class="bg-white/80 backdrop-blur-md border border-slate-200/80 hover:border-indigo-200 rounded-2xl p-6 text-center shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 min-h-[140px] flex flex-col items-center justify-center group">
-                <div id="skeleton-candidates" class="w-24 h-10 rounded-lg skeleton-pulse mb-1"></div>
-                <span id="stat-candidates" class="hidden text-4xl sm:text-5xl font-extrabold bg-gradient-to-r from-indigo-600 to-indigo-800 bg-clip-text text-transparent mb-1 counter" data-target="0">
-                    0
-                </span>
-                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center gap-1.5 mt-1">
-                    <i class="ph-bold ph-users text-indigo-500 text-sm group-hover:scale-110 transition-transform"></i>
-                    Registered Candidates
-                </span>
-            </div>
-
-            <!-- Card 2: Companies -->
-            <div class="bg-white/80 backdrop-blur-md border border-slate-200/80 hover:border-emerald-200 rounded-2xl p-6 text-center shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 min-h-[140px] flex flex-col items-center justify-center group">
-                <div id="skeleton-companies" class="w-24 h-10 rounded-lg skeleton-pulse mb-1"></div>
-                <span id="stat-companies" class="hidden text-4xl sm:text-5xl font-extrabold bg-gradient-to-r from-emerald-600 to-teal-700 bg-clip-text text-transparent mb-1 counter" data-target="0">
-                    0
-                </span>
-                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center gap-1.5 mt-1">
-                    <i class="ph-bold ph-buildings text-emerald-500 text-sm group-hover:scale-110 transition-transform"></i>
-                    Registered Companies
-                </span>
-            </div>
-
-            <!-- Card 3: Published Internships -->
-            <div class="bg-white/80 backdrop-blur-md border border-slate-200/80 hover:border-purple-200 rounded-2xl p-6 text-center shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 min-h-[140px] flex flex-col items-center justify-center group">
-                <div id="skeleton-internships" class="w-24 h-10 rounded-lg skeleton-pulse mb-1"></div>
-                <span id="stat-internships" class="hidden text-4xl sm:text-5xl font-extrabold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent mb-1 counter" data-target="0">
-                    0
-                </span>
-                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center gap-1.5 mt-1">
-                    <i class="ph-bold ph-briefcase text-purple-500 text-sm group-hover:scale-110 transition-transform"></i>
-                    Registered Internships
-                </span>
-            </div>
-
-        </section>
-
-        <!-- HOW IT WORKS SECTION -->
-        <section class="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-8 sm:p-12 shadow-sm space-y-10" data-aos="fade-up">
-            <div class="text-center space-y-2">
-                <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">How InternPilot Works</h2>
-                <p class="text-xs sm:text-sm text-slate-500 max-w-xl mx-auto">Your journey toward professional skill building in 3 simple steps</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-                <!-- Step 1 -->
-                <div class="bg-white/90 border border-slate-200/80 hover:border-indigo-200 rounded-2xl p-6 text-center shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 group space-y-4" data-aos="fade-up" data-aos-delay="100">
-                    <div class="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-700 text-white font-extrabold flex items-center justify-center text-lg shadow-md shadow-indigo-500/30 ring-4 ring-indigo-50 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                        1
-                    </div>
-                    <h3 class="text-base font-bold text-slate-900">Create Your Profile</h3>
-                    <p class="text-xs text-slate-500 leading-relaxed">
-                        Register with your educational background, location, and core technical skills.
-                    </p>
-                </div>
-
-                <!-- Step 2 -->
-                <div class="bg-white/90 border border-slate-200/80 hover:border-purple-200 rounded-2xl p-6 text-center shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 group space-y-4" data-aos="fade-up" data-aos-delay="200">
-                    <div class="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white font-extrabold flex items-center justify-center text-lg shadow-md shadow-purple-500/30 ring-4 ring-purple-50 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                        2
-                    </div>
-                    <h3 class="text-base font-bold text-slate-900">AI Skill Match</h3>
-                    <p class="text-xs text-slate-500 leading-relaxed">
-                        Our intelligent matching engine instantly calculates your suitability score for open listings.
-                    </p>
-                </div>
-
-                <!-- Step 3 -->
-                <div class="bg-white/90 border border-slate-200/80 hover:border-emerald-200 rounded-2xl p-6 text-center shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 group space-y-4" data-aos="fade-up" data-aos-delay="300">
-                    <div class="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-extrabold flex items-center justify-center text-lg shadow-md shadow-emerald-500/30 ring-4 ring-emerald-50 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                        3
-                    </div>
-                    <h3 class="text-base font-bold text-slate-900">Apply & Get Trained</h3>
-                    <p class="text-xs text-slate-500 leading-relaxed">
-                        Submit your application with one click and track status updates directly from your dashboard.
-                    </p>
-                </div>
-
-            </div>
-        </section>
-
-        <!-- FEATURES SECTION -->
-        <section class="space-y-8" data-aos="fade-up">
-            <div class="text-center space-y-1.5">
-                <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Built for Youth & Employers</h2>
-                <p class="text-xs sm:text-sm text-slate-500">Next-generation modules powering the PMIS digital ecosystem</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Card 1 -->
-                <div class="bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-2xl p-7 shadow-sm hover:shadow-xl hover:border-indigo-300 hover:-translate-y-1.5 transition-all duration-300 group space-y-3.5" data-aos="fade-up" data-aos-delay="100">
-                    <div class="w-12 h-12 rounded-xl bg-indigo-50 border border-indigo-100/80 text-indigo-600 text-2xl font-bold flex items-center justify-center shadow-inner group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
-                        <i class="ph-bold ph-user-check"></i>
-                    </div>
-                    <h3 class="text-base font-bold text-slate-900">PMIS Scheme Verification</h3>
-                    <p class="text-xs text-slate-500 leading-relaxed">
-                        Automated age (18–24) and income limit verification ensuring benefits reach eligible candidates seamlessly.
-                    </p>
-                </div>
-
-                <!-- Card 2 -->
-                <div class="bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-2xl p-7 shadow-sm hover:shadow-xl hover:border-emerald-300 hover:-translate-y-1.5 transition-all duration-300 group space-y-3.5" data-aos="fade-up" data-aos-delay="200">
-                    <div class="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-100/80 text-emerald-600 text-2xl font-bold flex items-center justify-center shadow-inner group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300">
-                        <i class="ph-bold ph-cpu"></i>
-                    </div>
-                    <h3 class="text-base font-bold text-slate-900">AI Match Engine</h3>
-                    <p class="text-xs text-slate-500 leading-relaxed">
-                        Real-time skill overlap calculation generating percentage fit scores between candidate profiles and job requirements.
-                    </p>
-                </div>
-
-                <!-- Card 3 -->
-                <div class="bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-2xl p-7 shadow-sm hover:shadow-xl hover:border-purple-300 hover:-translate-y-1.5 transition-all duration-300 group space-y-3.5" data-aos="fade-up" data-aos-delay="300">
-                    <div class="w-12 h-12 rounded-xl bg-purple-50 border border-purple-100/80 text-purple-600 text-2xl font-bold flex items-center justify-center shadow-inner group-hover:scale-110 group-hover:bg-purple-600 group-hover:text-white transition-all duration-300">
-                        <i class="ph-bold ph-chart-line-up"></i>
-                    </div>
-                    <h3 class="text-base font-bold text-slate-900">Smart Candidate Ranking</h3>
-                    <p class="text-xs text-slate-500 leading-relaxed">
-                        Empowers companies to view applicants ranked by suitability and manage shortlist/rejection workflows in one click.
-                    </p>
-                </div>
-            </div>
-        </section>
-
-        <!-- PARTNER ORGANIZATIONS SECTION -->
-        <section class="space-y-6 pt-2" data-aos="fade-up">
-            <div class="text-center space-y-1.5">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                    Trusted Partner Organizations Under PMIS
-                </h3>
-                <p class="text-xs text-slate-500">
-                    Empowering youth through world-class training opportunities with India's leading enterprises.
-                </p>
-            </div>
-
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
-                
-                <div class="bg-white/90 border border-slate-200/80 rounded-2xl p-4 text-center shadow-sm hover:shadow-lg hover:scale-105 hover:border-indigo-300 transition-all duration-200 flex flex-col sm:flex-row items-center gap-3 justify-center h-24 sm:h-20 group">
-                    <img src="https://www.google.com/s2/favicons?domain=tatamotors.com&sz=128" alt="Tata Motors" class="w-8 h-8 object-contain flex-shrink-0 group-hover:scale-110 transition-transform duration-200" onerror="this.src='https://ui-avatars.com/api/?name=Tata+Motors&background=6366f1&color=fff'" />
-                    <span class="text-xs font-bold text-slate-800 text-center sm:text-left leading-snug">Tata Motors</span>
-                </div>
-
-                <div class="bg-white/90 border border-slate-200/80 rounded-2xl p-4 text-center shadow-sm hover:shadow-lg hover:scale-105 hover:border-indigo-300 transition-all duration-200 flex flex-col sm:flex-row items-center gap-3 justify-center h-24 sm:h-20 group">
-                    <img src="https://www.google.com/s2/favicons?domain=mahindra.com&sz=128" alt="Mahindra & Mahindra" class="w-8 h-8 object-contain flex-shrink-0 group-hover:scale-110 transition-transform duration-200" onerror="this.src='https://ui-avatars.com/api/?name=Mahindra&background=6366f1&color=fff'" />
-                    <span class="text-xs font-bold text-slate-800 text-center sm:text-left leading-snug">Mahindra & Mahindra</span>
-                </div>
-
-                <div class="bg-white/90 border border-slate-200/80 rounded-2xl p-4 text-center shadow-sm hover:shadow-lg hover:scale-105 hover:border-indigo-300 transition-all duration-200 flex flex-col sm:flex-row items-center gap-3 justify-center h-24 sm:h-20 group">
-                    <img src="https://www.google.com/s2/favicons?domain=marutisuzuki.com&sz=128" alt="Maruti Suzuki" class="w-8 h-8 object-contain flex-shrink-0 group-hover:scale-110 transition-transform duration-200" onerror="this.src='https://ui-avatars.com/api/?name=Maruti+Suzuki&background=6366f1&color=fff'" />
-                    <span class="text-xs font-bold text-slate-800 text-center sm:text-left leading-snug">Maruti Suzuki</span>
-                </div>
-
-                <div class="bg-white/90 border border-slate-200/80 rounded-2xl p-4 text-center shadow-sm hover:shadow-lg hover:scale-105 hover:border-indigo-300 transition-all duration-200 flex flex-col sm:flex-row items-center gap-3 justify-center h-24 sm:h-20 group">
-                    <img src="https://www.google.com/s2/favicons?domain=techmahindra.com&sz=128" alt="Tech Mahindra" class="w-8 h-8 object-contain flex-shrink-0 group-hover:scale-110 transition-transform duration-200" onerror="this.src='https://ui-avatars.com/api/?name=Tech+Mahindra&background=6366f1&color=fff'" />
-                    <span class="text-xs font-bold text-slate-800 text-center sm:text-left leading-snug">Tech Mahindra</span>
-                </div>
-
-                <div class="bg-white/90 border border-slate-200/80 rounded-2xl p-4 text-center shadow-sm hover:shadow-lg hover:scale-105 hover:border-indigo-300 transition-all duration-200 flex flex-col sm:flex-row items-center gap-3 justify-center h-24 sm:h-20 group">
-                    <img src="https://www.google.com/s2/favicons?domain=hdfcbank.com&sz=128" alt="HDFC Bank" class="w-8 h-8 object-contain flex-shrink-0 group-hover:scale-110 transition-transform duration-200" onerror="this.src='https://ui-avatars.com/api/?name=HDFC+Bank&background=6366f1&color=fff'" />
-                    <span class="text-xs font-bold text-slate-800 text-center sm:text-left leading-snug">HDFC Bank</span>
-                </div>
-
-                <div class="bg-white/90 border border-slate-200/80 rounded-2xl p-4 text-center shadow-sm hover:shadow-lg hover:scale-105 hover:border-indigo-300 transition-all duration-200 flex flex-col sm:flex-row items-center gap-3 justify-center h-24 sm:h-20 group">
-                    <img src="https://www.google.com/s2/favicons?domain=ril.com&sz=128" alt="Reliance Retail" class="w-8 h-8 object-contain flex-shrink-0 group-hover:scale-110 transition-transform duration-200" onerror="this.src='https://ui-avatars.com/api/?name=Reliance+Retail&background=6366f1&color=fff'" />
-                    <span class="text-xs font-bold text-slate-800 text-center sm:text-left leading-snug">Reliance Retail</span>
-                </div>
-
-            </div>
-        </section>
-
-    </div>
-</div>
-
-<!-- Scripts for Animations & Interactivity -->
-<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        // 1. Initialize Animate On Scroll
-        if (typeof AOS !== 'undefined') {
-            AOS.init({
-                duration: 600,
-                once: true,
-                easing: 'ease-out-cubic'
-            });
+            100% {
+                background-position: 0% 50%;
+            }
         }
 
-        // 2. Dynamic Landing Stats Fetch & Counter Animation
-        const fetchLandingStats = async () => {
-            const candidateCounter = document.getElementById('stat-candidates');
-            const companyCounter = document.getElementById('stat-companies');
-            const internshipCounter = document.getElementById('stat-internships');
+        .animate-gradient-text {
+            background-size: 200% auto;
+            animation: gradientShift 5s ease infinite;
+        }
 
-            const candidateSkeleton = document.getElementById('skeleton-candidates');
-            const companySkeleton = document.getElementById('skeleton-companies');
-            const internshipSkeleton = document.getElementById('skeleton-internships');
+        /* Ambient background glow behind hero */
+        .hero-glow {
+            position: absolute;
+            top: -10%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 900px;
+            height: 450px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.18) 0%, rgba(168, 85, 247, 0.10) 45%, transparent 70%);
+            filter: blur(70px);
+            pointer-events: none;
+            z-index: 0;
+        }
 
-            try {
-                const response = await fetch('/api/v1/analytics/landing-stats');
-                if (!response.ok) throw new Error('Failed to fetch landing stats');
-                const data = await response.json();
-
-                // Assign target values
-                if (candidateCounter) candidateCounter.setAttribute('data-target', data.candidates ?? 0);
-                if (companyCounter) companyCounter.setAttribute('data-target', data.companies ?? 0);
-                if (internshipCounter) internshipCounter.setAttribute('data-target', data.internships ?? 0);
-
-            } catch (err) {
-                console.error('Error fetching landing stats:', err);
-                // Fallback to 0 if API request fails
-                if (candidateCounter) candidateCounter.setAttribute('data-target', '0');
-                if (companyCounter) companyCounter.setAttribute('data-target', '0');
-                if (internshipCounter) internshipCounter.setAttribute('data-target', '0');
-            } finally {
-                // Hide skeleton placeholders and show metric counters smoothly
-                [candidateSkeleton, companySkeleton, internshipSkeleton].forEach(sk => sk && sk.classList.add('hidden'));
-                [candidateCounter, companyCounter, internshipCounter].forEach(cnt => cnt && cnt.classList.remove('hidden'));
-
-                // Initialize counter intersection observer
-                setupCounterObserver();
+        /* Shimmer effect for skeleton loading state */
+        @keyframes shimmer {
+            0% {
+                background-position: -200% 0;
             }
-        };
 
-        let animationTriggered = false;
-        const animateAllCounters = () => {
-            if (animationTriggered) return;
-            animationTriggered = true;
+            100% {
+                background-position: 200% 0;
+            }
+        }
 
-            const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            const counters = document.querySelectorAll('.counter');
+        .skeleton-pulse {
+            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 37%, #f1f5f9 63%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
 
-            counters.forEach(counter => {
-                const target = parseInt(counter.getAttribute('data-target') || '0', 10);
-                if (prefersReducedMotion || target === 0) {
-                    counter.innerText = target.toLocaleString() + '+';
+        /* Hero Graphic Floating Animation */
+        @keyframes heroFloat {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+        .hero-graphic-float {
+            animation: heroFloat 6s ease-in-out infinite;
+        }
+    </style>
+
+    <!-- ============================================================
+         ENTIRE HOME PAGE — single relative wrapper
+         Waves sit at z-0, masked at edges; all content at z-10
+    ============================================================ -->
+    <div id="home-page-wrapper" style="position: relative; overflow-x: hidden;">
+
+        <!-- Gradient Waves: full page coverage, CSS-masked at bottom -->
+        <div id="gradient-waves" class="gradient-waves-container"
+            style="
+                position: absolute;
+                top: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 100vw;
+                height: 100%;
+                z-index: 0;
+                pointer-events: none;
+                -webkit-mask-image: linear-gradient(to bottom, black 0%, black 60%, transparent 100%);
+                mask-image: linear-gradient(to bottom, black 0%, black 60%, transparent 100%);
+            ">
+        </div>
+
+        <!-- All page content above the waves -->
+        <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 space-y-12 sm:space-y-16 pt-8 pb-12">
+
+            <!-- ===== HERO SECTION ===== -->
+            <section class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-center relative z-10">
+                
+                <!-- Left Side: Content -->
+                <div class="flex flex-col items-center md:items-start text-center md:text-left space-y-5">
+                    <!-- PMIS Badge -->
+                    <div class="inline-flex items-center gap-3 px-4 py-1.5 bg-white/70 border border-white/40 text-slate-700 rounded-full text-xs font-semibold shadow-sm backdrop-blur-md" data-aos="fade-right" data-aos-duration="600">
+                        <span class="relative flex h-2.5 w-2.5">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-indigo-600"></span>
+                        </span>
+                        <span>Prime Minister's Internship Scheme Portal</span>
+                    </div>
+
+                    <!-- TechText Wordmark -->
+                    <div id="tech-text-wrapper" class="w-full max-w-[320px] md:-ml-2" style="height:80px;" aria-hidden="true" data-aos="fade-right" data-aos-duration="700" data-aos-delay="50">
+                        <div id="tech-text-container" style="width:100%;height:100%;position:relative;"></div>
+                    </div>
+                    <h1 class="sr-only">InternPilot</h1>
+
+                    <!-- Main Headline -->
+                    <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight max-w-lg mt-0" data-aos="fade-right" data-aos-delay="150">
+                        Bridging India's Youth with
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 animate-gradient-text block mt-1">AI-Driven Internships</span>
+                    </h2>
+
+                    <!-- Subtitle -->
+                    <p class="text-sm sm:text-base text-slate-600 leading-relaxed max-w-md" data-aos="fade-right" data-aos-delay="250">
+                        InternPilot leverages neural skill-matching algorithms to connect eligible youth aged 18&ndash;24 with top private &amp; public sector leaders across India in real-time.
+                    </p>
+
+                    <!-- Action Button -->
+                    <div data-aos="fade-right" data-aos-delay="350" class="pt-2">
+                        <a href="/internships"
+                            class="group inline-flex items-center justify-center gap-2.5 px-7 py-3 bg-slate-900 text-white font-semibold text-sm rounded-xl shadow-md hover:bg-indigo-700 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200">
+                            <i class="ph-bold ph-magnifying-glass text-lg group-hover:scale-110 transition-transform duration-200"></i>
+                            <span>Explore Opportunities</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Right Side: Floating Graphic -->
+                <div class="relative w-full aspect-square md:aspect-auto md:h-[550px] flex items-center justify-center pointer-events-none" data-aos="fade-left" data-aos-duration="800">
+                    <!-- Organic radial purple glow -->
+                    <div class="absolute w-[80%] h-[80%] bg-purple-500/20 blur-[80px] rounded-full z-0 transform"></div>
+                    
+                    <!-- Floating Image Wrapper -->
+                    <div id="hero-parallax-wrapper" class="relative w-full h-full max-w-[600px] z-10 flex items-center justify-center hero-graphic-float will-change-transform">
+                        <img src="/images/hero_graphic_transparent_1790501169026.png" alt="InternPilot Illustration" class="w-full h-auto object-contain" />
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- ===== STATS SECTION ===== -->
+            <section id="stats-section" class="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-5xl mx-auto"
+                data-aos="fade-up" data-aos-delay="300">
+                <!-- Card 1: Candidates -->
+                <div
+                    class="bg-white/90 backdrop-blur-md border border-slate-200/80 hover:border-indigo-200 rounded-2xl p-6 text-center shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 min-h-[140px] flex flex-col items-center justify-center group">
+                    <div id="skeleton-candidates" class="w-24 h-10 rounded-lg skeleton-pulse mb-1"></div>
+                    <span id="stat-candidates"
+                        class="hidden text-4xl sm:text-5xl font-extrabold bg-gradient-to-r from-indigo-600 to-indigo-800 bg-clip-text text-transparent mb-1 counter"
+                        data-target="0">
+                        0
+                    </span>
+                    <span
+                        class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center gap-1.5 mt-1">
+                        <i
+                            class="ph-bold ph-users text-indigo-500 text-sm group-hover:scale-110 transition-transform"></i>
+                        Registered Candidates
+                    </span>
+                </div>
+
+                <!-- Card 2: Companies -->
+                <div
+                    class="bg-white/90 backdrop-blur-md border border-slate-200/80 hover:border-emerald-200 rounded-2xl p-6 text-center shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 min-h-[140px] flex flex-col items-center justify-center group">
+                    <div id="skeleton-companies" class="w-24 h-10 rounded-lg skeleton-pulse mb-1"></div>
+                    <span id="stat-companies"
+                        class="hidden text-4xl sm:text-5xl font-extrabold bg-gradient-to-r from-emerald-600 to-teal-700 bg-clip-text text-transparent mb-1 counter"
+                        data-target="0">
+                        0
+                    </span>
+                    <span
+                        class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center gap-1.5 mt-1">
+                        <i
+                            class="ph-bold ph-buildings text-emerald-500 text-sm group-hover:scale-110 transition-transform"></i>
+                        Registered Companies
+                    </span>
+                </div>
+
+                <!-- Card 3: Published Internships -->
+                <div
+                    class="bg-white/90 backdrop-blur-md border border-slate-200/80 hover:border-purple-200 rounded-2xl p-6 text-center shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 min-h-[140px] flex flex-col items-center justify-center group">
+                    <div id="skeleton-internships" class="w-24 h-10 rounded-lg skeleton-pulse mb-1"></div>
+                    <span id="stat-internships"
+                        class="hidden text-4xl sm:text-5xl font-extrabold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent mb-1 counter"
+                        data-target="0">
+                        0
+                    </span>
+                    <span
+                        class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center gap-1.5 mt-1">
+                        <i
+                            class="ph-bold ph-briefcase text-purple-500 text-sm group-hover:scale-110 transition-transform"></i>
+                        Registered Internships
+                    </span>
+                </div>
+
+            </section>
+
+            <!-- ===== HOW IT WORKS SECTION ===== -->
+            <section
+                class="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-8 sm:p-12 shadow-sm space-y-10"
+                data-aos="fade-up">
+                <div class="text-center space-y-2">
+                    <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">How InternPilot Works</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 max-w-xl mx-auto">Your journey toward professional skill
+                        building in 3 simple steps</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+                    <!-- Step 1 -->
+                    <div class="bg-white/90 border border-slate-200/80 hover:border-indigo-200 rounded-2xl p-6 text-center shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 group space-y-4"
+                        data-aos="fade-up" data-aos-delay="100">
+                        <div
+                            class="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-700 text-white font-extrabold flex items-center justify-center text-lg shadow-md shadow-indigo-500/30 ring-4 ring-indigo-50 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                            1
+                        </div>
+                        <h3 class="text-base font-bold text-slate-900">Create Your Profile</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed">
+                            Register with your educational background, location, and core technical skills.
+                        </p>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="bg-white/90 border border-slate-200/80 hover:border-purple-200 rounded-2xl p-6 text-center shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 group space-y-4"
+                        data-aos="fade-up" data-aos-delay="200">
+                        <div
+                            class="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white font-extrabold flex items-center justify-center text-lg shadow-md shadow-purple-500/30 ring-4 ring-purple-50 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                            2
+                        </div>
+                        <h3 class="text-base font-bold text-slate-900">AI Skill Match</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed">
+                            Our intelligent matching engine instantly calculates your suitability score for open
+                            listings.
+                        </p>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="bg-white/90 border border-slate-200/80 hover:border-emerald-200 rounded-2xl p-6 text-center shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 group space-y-4"
+                        data-aos="fade-up" data-aos-delay="300">
+                        <div
+                            class="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-extrabold flex items-center justify-center text-lg shadow-md shadow-emerald-500/30 ring-4 ring-emerald-50 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                            3
+                        </div>
+                        <h3 class="text-base font-bold text-slate-900">Apply &amp; Get Trained</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed">
+                            Submit your application with one click and track status updates directly from your
+                            dashboard.
+                        </p>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- ===== FEATURES SECTION ===== -->
+            <section class="space-y-8" data-aos="fade-up">
+                <div class="text-center space-y-1.5">
+                    <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Built for Youth &amp; Employers
+                    </h2>
+                    <p class="text-xs sm:text-sm text-slate-500">Next-generation modules powering the PMIS digital
+                        ecosystem</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Card 1 -->
+                    <div class="bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-2xl p-7 shadow-sm hover:shadow-xl hover:border-indigo-300 hover:-translate-y-1.5 transition-all duration-300 group space-y-3.5"
+                        data-aos="fade-up" data-aos-delay="100">
+                        <div
+                            class="w-12 h-12 rounded-xl bg-indigo-50 border border-indigo-100/80 text-indigo-600 text-2xl font-bold flex items-center justify-center shadow-inner group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
+                            <i class="ph-bold ph-user-check"></i>
+                        </div>
+                        <h3 class="text-base font-bold text-slate-900">PMIS Scheme Verification</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed">
+                            Automated age (18&ndash;24) and income limit verification ensuring benefits reach eligible
+                            candidates seamlessly.
+                        </p>
+                    </div>
+
+                    <!-- Card 2 -->
+                    <div class="bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-2xl p-7 shadow-sm hover:shadow-xl hover:border-emerald-300 hover:-translate-y-1.5 transition-all duration-300 group space-y-3.5"
+                        data-aos="fade-up" data-aos-delay="200">
+                        <div
+                            class="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-100/80 text-emerald-600 text-2xl font-bold flex items-center justify-center shadow-inner group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300">
+                            <i class="ph-bold ph-cpu"></i>
+                        </div>
+                        <h3 class="text-base font-bold text-slate-900">AI Match Engine</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed">
+                            Real-time skill overlap calculation generating percentage fit scores between candidate
+                            profiles and job requirements.
+                        </p>
+                    </div>
+
+                    <!-- Card 3 -->
+                    <div class="bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-2xl p-7 shadow-sm hover:shadow-xl hover:border-purple-300 hover:-translate-y-1.5 transition-all duration-300 group space-y-3.5"
+                        data-aos="fade-up" data-aos-delay="300">
+                        <div
+                            class="w-12 h-12 rounded-xl bg-purple-50 border border-purple-100/80 text-purple-600 text-2xl font-bold flex items-center justify-center shadow-inner group-hover:scale-110 group-hover:bg-purple-600 group-hover:text-white transition-all duration-300">
+                            <i class="ph-bold ph-chart-line-up"></i>
+                        </div>
+                        <h3 class="text-base font-bold text-slate-900">Smart Candidate Ranking</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed">
+                            Empowers companies to view applicants ranked by suitability and manage shortlist/rejection
+                            workflows in one click.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== PARTNER ORGANIZATIONS SECTION ===== -->
+            <section class="space-y-6 pt-2" data-aos="fade-up">
+                <div class="text-center space-y-1.5">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                        Trusted Partner Organizations Under PMIS
+                    </h3>
+                    <p class="text-xs text-slate-500">
+                        Empowering youth through world-class training opportunities with India's leading enterprises.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+
+                    <div
+                        class="bg-white/90 border border-slate-200/80 rounded-2xl p-4 text-center shadow-sm hover:shadow-lg hover:scale-105 hover:border-indigo-300 transition-all duration-200 flex flex-col sm:flex-row items-center gap-3 justify-center h-24 sm:h-20 group">
+                        <img src="https://www.google.com/s2/favicons?domain=tatamotors.com&sz=128" alt="Tata Motors"
+                            class="w-8 h-8 object-contain flex-shrink-0 group-hover:scale-110 transition-transform duration-200"
+                            onerror="this.src='https://ui-avatars.com/api/?name=Tata+Motors&background=6366f1&color=fff'" />
+                        <span class="text-xs font-bold text-slate-800 text-center sm:text-left leading-snug">Tata
+                            Motors</span>
+                    </div>
+
+                    <div
+                        class="bg-white/90 border border-slate-200/80 rounded-2xl p-4 text-center shadow-sm hover:shadow-lg hover:scale-105 hover:border-indigo-300 transition-all duration-200 flex flex-col sm:flex-row items-center gap-3 justify-center h-24 sm:h-20 group">
+                        <img src="https://www.google.com/s2/favicons?domain=mahindra.com&sz=128"
+                            alt="Mahindra & Mahindra"
+                            class="w-8 h-8 object-contain flex-shrink-0 group-hover:scale-110 transition-transform duration-200"
+                            onerror="this.src='https://ui-avatars.com/api/?name=Mahindra&background=6366f1&color=fff'" />
+                        <span class="text-xs font-bold text-slate-800 text-center sm:text-left leading-snug">Mahindra &amp;
+                            Mahindra</span>
+                    </div>
+
+                    <div
+                        class="bg-white/90 border border-slate-200/80 rounded-2xl p-4 text-center shadow-sm hover:shadow-lg hover:scale-105 hover:border-indigo-300 transition-all duration-200 flex flex-col sm:flex-row items-center gap-3 justify-center h-24 sm:h-20 group">
+                        <img src="https://www.google.com/s2/favicons?domain=marutisuzuki.com&sz=128" alt="Maruti Suzuki"
+                            class="w-8 h-8 object-contain flex-shrink-0 group-hover:scale-110 transition-transform duration-200"
+                            onerror="this.src='https://ui-avatars.com/api/?name=Maruti+Suzuki&background=6366f1&color=fff'" />
+                        <span class="text-xs font-bold text-slate-800 text-center sm:text-left leading-snug">Maruti
+                            Suzuki</span>
+                    </div>
+
+                    <div
+                        class="bg-white/90 border border-slate-200/80 rounded-2xl p-4 text-center shadow-sm hover:shadow-lg hover:scale-105 hover:border-indigo-300 transition-all duration-200 flex flex-col sm:flex-row items-center gap-3 justify-center h-24 sm:h-20 group">
+                        <img src="https://www.google.com/s2/favicons?domain=techmahindra.com&sz=128" alt="Tech Mahindra"
+                            class="w-8 h-8 object-contain flex-shrink-0 group-hover:scale-110 transition-transform duration-200"
+                            onerror="this.src='https://ui-avatars.com/api/?name=Tech+Mahindra&background=6366f1&color=fff'" />
+                        <span class="text-xs font-bold text-slate-800 text-center sm:text-left leading-snug">Tech
+                            Mahindra</span>
+                    </div>
+
+                    <div
+                        class="bg-white/90 border border-slate-200/80 rounded-2xl p-4 text-center shadow-sm hover:shadow-lg hover:scale-105 hover:border-indigo-300 transition-all duration-200 flex flex-col sm:flex-row items-center gap-3 justify-center h-24 sm:h-20 group">
+                        <img src="https://www.google.com/s2/favicons?domain=hdfcbank.com&sz=128" alt="HDFC Bank"
+                            class="w-8 h-8 object-contain flex-shrink-0 group-hover:scale-110 transition-transform duration-200"
+                            onerror="this.src='https://ui-avatars.com/api/?name=HDFC+Bank&background=6366f1&color=fff'" />
+                        <span class="text-xs font-bold text-slate-800 text-center sm:text-left leading-snug">HDFC
+                            Bank</span>
+                    </div>
+
+                    <div
+                        class="bg-white/90 border border-slate-200/80 rounded-2xl p-4 text-center shadow-sm hover:shadow-lg hover:scale-105 hover:border-indigo-300 transition-all duration-200 flex flex-col sm:flex-row items-center gap-3 justify-center h-24 sm:h-20 group">
+                        <img src="https://www.google.com/s2/favicons?domain=ril.com&sz=128" alt="Reliance Retail"
+                            class="w-8 h-8 object-contain flex-shrink-0 group-hover:scale-110 transition-transform duration-200"
+                            onerror="this.src='https://ui-avatars.com/api/?name=Reliance+Retail&background=6366f1&color=fff'" />
+                        <span class="text-xs font-bold text-slate-800 text-center sm:text-left leading-snug">Reliance
+                            Retail</span>
+                    </div>
+
+                </div>
+            </section>
+
+        </div><!-- /content z-10 -->
+    </div><!-- /home-page-wrapper -->
+
+    <!-- Scripts for Animations & Interactivity -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Initialize Animate On Scroll
+            if (typeof AOS !== 'undefined') {
+                AOS.init({
+                    duration: 600,
+                    once: true,
+                    easing: 'ease-out-cubic'
+                });
+            }
+
+            // 2. Dynamic Landing Stats Fetch & Counter Animation
+            const fetchLandingStats = async () => {
+                const candidateCounter = document.getElementById('stat-candidates');
+                const companyCounter = document.getElementById('stat-companies');
+                const internshipCounter = document.getElementById('stat-internships');
+
+                const candidateSkeleton = document.getElementById('skeleton-candidates');
+                const companySkeleton = document.getElementById('skeleton-companies');
+                const internshipSkeleton = document.getElementById('skeleton-internships');
+
+                try {
+                    const response = await fetch('/api/v1/analytics/landing-stats');
+                    if (!response.ok) throw new Error('Failed to fetch landing stats');
+                    const data = await response.json();
+
+                    // Assign target values
+                    if (candidateCounter) candidateCounter.setAttribute('data-target', data.candidates ?? 0);
+                    if (companyCounter) companyCounter.setAttribute('data-target', data.companies ?? 0);
+                    if (internshipCounter) internshipCounter.setAttribute('data-target', data.internships ?? 0);
+
+                } catch (err) {
+                    console.error('Error fetching landing stats:', err);
+                    // Fallback to 0 if API request fails
+                    if (candidateCounter) candidateCounter.setAttribute('data-target', '0');
+                    if (companyCounter) companyCounter.setAttribute('data-target', '0');
+                    if (internshipCounter) internshipCounter.setAttribute('data-target', '0');
+                } finally {
+                    // Hide skeleton placeholders and show metric counters smoothly
+                    [candidateSkeleton, companySkeleton, internshipSkeleton].forEach(sk => sk && sk.classList.add('hidden'));
+                    [candidateCounter, companyCounter, internshipCounter].forEach(cnt => cnt && cnt.classList.remove('hidden'));
+
+                    // Initialize counter intersection observer
+                    setupCounterObserver();
+                }
+            };
+
+            let animationTriggered = false;
+            const animateAllCounters = () => {
+                if (animationTriggered) return;
+                animationTriggered = true;
+
+                const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                const counters = document.querySelectorAll('.counter');
+
+                counters.forEach(counter => {
+                    const target = parseInt(counter.getAttribute('data-target') || '0', 10);
+                    if (prefersReducedMotion || target === 0) {
+                        counter.innerText = target.toLocaleString() + '+';
+                        return;
+                    }
+
+                    let current = 0;
+                    const duration = 1500; // Total animation duration in ms
+                    const stepTime = 25;   // Frame step time in ms
+                    const steps = duration / stepTime;
+                    const increment = Math.max(1, Math.ceil(target / steps));
+
+                    const timer = setInterval(() => {
+                        current += increment;
+                        if (current >= target) {
+                            counter.innerText = target.toLocaleString() + '+';
+                            clearInterval(timer);
+                        } else {
+                            counter.innerText = current.toLocaleString() + '+';
+                        }
+                    }, stepTime);
+                });
+            };
+
+            const setupCounterObserver = () => {
+                const statsSection = document.getElementById('stats-section');
+                if (!statsSection) {
+                    animateAllCounters();
                     return;
                 }
 
-                let current = 0;
-                const duration = 1500; // Total animation duration in ms
-                const stepTime = 25;   // Frame step time in ms
-                const steps = duration / stepTime;
-                const increment = Math.max(1, Math.ceil(target / steps));
-
-                const timer = setInterval(() => {
-                    current += increment;
-                    if (current >= target) {
-                        counter.innerText = target.toLocaleString() + '+';
-                        clearInterval(timer);
-                    } else {
-                        counter.innerText = current.toLocaleString() + '+';
-                    }
-                }, stepTime);
-            });
-        };
-
-        const setupCounterObserver = () => {
-            const statsSection = document.getElementById('stats-section');
-            if (!statsSection) {
-                animateAllCounters();
-                return;
-            }
-
-            if ('IntersectionObserver' in window) {
-                const observer = new IntersectionObserver((entries) => {
-                    entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                            animateAllCounters();
-                            observer.unobserve(entry.target);
-                        }
-                    });
-                }, { threshold: 0.2 });
-                observer.observe(statsSection);
-            } else {
-                animateAllCounters();
-            }
-        };
-
-        fetchLandingStats();
-
-        // 3. Lightweight Interactive Mouse Wave / Particle Canvas Background
-        const canvas = document.getElementById('interactiveCanvas');
-        if (canvas) {
-            const ctx = canvas.getContext('2d');
-            let width = canvas.width = window.innerWidth;
-            let height = canvas.height = window.innerHeight;
-
-            window.addEventListener('resize', () => {
-                width = canvas.width = window.innerWidth;
-                height = canvas.height = window.innerHeight;
-            });
-
-            const particles = Array.from({ length: 45 }, () => ({
-                x: Math.random() * width,
-                y: Math.random() * height,
-                radius: Math.random() * 2 + 1,
-                vx: (Math.random() - 0.5) * 0.6,
-                vy: (Math.random() - 0.5) * 0.6
-            }));
-
-            let mouse = { x: -1000, y: -1000 };
-            window.addEventListener('mousemove', (e) => {
-                mouse.x = e.clientX;
-                mouse.y = e.clientY;
-            });
-
-            const draw = () => {
-                ctx.clearRect(0, 0, width, height);
-                ctx.fillStyle = '#6366f1';
-
-                particles.forEach((p, i) => {
-                    p.x += p.vx;
-                    p.y += p.vy;
-
-                    if (p.x < 0 || p.x > width) p.vx *= -1;
-                    if (p.y < 0 || p.y > height) p.vy *= -1;
-
-                    const dx = mouse.x - p.x;
-                    const dy = mouse.y - p.y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-
-                    if (dist < 120) {
-                        p.x -= (dx / dist) * 0.8;
-                        p.y -= (dy / dist) * 0.8;
-                    }
-
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                    ctx.fill();
-
-                    for (let j = i + 1; j < particles.length; j++) {
-                        const p2 = particles[j];
-                        const distance = Math.hypot(p.x - p2.x, p.y - p2.y);
-                        if (distance < 100) {
-                            ctx.strokeStyle = `rgba(99, 102, 241, ${1 - distance / 100})`;
-                            ctx.lineWidth = 0.5;
-                            ctx.beginPath();
-                            ctx.moveTo(p.x, p.y);
-                            ctx.lineTo(p2.x, p2.y);
-                            ctx.stroke();
-                        }
-                    }
-                });
-
-                requestAnimationFrame(draw);
+                if ('IntersectionObserver' in window) {
+                    const observer = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                animateAllCounters();
+                                observer.unobserve(entry.target);
+                            }
+                        });
+                    }, { threshold: 0.2 });
+                    observer.observe(statsSection);
+                } else {
+                    animateAllCounters();
+                }
             };
-            draw();
+
+            fetchLandingStats();
+
+        });
+    </script>
+    <script type="module">
+        import GradientWaves from '/js/GradientWaves.js?v=2';
+        import TechText from '/js/TechText.js';
+
+        const wavesContainer = document.getElementById('gradient-waves');
+        if (wavesContainer) {
+            new GradientWaves(wavesContainer, {
+                horizonColor: "#5b21b6",
+                waveColor: "#be185d",
+                crestColor: "#18181b",
+                speed: 0.4,
+                amplitude: 2.5,
+                waveScale: 0.6,
+                waveRatio: 0.9,
+                swell: 35,
+                turbulence: 20,
+                tilt: 1.11,
+                zoom: 1.0,
+                height: 5.5,
+                fogDepth: 15,
+                detail: "medium",
+                brightness: 1.0,
+                opacity: 1.0,
+                mouseInteraction: true,
+                parallaxStrength: 0.5,
+                grain: true,
+                grainIntensity: 0.025
+            });
         }
-    });
-</script>
+
+        const techContainer = document.getElementById('tech-text-container');
+        if (techContainer) {
+            new TechText(techContainer, {
+                text: 'InternPilot',
+                fontWeight: 800,
+                fontSize: 90,
+                letterSpacing: -0.03,
+                color: '#0f172a',
+                accentColor: '#4f46e5',
+                dashLength: 4,
+                dashGap: 2,
+                strokeWidth: 1.5,
+                specks: 12,
+                reveal: 'letter',
+                sweep: true,
+                speed: 0.8,
+                draggable: true,
+                labels: false
+            });
+        }
+        
+        // Subtle Mouse Parallax for Hero Graphic
+        const parallaxWrapper = document.getElementById('hero-parallax-wrapper');
+        if (parallaxWrapper && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            document.addEventListener('mousemove', (e) => {
+                if (window.innerWidth < 768) return; // Disable on mobile
+                const x = (e.clientX / window.innerWidth - 0.5) * 20; // max 10px move
+                const y = (e.clientY / window.innerHeight - 0.5) * 20;
+                parallaxWrapper.style.transform = `translate(${x}px, ${y}px)`;
+            });
+        }
+    </script>

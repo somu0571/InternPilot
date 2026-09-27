@@ -1,0 +1,375 @@
+<% layout('layouts/boilerplate') %>
+
+<%
+    const completionDateObj = certificate.completionDate ? new Date(certificate.completionDate) : new Date();
+    const formattedCompletionDate = completionDateObj.toLocaleDateString('en-IN', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+    const formattedStartDate = certificate.startDate ? new Date(certificate.startDate).toLocaleDateString('en-IN', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    }) : '';
+    const issueYear = completionDateObj.getFullYear();
+    const issueMonth = completionDateObj.getMonth() + 1;
+    const certUrl = typeof verifyUrl !== 'undefined' ? verifyUrl : ('/verify/certificate/' + certificate.certificateId);
+
+    // LinkedIn certification URL params
+    const linkedInCertUrl = 'https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME'
+        + '&name=' + encodeURIComponent(certificate.internshipTitle + ' Internship')
+        + '&organizationName=' + encodeURIComponent(certificate.companyName)
+        + '&issueYear=' + encodeURIComponent(issueYear)
+        + '&issueMonth=' + encodeURIComponent(issueMonth)
+        + '&certUrl=' + encodeURIComponent(certUrl)
+        + '&certId=' + encodeURIComponent(certificate.certificateId);
+
+    const linkedInShareUrl = 'https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(certUrl);
+%>
+
+<style>
+    @media print {
+        header, footer, .no-print, #mobileNavToggle, #mobileNavigation {
+            display: none !important;
+        }
+        body {
+            background: #ffffff !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        main {
+            padding: 0 !important;
+            margin: 0 !important;
+            max-width: 100% !important;
+        }
+        .certificate-sheet {
+            box-shadow: none !important;
+            border: 2px solid #b45309 !important;
+            margin: 0 auto !important;
+            page-break-after: always;
+            break-after: page;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        .lor-sheet {
+            box-shadow: none !important;
+            margin: 0 auto !important;
+            page-break-before: always;
+            break-before: page;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        @page {
+            size: A4 landscape;
+            margin: 8mm;
+        }
+    }
+
+    .certificate-border-outer {
+        border: 4px solid #1e1b4b;
+        position: relative;
+    }
+    .certificate-border-inner {
+        border: 2px solid #d97706;
+        outline: 1px solid #fef3c7;
+        outline-offset: -5px;
+    }
+    .guilloche-bg {
+        background-color: #fafaf9;
+        background-image: radial-gradient(#e0e7ff 0.75px, transparent 0.75px), radial-gradient(#fef3c7 0.75px, #fafaf9 0.75px);
+        background-size: 30px 30px;
+        background-position: 0 0, 15px 15px;
+    }
+</style>
+
+<div class="max-w-5xl mx-auto space-y-8 py-2">
+
+    <!-- Screen Control & Action Bar (Hidden in Print) -->
+    <div class="no-print bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <a href="javascript:history.back()"
+                class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5">
+                <i class="ph-bold ph-arrow-left"></i> Back
+            </a>
+            <div class="h-4 w-px bg-slate-200"></div>
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
+                    <i class="ph-bold ph-seal-check text-emerald-600"></i> Verified Authentic Credential
+                </span>
+                <span class="hidden sm:inline-block font-mono text-xs font-semibold text-slate-500">
+                    <%= certificate.certificateId %>
+                </span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2.5 flex-wrap justify-end w-full md:w-auto">
+            <!-- Copy Link Button -->
+            <button type="button" onclick="copyVerificationLink()" id="copyLinkBtn"
+                class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-all flex items-center gap-1.5 shadow-sm">
+                <i class="ph-bold ph-copy text-sm"></i>
+                <span id="copyLinkText">Copy Verify Link</span>
+            </button>
+
+            <!-- LinkedIn Profile Add -->
+            <a href="<%= linkedInCertUrl %>" target="_blank" rel="noopener noreferrer"
+                class="px-3.5 py-2 bg-[#0077b5] hover:bg-[#005e93] text-white text-xs font-semibold rounded-xl transition-all flex items-center gap-1.5 shadow-sm">
+                <i class="ph-bold ph-linkedin-logo text-sm"></i>
+                Add to LinkedIn
+            </a>
+
+            <!-- Print / PDF Download -->
+            <button type="button" onclick="window.print()"
+                class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-md hover:shadow transition-all flex items-center gap-1.5">
+                <i class="ph-bold ph-printer text-base"></i>
+                Print / Save PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- Official Certificate Canvas (A4 Landscape aspect) -->
+    <div id="certificateCanvas" class="certificate-sheet certificate-border-outer bg-white rounded-2xl shadow-2xl p-3 sm:p-5">
+        <div class="certificate-border-inner guilloche-bg rounded-xl p-6 sm:p-10 relative overflow-hidden text-center space-y-6">
+
+            <!-- Corner Flourish Elements -->
+            <div class="absolute top-3 left-3 w-8 h-8 border-t-2 border-l-2 border-amber-600 opacity-60"></div>
+            <div class="absolute top-3 right-3 w-8 h-8 border-t-2 border-r-2 border-amber-600 opacity-60"></div>
+            <div class="absolute bottom-3 left-3 w-8 h-8 border-b-2 border-l-2 border-amber-600 opacity-60"></div>
+            <div class="absolute bottom-3 right-3 w-8 h-8 border-b-2 border-r-2 border-amber-600 opacity-60"></div>
+
+            <!-- Top Header: Government & Scheme Branding -->
+            <div class="flex items-center justify-between border-b-2 border-amber-500/30 pb-4 px-2">
+                <div class="flex items-center gap-2.5 text-left">
+                    <img src="/images/emblem.jpg" alt="State Emblem of India" class="h-12 w-auto object-contain mix-blend-multiply">
+                    <div>
+                        <span class="block text-[11px] font-extrabold uppercase tracking-wider text-slate-800">
+                            Government of India
+                        </span>
+                        <span class="block text-[10px] font-semibold text-slate-500 uppercase tracking-tight">
+                            Ministry of Corporate Affairs &bull; PMIS Portal
+                        </span>
+                    </div>
+                </div>
+
+                <div class="text-right">
+                    <span class="text-[10px] font-bold text-indigo-900 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                        InternPilot Certified
+                    </span>
+                    <span class="block text-[10px] font-mono text-slate-500 mt-0.5">
+                        ID: <%= certificate.certificateId %>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Certificate Title -->
+            <div class="space-y-1 pt-2">
+                <h2 class="text-xs uppercase font-bold tracking-[0.25em] text-amber-700">
+                    Official PMIS Credential of Accomplishment
+                </h2>
+                <h1 class="text-2xl sm:text-4xl font-serif font-black tracking-tight text-slate-900 uppercase">
+                    Certificate of Completion
+                </h1>
+                <div class="w-24 h-1 bg-gradient-to-r from-amber-400 via-indigo-600 to-amber-400 mx-auto rounded-full mt-2"></div>
+            </div>
+
+            <!-- Recipient Proclamation -->
+            <div class="space-y-3 max-w-3xl mx-auto">
+                <p class="text-xs sm:text-sm font-serif italic text-slate-600">
+                    This is to proudly certify that
+                </p>
+
+                <div class="py-1">
+                    <h3 class="text-2xl sm:text-4xl font-serif font-black text-indigo-950 tracking-tight border-b-2 border-amber-400/80 inline-block px-8 pb-1">
+                        <%= certificate.candidateName %>
+                    </h3>
+                </div>
+
+                <p class="text-xs sm:text-sm text-slate-700 leading-relaxed font-sans pt-1">
+                    has successfully completed the internship engagement as
+                    <span class="font-extrabold text-slate-900"><%= certificate.internshipTitle %></span>
+                    with
+                    <span class="font-extrabold text-slate-900"><%= certificate.companyName %></span>
+                    <% if (formattedStartDate) { %>
+                        from <span class="font-semibold text-slate-800"><%= formattedStartDate %></span>
+                    <% } %>
+                    to <span class="font-semibold text-slate-800"><%= formattedCompletionDate %></span>
+                    (<span class="font-semibold text-slate-800"><%= certificate.duration %></span>).
+                </p>
+            </div>
+
+            <!-- Performance Rating & Demonstrated Skills -->
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-3 py-1">
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-300 rounded-full text-xs font-bold text-amber-900 shadow-sm">
+                    <i class="ph-bold ph-star text-amber-500"></i>
+                    Performance: <%= certificate.performanceRating %>
+                </div>
+
+                <% if (certificate.skills && certificate.skills.length > 0) { %>
+                    <div class="flex items-center gap-1.5 flex-wrap justify-center max-w-lg">
+                        <% certificate.skills.slice(0, 5).forEach(skill => { %>
+                            <span class="text-[10px] font-bold px-2.5 py-0.5 bg-indigo-50 border border-indigo-200 text-indigo-800 rounded-full">
+                                <%= skill %>
+                            </span>
+                        <% }); %>
+                    </div>
+                <% } %>
+            </div>
+
+            <!-- Signatures, Seal & QR Code Footer -->
+            <div class="pt-8 border-t border-slate-200/80 grid grid-cols-1 sm:grid-cols-3 gap-6 items-end">
+
+                <!-- Left: Authorized Signatory -->
+                <div class="text-center sm:text-left space-y-1">
+                    <div class="w-44 border-b-2 border-slate-800 pb-1 mx-auto sm:mx-0">
+                        <span class="font-serif italic font-bold text-indigo-900 text-sm tracking-wide">
+                            <%= certificate.signatoryName || 'Authorized Signatory' %>
+                        </span>
+                    </div>
+                    <p class="text-xs font-bold text-slate-800">
+                        <%= certificate.signatoryName || 'Authorized Signatory' %>
+                    </p>
+                    <p class="text-[10px] text-slate-500 font-medium leading-tight">
+                        <%= certificate.signatoryTitle || 'Program Mentor & Evaluator' %>
+                    </p>
+                    <p class="text-[10px] font-semibold text-slate-600">
+                        <%= certificate.companyName %>
+                    </p>
+                </div>
+
+                <!-- Center: Official Medallion Seal -->
+                <div class="flex flex-col items-center justify-center">
+                    <div class="w-20 h-20 rounded-full bg-gradient-to-tr from-amber-600 via-amber-400 to-yellow-300 p-0.5 shadow-lg flex items-center justify-center">
+                        <div class="w-full h-full rounded-full bg-indigo-950 border-2 border-amber-300 flex flex-col items-center justify-center text-center p-1">
+                            <i class="ph-bold ph-seal-check text-amber-400 text-2xl"></i>
+                            <span class="text-[8px] font-bold tracking-widest text-amber-200 uppercase leading-none mt-0.5">
+                                VERIFIED
+                            </span>
+                            <span class="text-[6px] tracking-tighter text-slate-300 uppercase leading-none">
+                                INTERNPILOT
+                            </span>
+                        </div>
+                    </div>
+                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-1">
+                        Official PMIS Seal
+                    </span>
+                </div>
+
+                <!-- Right: QR Code & Verification Info -->
+                <div class="flex flex-col items-center sm:items-end text-center sm:text-right space-y-1.5">
+                    <% if (certificate.qrCodeDataUrl) { %>
+                        <div class="p-1 bg-white border border-slate-200 rounded-lg shadow-sm">
+                            <img src="<%= certificate.qrCodeDataUrl %>" alt="Verification QR Code" class="w-20 h-20 object-contain">
+                        </div>
+                    <% } %>
+                    <div>
+                        <span class="text-[10px] font-bold text-indigo-900 block font-mono">
+                            <%= certificate.certificateId %>
+                        </span>
+                        <a href="<%= certUrl %>" target="_blank"
+                            class="text-[9px] text-indigo-600 hover:underline block font-semibold">
+                            Verify Authenticity Online
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Letter of Recommendation (LOR) Page (Rendered if provided) -->
+    <% if (certificate.letterOfRecommendation) { %>
+        <div id="lorSheet" class="lor-sheet bg-white border border-slate-200 rounded-2xl shadow-xl p-8 sm:p-12 space-y-8 max-w-4xl mx-auto">
+
+            <!-- LOR Letterhead -->
+            <div class="flex items-center justify-between border-b-2 border-indigo-600 pb-5">
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                        <%= certificate.companyName %>
+                    </h2>
+                    <p class="text-xs text-indigo-700 font-bold uppercase tracking-wider">Official Letter of Recommendation</p>
+                </div>
+                <div class="text-right">
+                    <span class="text-xs text-slate-400 block font-medium">Issue Date</span>
+                    <span class="text-xs font-bold text-slate-800"><%= formattedCompletionDate %></span>
+                </div>
+            </div>
+
+            <!-- Subject Proclamation -->
+            <div class="bg-indigo-50/60 border border-indigo-100 rounded-xl p-4">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-700 block mb-0.5">
+                    Subject: Recommendation for <%= certificate.candidateName %>
+                </span>
+                <p class="text-xs font-semibold text-slate-700">
+                    Tenure Role: <%= certificate.internshipTitle %> &bull; Evaluation: <%= certificate.performanceRating %>
+                </p>
+            </div>
+
+            <!-- LOR Body Text -->
+            <div class="space-y-4 text-xs sm:text-sm text-slate-700 leading-relaxed font-sans">
+                <p class="font-bold text-slate-800">
+                    To Whom It May Concern,
+                </p>
+
+                <%
+                    const paragraphs = certificate.letterOfRecommendation.split('\n').filter(p => p.trim().length > 0);
+                %>
+                <% paragraphs.forEach(p => { %>
+                    <p class="text-justify">
+                        <%= p %>
+                    </p>
+                <% }); %>
+
+                <p class="pt-2">
+                    Sincerely,
+                </p>
+            </div>
+
+            <!-- Signatory Signature Block -->
+            <div class="pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                    <div class="w-48 border-b-2 border-slate-800 pb-1">
+                        <span class="font-serif italic font-bold text-indigo-900 text-sm">
+                            <%= certificate.signatoryName || 'Authorized Signatory' %>
+                        </span>
+                    </div>
+                    <p class="text-xs font-bold text-slate-800 mt-1">
+                        <%= certificate.signatoryName || 'Authorized Signatory' %>
+                    </p>
+                    <p class="text-[11px] text-slate-500">
+                        <%= certificate.signatoryTitle || 'Mentor & Evaluator' %>
+                    </p>
+                    <p class="text-[11px] font-semibold text-slate-700">
+                        <%= certificate.companyName %>
+                    </p>
+                </div>
+
+                <div class="text-right text-[10px] text-slate-400 font-mono">
+                    <span>Credential Ref: <%= certificate.certificateId %></span>
+                </div>
+            </div>
+
+        </div>
+    <% } %>
+
+</div>
+
+<script>
+    function copyVerificationLink() {
+        var url = window.location.origin + '/verify/certificate/<%= certificate.certificateId %>';
+        navigator.clipboard.writeText(url).then(function() {
+            var textElem = document.getElementById('copyLinkText');
+            var btnElem = document.getElementById('copyLinkBtn');
+            if (textElem && btnElem) {
+                textElem.textContent = 'Copied!';
+                btnElem.classList.add('bg-emerald-100', 'text-emerald-800');
+                setTimeout(function() {
+                    textElem.textContent = 'Copy Verify Link';
+                    btnElem.classList.remove('bg-emerald-100', 'text-emerald-800');
+                }, 2500);
+            }
+        }).catch(function() {
+            prompt('Copy this verification URL:', url);
+        });
+    }
+</script>

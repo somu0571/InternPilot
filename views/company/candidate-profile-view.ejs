@@ -1,6 +1,7 @@
 <% layout('layouts/boilerplate') %>
 <% const permissionList = typeof permissions !== 'undefined' && Array.isArray(permissions) ? permissions : []; %>
 <% const canReviewApplications = permissionList.includes('applications:review'); %>
+<% const canIssueOffer = canReviewApplications && ['Shortlisted', 'Interview'].includes(application.status); %>
 <% const candidateSkillProfiles = (typeof skillProfiles !== 'undefined' && Array.isArray(skillProfiles) && skillProfiles.length)
     ? skillProfiles
     : ((candidate && Array.isArray(candidate.skills))
@@ -103,11 +104,12 @@
                     </div>
                     <div>
                         <span class="text-slate-400 font-medium block mb-1">Application Status</span>
-                        <% const isReadOnlyStatus = ['Withdrawn', 'withdrawn', 'Interview'].includes(application.status); %>
+                        <% const isReadOnlyStatus = ['Withdrawn', 'withdrawn', 'Hired', 'Offer Declined'].includes(application.status); %>
                         <% if (!isReadOnlyStatus && canReviewApplications) { %>
                             <form action="/company/applications/<%= application._id %>/status"
                                 method="POST" class="inline-block">
                                 <select name="status" onchange="this.form.submit()" class="px-3 py-1.5 text-xs font-semibold rounded-lg border shadow-sm cursor-pointer outline-none transition-colors <%=
+                                application.status === 'Hired' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                                 application.status === 'Shortlisted' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                                 application.status === 'Rejected' ? 'bg-rose-50 text-rose-700 border-rose-200' :
                                 application.status === 'Under Review' ? 'bg-amber-50 text-amber-700 border-amber-200' :
@@ -116,11 +118,14 @@
                                     <option value="Submitted" <%= application.status === 'Submitted' ? 'selected' : '' %>>Submitted</option>
                                     <option value="Under Review" <%= application.status === 'Under Review' ? 'selected' : '' %>>Under Review</option>
                                     <option value="Shortlisted" <%= application.status === 'Shortlisted' ? 'selected' : '' %>>Shortlisted</option>
+                                    <option value="Interview" <%= application.status === 'Interview' ? 'selected' : '' %>>Interview</option>
+                                    <option value="Hired" <%= application.status === 'Hired' ? 'selected' : '' %>>Hired</option>
                                     <option value="Rejected" <%= application.status === 'Rejected' ? 'selected' : '' %>>Rejected</option>
                                 </select>
                             </form>
                         <% } else { %>
                             <span class="inline-block px-3 py-1.5 text-xs font-semibold rounded-lg border <%=
+                                application.status === 'Hired' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                                 application.status === 'Shortlisted' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                                 application.status === 'Rejected' ? 'bg-rose-50 text-rose-700 border-rose-200' :
                                 application.status === 'Under Review' ? 'bg-amber-50 text-amber-700 border-amber-200' :
@@ -148,6 +153,62 @@
                     </div>
                 </div>
             </div>
+
+            <% if (canReviewApplications && application.status === 'Hired') { %>
+                <div class="bg-white border border-indigo-200 rounded-2xl p-6 shadow-sm space-y-4">
+                    <div class="border-b border-indigo-100 pb-3">
+                        <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                            <i class="ph-bold ph-files text-indigo-600 text-lg"></i>
+                            Internship documents
+                        </h2>
+                        <p class="mt-1 text-xs text-slate-500">Issue a certificate and recommendation letter as downloadable PDFs for the candidate.</p>
+                    </div>
+                    <form action="/company/applications/<%= application._id %>/certificates/issues" method="POST">
+                        <button type="submit" class="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-indigo-700">
+                            <i class="ph-bold ph-seal-check mr-1" aria-hidden="true"></i> Issue Certificate &amp; LOR
+                        </button>
+                    </form>
+                </div>
+            <% } %>
+
+            <% if (canIssueOffer) { %>
+                <div class="bg-white border border-emerald-200 rounded-2xl p-6 shadow-sm space-y-4">
+                    <div class="border-b border-emerald-100 pb-3">
+                        <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                            <i class="ph-bold ph-seal-check text-emerald-600 text-lg"></i>
+                            Issue formal offer
+                        </h2>
+                        <p class="mt-1 text-xs text-slate-500">The candidate can accept or decline before the expiry time.</p>
+                    </div>
+                    <form id="issueOfferForm" action="/company/applications/<%= application._id %>/offers" method="POST" class="space-y-3">
+                        <div>
+                            <label for="offer-expiry" class="block text-xs font-semibold text-slate-700 mb-1">Offer expiry (IST) *</label>
+                            <input id="offer-expiry" type="datetime-local" name="expiresAt" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label for="offer-start-date" class="block text-xs font-semibold text-slate-700 mb-1">Start date</label>
+                                <input id="offer-start-date" type="date" name="startDate" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600">
+                            </div>
+                            <div>
+                                <label for="offer-stipend" class="block text-xs font-semibold text-slate-700 mb-1">Monthly stipend</label>
+                                <input id="offer-stipend" type="number" min="0" name="monthlyStipend" value="<%= internship.monthlyStipend || 0 %>" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="offer-duration" class="block text-xs font-semibold text-slate-700 mb-1">Duration</label>
+                            <input id="offer-duration" type="text" maxlength="120" name="duration" value="<%= internship.duration || '' %>" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600">
+                        </div>
+                        <div>
+                            <label for="offer-terms" class="block text-xs font-semibold text-slate-700 mb-1">Additional terms</label>
+                            <textarea id="offer-terms" name="additionalTerms" rows="3" maxlength="2000" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600" placeholder="Optional instructions or conditions"></textarea>
+                        </div>
+                        <button type="submit" class="w-full rounded-lg bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-emerald-700">
+                            Issue offer
+                        </button>
+                    </form>
+                </div>
+            <% } %>
 
             <!-- Interview Card -->
             <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
@@ -220,14 +281,81 @@
                         <p class="text-xs text-slate-500 mb-3">
                             <%= application.interview && application.interview.status === 'Cancelled' ? 'The previous interview was cancelled.' : 'No interview has been scheduled yet.' %>
                         </p>
-                        <% if (canReviewApplications && !['Rejected', 'rejected', 'Withdrawn', 'withdrawn'].includes(application.status)) { %>
+                        <% if (canReviewApplications && !['Rejected', 'rejected', 'Withdrawn', 'withdrawn', 'Hired', 'Offer Declined'].includes(application.status)) { %>
                             <button type="button" onclick="openScheduleModal(false)" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition-colors w-full shadow-sm">
                                 Schedule Interview
                             </button>
                         <% } else if (canReviewApplications) { %>
-                            <p class="text-xs text-rose-500 italic">Cannot schedule an interview for a rejected or withdrawn application.</p>
+                            <p class="text-xs text-rose-500 italic">Cannot schedule an interview after a final application outcome.</p>
                         <% } else { %>
                             <p class="text-xs text-slate-500 italic">Interview scheduling is available to Admins and Recruiters.</p>
+                        <% } %>
+                    </div>
+                <% } %>
+            </div>
+
+            <!-- Certificate & LOR Card -->
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+                <h2 class="text-sm font-bold text-slate-800 flex items-center justify-between border-b border-slate-100 pb-3">
+                    <span class="flex items-center gap-2">
+                        <i class="ph-bold ph-certificate text-amber-500 text-lg"></i>
+                        Completion Credential
+                    </span>
+                    <% if (typeof certificate !== 'undefined' && certificate) { %>
+                        <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            Issued
+                        </span>
+                    <% } else { %>
+                        <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                            Pending
+                        </span>
+                    <% } %>
+                </h2>
+
+                <% if (typeof certificate !== 'undefined' && certificate) { %>
+                    <div class="space-y-3 text-xs">
+                        <div>
+                            <span class="text-slate-400 font-medium block">Certificate ID</span>
+                            <span class="font-mono font-bold text-slate-800 tracking-wider text-xs bg-slate-100 px-2 py-1 rounded inline-block">
+                                <%= certificate.certificateId %>
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <span class="text-slate-400 font-medium block">Rating</span>
+                                <span class="font-bold text-amber-600"><%= certificate.performanceRating %></span>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 font-medium block">Tenure</span>
+                                <span class="font-bold text-slate-700"><%= certificate.duration %></span>
+                            </div>
+                        </div>
+                        <% if (certificate.letterOfRecommendation) { %>
+                            <div class="flex items-center gap-1.5 text-indigo-700 font-semibold text-[11px] bg-indigo-50 p-2 rounded-lg border border-indigo-100">
+                                <i class="ph-bold ph-file-text text-sm"></i> Includes Letter of Recommendation
+                            </div>
+                        <% } %>
+                        <div class="pt-2">
+                            <a href="/certificates/<%= certificate.certificateId %>/view" target="_blank"
+                                class="w-full px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5 shadow-sm">
+                                <i class="ph-bold ph-arrow-square-out text-sm"></i> View & Print Certificate
+                            </a>
+                        </div>
+                    </div>
+                <% } else { %>
+                    <div class="text-center py-2 space-y-2">
+                        <p class="text-xs text-slate-500">
+                            Issue an official Certificate of Completion and optional Letter of Recommendation with a tamper-proof verification ID.
+                        </p>
+                        <% if (canReviewApplications && !['Rejected', 'rejected', 'Withdrawn', 'withdrawn'].includes(application.status)) { %>
+                            <a href="/company/applications/<%= application._id %>/certificate/issue"
+                                class="w-full px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 shadow-sm">
+                                <i class="ph-bold ph-seal-check text-sm"></i> Issue Certificate & LOR
+                            </a>
+                        <% } else if (['Rejected', 'rejected', 'Withdrawn', 'withdrawn'].includes(application.status)) { %>
+                            <p class="text-xs text-slate-400 italic">Credentials cannot be issued for rejected or withdrawn candidates.</p>
+                        <% } else { %>
+                            <p class="text-xs text-slate-400 italic">Available to Recruiters & Admins.</p>
                         <% } %>
                     </div>
                 <% } %>

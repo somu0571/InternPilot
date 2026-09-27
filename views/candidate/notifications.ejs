@@ -46,6 +46,12 @@
                             typeStyle = { icon: 'ph-calendar-check', iconClass: 'bg-indigo-100 text-indigo-700', label: 'Interview Scheduled' };
                         } else if (notification.type === 'interview_cancelled') {
                             typeStyle = { icon: 'ph-calendar-x', iconClass: 'bg-rose-100 text-rose-700', label: 'Interview Cancelled' };
+                        } else if (notification.type === 'offer_issued') {
+                            typeStyle = { icon: 'ph-seal-check', iconClass: 'bg-emerald-100 text-emerald-700', label: 'Offer received' };
+                        } else if (notification.type === 'offer_expired') {
+                            typeStyle = { icon: 'ph-hourglass-low', iconClass: 'bg-amber-100 text-amber-700', label: 'Offer expired' };
+                        } else if (notification.type === 'security_new_sign_in') {
+                            typeStyle = { icon: 'ph-shield-warning', iconClass: 'bg-sky-100 text-sky-700', label: 'New sign-in' };
                         } else {
                             typeStyle = { icon: 'ph-clipboard-text', iconClass: 'bg-amber-100 text-amber-700', label: 'Application update' };
                         }

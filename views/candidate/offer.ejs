@@ -1,0 +1,75 @@
+<% layout('layouts/boilerplate') %>
+<%
+    const listing = offer.internship || {};
+    const company = offer.company || {};
+    const companyName = company.companyDetails?.companyName || company.name || listing.companyName || 'Company';
+    const isActionable = offer.status === 'issued' && new Date(offer.expiresAt) > new Date();
+    const formatDateTime = value => new Date(value).toLocaleString('en-IN', {
+        timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short'
+    });
+%>
+
+<div class="mx-auto max-w-3xl space-y-6">
+    <a href="/candidate/applications" class="inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 hover:underline">
+        <i class="ph-bold ph-arrow-left" aria-hidden="true"></i> Back to my applications
+    </a>
+
+    <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div class="border-b border-indigo-100 bg-indigo-50 px-6 py-5">
+            <p class="text-xs font-bold uppercase tracking-wide text-indigo-700">Internship offer</p>
+            <h1 class="mt-1 text-2xl font-bold text-slate-900"><%= listing.title || 'Internship offer' %></h1>
+            <p class="mt-1 text-sm text-slate-600"><%= companyName %></p>
+        </div>
+
+        <div class="space-y-6 p-6">
+            <% if (isActionable) { %>
+                <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                    <span class="font-bold">Respond by:</span> <%= formatDateTime(offer.expiresAt) %> IST
+                </div>
+            <% } else { %>
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+                    This offer is <span class="font-bold"><%= offer.status %></span>.
+                </div>
+            <% } %>
+
+            <dl class="grid gap-4 sm:grid-cols-3">
+                <div class="rounded-xl border border-slate-200 p-4">
+                    <dt class="text-xs font-medium text-slate-500">Start date</dt>
+                    <dd class="mt-1 text-sm font-bold text-slate-800"><%= offer.terms?.startDate ? new Date(offer.terms.startDate).toLocaleDateString('en-IN', { dateStyle: 'medium' }) : 'To be confirmed' %></dd>
+                </div>
+                <div class="rounded-xl border border-slate-200 p-4">
+                    <dt class="text-xs font-medium text-slate-500">Monthly stipend</dt>
+                    <dd class="mt-1 text-sm font-bold text-slate-800">₹<%= Number(offer.terms?.monthlyStipend || 0).toLocaleString('en-IN') %></dd>
+                </div>
+                <div class="rounded-xl border border-slate-200 p-4">
+                    <dt class="text-xs font-medium text-slate-500">Duration</dt>
+                    <dd class="mt-1 text-sm font-bold text-slate-800"><%= offer.terms?.duration || 'To be confirmed' %></dd>
+                </div>
+            </dl>
+
+            <% if (offer.terms?.additionalTerms) { %>
+                <div>
+                    <h2 class="text-sm font-bold text-slate-800">Additional terms</h2>
+                    <p class="mt-2 whitespace-pre-line rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-700"><%= offer.terms.additionalTerms %></p>
+                </div>
+            <% } %>
+
+            <% if (isActionable) { %>
+                <div class="grid gap-3 border-t border-slate-100 pt-6 sm:grid-cols-2">
+                    <form action="/candidate/offers/<%= offer._id %>/accept" method="POST">
+                        <button type="submit" class="w-full rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-emerald-700">
+                            Accept offer
+                        </button>
+                    </form>
+                    <form action="/candidate/offers/<%= offer._id %>/decline" method="POST" class="space-y-2">
+                        <label for="decline-reason" class="sr-only">Reason for declining (optional)</label>
+                        <input id="decline-reason" name="reason" maxlength="500" placeholder="Reason for declining (optional)" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm">
+                        <button type="submit" class="w-full rounded-xl border border-rose-200 bg-white px-4 py-2 text-sm font-bold text-rose-700 transition-colors hover:bg-rose-50">
+                            Decline offer
+                        </button>
+                    </form>
+                </div>
+            <% } %>
+        </div>
+    </section>
+</div>

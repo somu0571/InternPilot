@@ -7,13 +7,15 @@ const mongoose = require('mongoose');
 const router = express.Router();
 
 const Application = require('../models/Application');
+const InternshipDocument = require('../models/InternshipDocument');
 const User = require('../models/User');
 const Internship = require('../models/Internship');
 const SavedSearch = require('../models/SavedSearch');
 const { notifyCandidateWithdrawal } = require('../utils/recruiterNotifications');
 const { isAuthenticated, authorize } = require('../middleware/auth');
-const { formatRelativeTime, formatLocalizedDateTime } = require('../utils/dateFormat');
+const { formatRelativeTime, formatLocalizedDateTime, formatDeadlineUrgency } = require('../utils/dateFormat');
 const { filterAndSortApplications } = require('../utils/applicationSearch');
+const { DOCUMENT_TYPES, getIssuedDocumentsByApplication } = require('../utils/internshipDocuments');
 const {
     normalizeSavedSearchCriteria,
     hasSavedSearchCriteria,
@@ -127,7 +129,7 @@ async function getPublishedListingsForSavedSearches() {
 
 /**
  * GET /candidate/saved-internships
- * Renders the saved internships dashboard.
+ * Renders the saved internships dashboard with search, sector filtering, and deadline indicators.
  */
 router.get('/candidate/saved-internships', isAuthenticated, authorize('candidate'), async (req, res) => {
     try {
@@ -135,10 +137,52 @@ router.get('/candidate/saved-internships', isAuthenticated, authorize('candidate
             path: 'savedInternships',
             populate: { path: 'companyId', select: 'companyName' }
         }).lean();
-        
+
+        const rawSaved = (user && user.savedInternships ? user.savedInternships : []).filter(Boolean);
+
+        // Fetch applications submitted by this candidate for any of the saved internships
+        const internshipIds = rawSaved.map(item => item._id);
+        const applications = internshipIds.length > 0
+            ? await Application.find({
+                candidate: req.user._id,
+                internship: { $in: internshipIds }
+            }).select('internship status appliedAt').lean()
+            : [];
+
+        const applicationMap = new Map();
+        applications.forEach(app => {
+            if (app.internship) {
+                applicationMap.set(String(app.internship), app);
+            }
+        });
+
+        const now = new Date();
+        const enrichedInternships = rawSaved.map(item => {
+            const app = applicationMap.get(String(item._id));
+            const deadlineInfo = formatDeadlineUrgency(item.applicationDeadline, now);
+            return {
+                ...item,
+                hasApplied: Boolean(app),
+                applicationStatus: app ? app.status : null,
+                appliedAt: app ? app.appliedAt : null,
+                deadlineInfo
+            };
+        });
+
+        const sectors = Array.from(new Set(
+            enrichedInternships
+                .map(item => item.sector && item.sector.trim())
+                .filter(Boolean)
+        )).sort((a, b) => a.localeCompare(b));
+
         res.render('candidate/saved-internships', {
-            internships: user.savedInternships || [],
-            currentUser: req.user
+            internships: enrichedInternships,
+            currentUser: req.user,
+            sectors,
+            searchQuery: req.query.q || '',
+            selectedSector: req.query.sector || '',
+            selectedStatus: req.query.status || '',
+            formatDeadlineUrgency
         });
     } catch (error) {
         console.error('Error fetching saved internships:', error);
@@ -503,11 +547,13 @@ router.get('/candidate/my-applications', isAuthenticated, authorize('candidate')
             .populate('internship')
             .sort(sortObj);
         const applicationSearch = filterAndSortApplications(applications, req.query);
+        const issuedDocumentsByApplication = await getIssuedDocumentsByApplication(applicationSearch.applications, userId);
 
         res.render('candidate/candidate-tracker', {
             candidate,
             currentUser: req.user,
             applications: applicationSearch.applications,
+            issuedDocumentsByApplication,
             stats,
             searchQuery: applicationSearch.search,
             statusFilter: applicationSearch.status,
@@ -557,6 +603,29 @@ router.get('/candidate/applications/:id/kit', isAuthenticated, authorize('candid
         console.error('Error loading submitted application kit:', error);
         if (req.flash) req.flash('error_msg', 'Unable to load the submitted application kit.');
         return res.redirect('/candidate/applications');
+    }
+});
+
+router.get('/candidate/applications/:id/certificates/:type', isAuthenticated, authorize('candidate'), async (req, res) => {
+    try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id) || !DOCUMENT_TYPES.includes(req.params.type)) {
+            return res.status(404).send('Document not found.');
+        }
+
+        const candidateId = req.user._id || req.user.id;
+        const document = await InternshipDocument.findOne({
+            application: req.params.id,
+            candidate: candidateId,
+            type: req.params.type
+        });
+        if (!document) return res.status(404).send('Document not found.');
+
+        res.set('Content-Type', document.contentType || 'application/pdf');
+        res.set('Content-Disposition', `attachment; filename="${document.fileName}"`);
+        return res.end(document.fileData);
+    } catch (error) {
+        console.error('Error downloading internship document:', error);
+        return res.status(500).send('Unable to download this document.');
     }
 });
 

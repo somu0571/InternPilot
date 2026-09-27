@@ -1,0 +1,5 @@
+<%# The InternPilot paper plane in 3D (#211). The logo shows until the 3D version is ready, and stays if it can't load. %>
+<div class="ip-plane3d<%= typeof size !== 'undefined' && size === 'lg' ? ' ip-plane3d--lg' : '' %>" data-plane-3d>
+    <img src="/images/internpilot-logo.svg" alt="" class="ip-plane3d__fallback" width="72" height="72">
+</div>
+<script type="module" src="/js/plane-3d.mjs"></script>

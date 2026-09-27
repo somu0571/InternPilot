@@ -1,0 +1,37 @@
+<%# Motion layer and UI refresh (#211): page transitions, toasts, reveals, card tilt and the refreshed look. %>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="/css/motion-ui.css">
+<link rel="stylesheet" href="/css/ui-refresh.css">
+<script>
+    (function () {
+        var html = document.documentElement;
+        // The refreshed look is for the app pages; the landing page keeps its own design (#142).
+        html.setAttribute('data-ui', location.pathname === '/' ? 'landing' : 'app');
+        // Content marked data-animate stays hidden only until it animates in. If
+        // the animation script can't load in time, show everything anyway.
+        try {
+            if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            html.classList.add('motion-pending');
+            setTimeout(function () {
+                if (!window.__ipMotionReady) html.classList.remove('motion-pending');
+            }, 3500);
+        } catch (err) {}
+    })();
+</script>
+<script>
+    // Tailwind's CDN build follows the operating system's dark mode by default,
+    // so pages using dark: classes (the admin dashboard) turned dark on their own
+    // while the rest of the site stayed light. Only an explicit html.dark class
+    // (a dark mode toggle, #118) should switch them. Runs as soon as the CDN
+    // script (next in <head>) has loaded, keeping any other config.
+    (function useClassDarkMode(attempt) {
+        if (window.tailwind) {
+            window.tailwind.config = Object.assign({}, window.tailwind.config, { darkMode: 'class' });
+        } else if (attempt < 100) {
+            setTimeout(function () { useClassDarkMode(attempt + 1); }, 10);
+        }
+    })(0);
+</script>
+<script src="/js/motion-ui.js" defer></script>

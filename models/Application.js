@@ -74,7 +74,7 @@ const applicationSchema = new mongoose.Schema({
         type: String,
         enum: [
             'Submitted', 'Under Review', 'Shortlisted', 'Interview',
-            'Rejected', 'Hired', 'Withdrawn', 'pending'
+            'Rejected', 'Hired', 'Offer Declined', 'Withdrawn', 'pending'
         ],
         default: 'Submitted'
     },
@@ -113,11 +113,15 @@ const applicationSchema = new mongoose.Schema({
                 type: String,
                 enum: [
                     'Submitted', 'Under Review', 'Shortlisted', 'Interview',
-                    'Rejected', 'Hired', 'Withdrawn', 'pending'
+                    'Rejected', 'Hired', 'Offer Declined', 'Withdrawn', 'pending'
                 ],
                 required: true
             },
-            changedAt: { type: Date, default: Date.now }
+            changedAt: { type: Date, default: Date.now },
+            // Only offer-driven outcomes populate this. It keeps the ordinary
+            // status timeline backwards compatible while providing a durable
+            // placement audit reference.
+            offer: { type: mongoose.Schema.Types.ObjectId, ref: 'Offer' }
         }
     ],
 
@@ -128,6 +132,12 @@ const applicationSchema = new mongoose.Schema({
     // Withdrawal audit metadata
     withdrawnAt: { type: Date },
     withdrawalReason: { type: String, trim: true, default: null },
+
+    placement: {
+        offer: { type: mongoose.Schema.Types.ObjectId, ref: 'Offer' },
+        outcome: { type: String, enum: ['accepted', 'declined'] },
+        decidedAt: { type: Date }
+    },
 
     // A denormalized, server-built record of exactly what was submitted.
     // It is intentionally not a reference to the mutable candidate profile.
@@ -156,6 +166,7 @@ const WITHDRAWABLE_STATUSES = [
 const TERMINAL_STATUSES = [
     'Rejected',
     'Hired',
+    'Offer Declined',
     'Withdrawn'
 ];
 

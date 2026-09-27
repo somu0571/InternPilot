@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <%- include('../partials/motion-head') %>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>InternPilot | Prime Minister's Internship Scheme</title>
 
@@ -30,52 +31,17 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="stylesheet" href="/css/header.css">
     <link rel="stylesheet" href="/css/theme.css">
-
-    <style>
-        #back-to-top-btn {
-            opacity: 0;
-            transform: translateY(10px);
-            pointer-events: none;
-            visibility: hidden;
-            transition: opacity 0.3s ease,
-                        transform 0.3s ease,
-                        visibility 0.3s ease;
-        }
-
-        #back-to-top-btn.visible {
-            opacity: 1;
-            transform: translateY(0);
-            pointer-events: auto;
-            visibility: visible;
-        }
-
-        #back-to-top-btn:hover {
-            box-shadow: 0 0 16px rgba(99, 102, 241, 0.45);
-        }
-
-        #back-to-top-btn:focus-visible {
-            outline: 3px solid #818cf8;
-            outline-offset: 3px;
-        }
-
-        .invisible-scrollbar {
-            -ms-overflow-style: none !important;
-            scrollbar-width: none !important;
-        }
-        .invisible-scrollbar::-webkit-scrollbar {
-            display: none !important;
-            width: 0 !important;
-            height: 0 !important;
-        }
-    </style>
+    <link rel="stylesheet" href="/css/app-shell.css">
 </head>
 
 <body class="h-full flex flex-col bg-slate-50 dark:bg-slate-900 font-sans text-slate-800 dark:text-slate-100 m-0 overflow-x-hidden transition-colors">
 
     <%- include('../partials/header') %>
+    <%- include('../partials/admin-announcements') %>
 
-        <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        <main class="flex-grow <%= typeof currentPath !== 'undefined' && currentPath === '/' ? 'w-full px-0 py-0' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full' %>">
             <%- include('../partials/flash') %>
+            <% if (typeof siteAnnouncements !== 'undefined' && siteAnnouncements && siteAnnouncements.length) { %><%- include('../partials/site-announcements') %><% } %>
             <%- body %>
         </main>
 
@@ -83,6 +49,7 @@
 
             <% if (typeof currentUser !=='undefined' && currentUser && currentUser.role==='candidate' ) { %>
                 <%- include('../partials/chat-widget') %>
+                <%- include('../partials/quick-apply-modal') %>
                     <% } %>
 
     <button
@@ -112,125 +79,9 @@
         </svg>
     </button>
 
-    <script>
-        (function () {
-            var btn = document.getElementById('back-to-top-btn');
-            if (!btn) return;
+    <%- include('../partials/loading-script') %>
 
-            function getThreshold() {
-                return window.innerHeight;
-            }
-
-            var ticking = false;
-
-            function onScroll() {
-                if (!ticking) {
-                    window.requestAnimationFrame(function () {
-                        if (window.scrollY > getThreshold()) {
-                            btn.classList.add('visible');
-                        } else {
-                            btn.classList.remove('visible');
-                        }
-                        ticking = false;
-                    });
-                    ticking = true;
-                }
-            }
-
-            window.addEventListener('scroll', onScroll, { passive: true });
-
-            btn.addEventListener('click', function () {
-                window.scrollTo({
-                    top: 0,
-                    left: 0,
-                    behavior: 'smooth'
-                });
-            });
-
-        })();
-    </script>
-
-        <%- include('../partials/loading-script') %>
-
-    <script>
-        (function () {
-            var STORAGE_KEY = 'theme';
-            var mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-            var modes = ['light', 'dark', 'system'];
-            var labels = {
-                light: 'Light mode',
-                dark: 'Dark mode',
-                system: 'System theme'
-            };
-            var icons = {
-                light: 'ph-bold ph-sun text-lg',
-                dark: 'ph-bold ph-moon text-lg',
-                system: 'ph-bold ph-monitor text-lg'
-            };
-
-            function getStored() {
-                try {
-                    var stored = window.localStorage.getItem(STORAGE_KEY);
-                    return modes.includes(stored) ? stored : 'system';
-                } catch (error) {
-                    return 'system';
-                }
-            }
-
-            function applyTheme(mode) {
-                var isDark = mode === 'dark' || (mode === 'system' && mediaQuery.matches);
-                document.documentElement.classList.toggle('dark', isDark);
-                updateToggleUI(mode);
-            }
-
-            function setTheme(mode) {
-                try {
-                    window.localStorage.setItem(STORAGE_KEY, mode);
-                } catch (error) {
-                    // The selected theme still applies for this page when storage is disabled.
-                }
-                applyTheme(mode);
-            }
-
-            function cycleTheme() {
-                var current = getStored();
-                var next = modes[(modes.indexOf(current) + 1) % modes.length];
-                setTheme(next);
-            }
-
-            function updateToggleUI(mode) {
-                var activeMode = modes.includes(mode) ? mode : 'system';
-                var nextMode = modes[(modes.indexOf(activeMode) + 1) % modes.length];
-                var text = labels[activeMode];
-
-                [
-                    ['themeToggle', 'themeToggleIcon', 'themeToggleLabel'],
-                    ['themeToggleMobile', 'themeToggleMobileIcon', 'themeToggleMobileLabel']
-                ].forEach(function (ids) {
-                    var button = document.getElementById(ids[0]);
-                    var icon = document.getElementById(ids[1]);
-                    var label = document.getElementById(ids[2]);
-                    if (icon) icon.className = icons[activeMode];
-                    if (label) label.textContent = text;
-                    if (button) {
-                        button.setAttribute('aria-label', 'Theme: ' + text + '. Activate to switch to ' + labels[nextMode] + '.');
-                        button.setAttribute('title', 'Theme: ' + text + ' (switch to ' + labels[nextMode] + ')');
-                    }
-                });
-            }
-
-            mediaQuery.addEventListener('change', function () {
-                if (getStored() === 'system') applyTheme('system');
-            });
-
-            ['themeToggle', 'themeToggleMobile'].forEach(function (id) {
-                var toggleBtn = document.getElementById(id);
-                if (toggleBtn) toggleBtn.addEventListener('click', cycleTheme);
-            });
-
-            applyTheme(getStored());
-        })();
-    </script>
+    <script src="/js/app-shell.js" defer></script>
 
 </body>
 

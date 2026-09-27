@@ -24,15 +24,49 @@ router.get('/register', redirectIfAuthenticated, (req, res) => res.render('auth/
 router.post('/register', async (req, res) => {
     const { name, email, password, role, adminSecretKey, companyName, cin, industry } = req.body;
     const normalizedEmail = (email || '').trim().toLowerCase();
+    const trimmedName = (name || '').trim();
 
     console.log('\n--- New Registration Request ---');
     console.log('Received Payload Email:', normalizedEmail);
 
     try {
-        if (!normalizedEmail) {
-            console.error('ERROR: Email field is empty or missing in req.body!');
-            req.flash('error_msg', 'Email address is required.');
+        if (!trimmedName) {
+            req.flash('error_msg', 'Full name is required.');
             return res.redirect('/auth/register');
+        }
+
+        if (!normalizedEmail || !/^\S+@\S+\.\S+$/.test(normalizedEmail)) {
+            console.error('ERROR: Email field is empty or invalid format in req.body!');
+            req.flash('error_msg', 'A valid email address is required.');
+            return res.redirect('/auth/register');
+        }
+
+        if (!password || typeof password !== 'string' || password.length < 6) {
+            req.flash('error_msg', 'Password must be at least 6 characters long.');
+            return res.redirect('/auth/register');
+        }
+
+        let selectedRole = 'candidate';
+
+        if (role === 'admin') {
+            const SYSTEM_ADMIN_SECRET = process.env.ADMIN_SECRET || process.env.ADMIN_CODE;
+
+            if (!SYSTEM_ADMIN_SECRET) {
+                req.flash('error_msg', 'Admin registration is not configured on this server.');
+                return res.redirect('/auth/register');
+            }
+
+            if (!adminSecretKey || adminSecretKey !== SYSTEM_ADMIN_SECRET) {
+                req.flash('error_msg', 'Invalid Admin Security Key. Access denied.');
+                return res.redirect('/auth/register');
+            }
+            selectedRole = 'admin';
+        } else if (role === 'company') {
+            if (!companyName || !companyName.trim()) {
+                req.flash('error_msg', 'Company name is required for company registration.');
+                return res.redirect('/auth/register');
+            }
+            selectedRole = 'company';
         }
 
         const existing = await User.findOne({ email: normalizedEmail });
@@ -58,46 +92,51 @@ router.post('/register', async (req, res) => {
                 }
 
                 const otp = generateSecureOTP();
+                existing.name = trimmedName;
+                existing.role = selectedRole;
+                existing.password = password;
                 existing.otp = otp;
-                existing.otpExpires = now + 10 * 60 * 1000;
-                existing.lastOtpSentAt = now;
+                existing.otpExpires = new Date(now + 10 * 60 * 1000);
+                existing.lastOtpSentAt = new Date(now);
 
-                if (password) existing.password = password; // Update password if provided
+                if (selectedRole === 'company') {
+                    existing.companyDetails = {
+                        companyName: companyName.trim(),
+                        cin: cin || '',
+                        industry: industry || '',
+                        isVerified: false,
+                        verificationStatus: 'pending',
+                        verificationSubmittedAt: new Date(),
+                        verificationHistory: [{
+                            status: 'pending',
+                            reason: 'Company account registered.',
+                            changedAt: new Date()
+                        }]
+                    };
+                    existing.companyId = existing._id;
+                }
 
                 await existing.save();
-                await sendOTPEmail(normalizedEmail, otp);
 
-                console.log(`--> Fresh verification code successfully sent to: ${normalizedEmail}`);
-                req.flash('success_msg', 'A new verification code has been sent to your email.');
+                try {
+                    await sendOTPEmail(normalizedEmail, otp);
+                    console.log(`--> Fresh verification code successfully sent to: ${normalizedEmail}`);
+                    req.flash('success_msg', 'A new verification code has been sent to your email.');
+                } catch (emailErr) {
+                    console.error('--> Failed to send updated OTP email:', emailErr.message);
+                    req.flash('error_msg', "Account updated, but we couldn't send the code. Please click Resend OTP.");
+                }
+
                 return res.redirect(`/auth/verify-otp?email=${encodeURIComponent(normalizedEmail)}`);
             }
         }
 
-        let selectedRole = 'candidate';
-
-        if (role === 'admin') {
-            const SYSTEM_ADMIN_SECRET = process.env.ADMIN_SECRET;
-
-            if (!SYSTEM_ADMIN_SECRET) {
-                req.flash('error_msg', 'Admin registration is not configured on this server.');
-                return res.redirect('/auth/register');
-            }
-
-            if (!adminSecretKey || adminSecretKey !== SYSTEM_ADMIN_SECRET) {
-                req.flash('error_msg', 'Invalid Admin Security Key. Access denied.');
-                return res.redirect('/auth/register');
-            }
-            selectedRole = 'admin';
-        } else if (role === 'company') {
-            selectedRole = 'company';
-        }
-
         const otp = generateSecureOTP();
-        const otpExpires = Date.now() + 10 * 60 * 1000;
-        const lastOtpSentAt = Date.now();
+        const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+        const lastOtpSentAt = new Date();
 
         const userData = {
-            name: (name || '').trim(),
+            name: trimmedName,
             email: normalizedEmail,
             password,
             role: selectedRole,
@@ -108,7 +147,19 @@ router.post('/register', async (req, res) => {
         };
 
         if (userData.role === 'company') {
-            userData.companyDetails = { companyName, cin, industry };
+            userData.companyDetails = {
+                companyName: companyName.trim(),
+                cin: cin || '',
+                industry: industry || '',
+                isVerified: false,
+                verificationStatus: 'pending',
+                verificationSubmittedAt: new Date(),
+                verificationHistory: [{
+                    status: 'pending',
+                    reason: 'Company account registered.',
+                    changedAt: new Date()
+                }]
+            };
         }
 
         // Create pending user record before dispatching email to guarantee persistence
@@ -151,10 +202,26 @@ router.post('/verify-otp', async (req, res) => {
     const otp = (req.body.otp || '').trim();
 
     try {
+        if (!email || !otp) {
+            req.flash('error_msg', 'Email and verification code are required.');
+            return res.redirect(`/auth/verify-otp?email=${encodeURIComponent(email)}`);
+        }
+
         console.log(`Verifying OTP for ${email}...`);
         const user = await User.findOne({ email });
 
-        if (!user || user.otp !== otp || !user.otpExpires || user.otpExpires < Date.now()) {
+        if (!user) {
+            req.flash('error_msg', 'No account found for this email address. Please register.');
+            return res.redirect('/auth/register');
+        }
+
+        if (user.isEmailVerified) {
+            req.flash('success_msg', 'Account is already verified. Please log in.');
+            return res.redirect('/auth/login');
+        }
+
+        const isExpired = !user.otpExpires || new Date(user.otpExpires).getTime() < Date.now();
+        if (!user.otp || user.otp !== otp || isExpired) {
             req.flash('error_msg', 'Invalid or expired OTP code.');
             return res.redirect(`/auth/verify-otp?email=${encodeURIComponent(email)}`);
         }
@@ -410,7 +477,13 @@ router.get('/logout', (req, res, next) => {
     req.logout((err) => {
         if (err) return next(err);
         req.flash('success_msg', 'Logged out successfully.');
-        res.redirect('/auth/login');
+        if (req.session && typeof req.session.save === 'function') {
+            req.session.save(() => {
+                res.redirect('/auth/login');
+            });
+        } else {
+            res.redirect('/auth/login');
+        }
     });
 });
 

@@ -45,6 +45,12 @@
                                     ? { icon: 'ph-trend-up', iconClass: 'bg-emerald-100 text-emerald-700', label: 'High Volume' }
                                     : notification.type === 'upcoming_interview'
                                         ? { icon: 'ph-calendar-check', iconClass: 'bg-blue-100 text-blue-700', label: 'Interview' }
+                                        : notification.type === 'offer_accepted'
+                                            ? { icon: 'ph-seal-check', iconClass: 'bg-emerald-100 text-emerald-700', label: 'Offer accepted' }
+                                            : notification.type === 'offer_declined'
+                                                ? { icon: 'ph-x-circle', iconClass: 'bg-rose-100 text-rose-700', label: 'Offer declined' }
+                                                : notification.type === 'offer_expired'
+                                                    ? { icon: 'ph-hourglass-low', iconClass: 'bg-amber-100 text-amber-700', label: 'Offer expired' }
                                         : { icon: 'ph-bell', iconClass: 'bg-slate-100 text-slate-700', label: 'Update' }; %>
 
                     <article class="flex gap-4 rounded-xl border p-4 sm:p-5 shadow-sm <%= notification.isRead ? 'border-slate-200 bg-white' : 'border-indigo-200 bg-indigo-50/40' %>">

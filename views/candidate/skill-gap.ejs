@@ -227,7 +227,7 @@
                                                 <% const hasListingQuestions = Array.isArray(internship.applicationQuestions) && internship.applicationQuestions.some(question => question && question.prompt); %>
                                                 <a href="/internships/<%= internship._id %>/application-kit" class="inline-flex items-center gap-1.5 bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors"><i class="ph-bold ph-briefcase"></i> <%= hasListingQuestions ? 'Prepare Application Kit' : 'Tailor Application' %></a>
                                                 <% if (!hasListingQuestions) { %>
-                                                    <form action="/internships/<%= internship._id %>/apply" method="POST"><button type="submit" class="inline-flex items-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold px-4 py-2 rounded-lg transition-colors"><i class="ph-bold ph-paper-plane-tilt"></i> Quick Apply</button></form>
+                                                    <form action="/internships/<%= internship._id %>/apply" method="POST" data-quick-apply-form data-no-loading data-internship-title="<%= internship.title %>" data-company-name="<%= internship.companyName || internship.company || '' %>"><button type="submit" class="inline-flex items-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold px-4 py-2 rounded-lg transition-colors"><i class="ph-bold ph-paper-plane-tilt"></i> Quick Apply</button></form>
                                                 <% } %>
                                             <% } %>
                                 </div>

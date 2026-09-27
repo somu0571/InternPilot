@@ -7,6 +7,7 @@ const STATUS_FILTERS = [
     'Interview',
     'Rejected',
     'Hired',
+    'Offer Declined',
     'Withdrawn'
 ];
 
@@ -28,6 +29,7 @@ function canonicalStatus(value) {
         rejected: 'Rejected',
         hired: 'Hired',
         accepted: 'Hired',
+        'offer declined': 'Offer Declined',
         withdrawn: 'Withdrawn'
     };
     return aliases[normalized] || '';

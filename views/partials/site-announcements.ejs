@@ -1,0 +1,39 @@
+<%# Banners posted from the admin console. The router only passes the ones this visitor should see. %>
+<div class="space-y-2 mb-4" id="siteAnnouncements">
+    <% siteAnnouncements.forEach(a => { %>
+        <div class="flex items-start gap-3 border rounded-xl px-4 py-3 text-sm <%= a.tone.banner %>" role="status" data-announcement-id="<%= a.id %>">
+            <i class="ph-bold <%= a.tone.icon %> text-lg shrink-0 mt-0.5" aria-hidden="true"></i>
+            <div class="min-w-0 flex-1">
+                <p class="font-semibold break-words"><%= a.title %></p>
+                <p class="text-xs mt-0.5 opacity-90 break-words"><%= a.message %></p>
+            </div>
+            <button type="button" class="shrink-0 opacity-60 hover:opacity-100" data-dismiss-announcement aria-label="Dismiss this announcement">
+                <i class="ph-bold ph-x" aria-hidden="true"></i>
+            </button>
+        </div>
+    <% }) %>
+</div>
+<script>
+    (function () {
+        const box = document.getElementById('siteAnnouncements');
+        if (!box) return;
+        // Remembered per browser; storage can be blocked, so every access is guarded.
+        const key = id => 'announcement-dismissed-' + id;
+        const dismissed = id => {
+            try { return window.localStorage.getItem(key(id)) === '1'; } catch (err) { return false; }
+        };
+        box.querySelectorAll('[data-announcement-id]').forEach(banner => {
+            const id = banner.getAttribute('data-announcement-id');
+            if (dismissed(id)) {
+                banner.remove();
+                return;
+            }
+            const button = banner.querySelector('[data-dismiss-announcement]');
+            if (!button) return;
+            button.addEventListener('click', () => {
+                try { window.localStorage.setItem(key(id), '1'); } catch (err) { /* still hide it for now */ }
+                banner.remove();
+            });
+        });
+    })();
+</script>

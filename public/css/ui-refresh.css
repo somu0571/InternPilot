@@ -1,0 +1,295 @@
+/*
+ * InternPilot UI refresh (#211): a modern coat of paint for every app page,
+ * applied on top of the existing Tailwind classes, so no page markup has to
+ * change for it.
+ *
+ * Scoped to html[data-ui="app"] (set in <head> for every page except the
+ * landing page, which keeps its own design from #142) and skipped in dark
+ * mode (html.dark, #118), which brings its own colours.
+ */
+
+/* --- Page --- */
+
+html[data-ui="app"]:not(.dark) body {
+    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', sans-serif;
+    background-color: #f7f8fc;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* The soft colour wash sits on its own fixed layer, so scrolling never repaints it
+   (a fixed background-attachment would repaint on every scroll frame). */
+html[data-ui="app"]:not(.dark) body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        radial-gradient(1100px 520px at 0% -10%, rgba(99, 102, 241, 0.1), transparent 60%),
+        radial-gradient(900px 480px at 100% 0%, rgba(168, 85, 247, 0.08), transparent 60%),
+        radial-gradient(800px 420px at 50% 115%, rgba(14, 165, 233, 0.07), transparent 60%);
+}
+
+html[data-ui="app"] ::selection {
+    background: rgba(99, 102, 241, 0.22);
+}
+
+html[data-ui="app"] main :is(h1, h2) {
+    letter-spacing: -0.015em;
+}
+
+/* --- Header: a light, near-opaque bar. No backdrop blur: blurring the page
+   under a sticky header on every scroll frame is what makes pages feel slow. --- */
+
+html[data-ui="app"]:not(.dark) body > header.bg-white {
+    background-color: rgba(255, 255, 255, 0.96);
+    border-bottom-color: rgba(226, 232, 240, 0.8);
+    box-shadow: 0 1px 0 rgba(15, 23, 42, 0.02), 0 10px 30px -24px rgba(15, 23, 42, 0.35);
+}
+
+/* --- Cards: softer borders, layered shadows --- */
+
+html[data-ui="app"]:not(.dark) main :is(.rounded-lg, .rounded-xl, .rounded-2xl).bg-white.border {
+    border-color: rgba(226, 232, 240, 0.9);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 14px 34px -22px rgba(15, 23, 42, 0.28);
+}
+
+/* Interactive cards get an indigo edge and glow on hover (a shadow, so it's cheap). */
+html[data-ui="app"]:not(.dark) main [data-tilt]:hover {
+    border-color: rgba(129, 140, 248, 0.7);
+    box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.35), 0 18px 40px -20px rgba(79, 70, 229, 0.45);
+}
+
+/* --- Buttons: primary actions get a gradient and a gentle lift --- */
+
+html[data-ui="app"] main :is(a, button):is(.bg-indigo-600, .bg-indigo-700) {
+    background-image: linear-gradient(135deg, #6366f1 0%, #7c3aed 100%);
+    box-shadow: 0 10px 22px -12px rgba(99, 102, 241, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+html[data-ui="app"] main :is(a, button):is(.bg-indigo-600, .bg-indigo-700):hover {
+    filter: brightness(1.07);
+    transform: translateY(-1px);
+    box-shadow: 0 16px 28px -12px rgba(99, 102, 241, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+html[data-ui="app"] main :is(a, button):is(.bg-indigo-600, .bg-indigo-700):active {
+    transform: translateY(0);
+    filter: brightness(0.98);
+}
+
+/* --- Form fields: a clear, soft focus glow --- */
+
+html[data-ui="app"] main :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea) {
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+html[data-ui="app"] main :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea):focus {
+    border-color: #818cf8 !important;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.14) !important;
+    outline: none;
+}
+
+/* --- Tables: readable headers and a hover row --- */
+
+html[data-ui="app"]:not(.dark) main table thead th {
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #64748b;
+}
+
+html[data-ui="app"]:not(.dark) main table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+html[data-ui="app"]:not(.dark) main table tbody tr:hover {
+    background-color: rgba(238, 242, 255, 0.55);
+}
+
+/* --- Scrollbars --- */
+
+html[data-ui="app"] ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+html[data-ui="app"] ::-webkit-scrollbar-thumb {
+    background: rgba(100, 116, 139, 0.35);
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background-clip: content-box;
+}
+
+html[data-ui="app"] ::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(99, 102, 241, 0.55);
+}
+
+/* --- Shared pieces used by the refreshed pages --- */
+
+/* A page header with a slowly drifting gradient. */
+.ip-hero {
+    position: relative;
+    overflow: hidden;
+    border-radius: 24px;
+    padding: 28px;
+    color: #ffffff;
+    background: linear-gradient(120deg, #312e81, #4f46e5 45%, #7c3aed 75%, #0ea5e9);
+    box-shadow: 0 24px 50px -28px rgba(79, 70, 229, 0.75);
+}
+
+.ip-hero::after {
+    content: '';
+    position: absolute;
+    inset: auto -10% -60% auto;
+    width: 60%;
+    height: 160%;
+    background: radial-gradient(closest-side, rgba(255, 255, 255, 0.18), transparent);
+    pointer-events: none;
+}
+
+
+/* Match score ring: the arc draws in from 0 to the score. */
+.ip-ring {
+    --ring-size: 56px;
+    --ring-color: #10b981;
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: var(--ring-size);
+    height: var(--ring-size);
+    flex: none;
+}
+
+.ip-ring svg {
+    position: absolute;
+    inset: 0;
+    transform: rotate(-90deg);
+}
+
+.ip-ring__track {
+    stroke: rgba(148, 163, 184, 0.25);
+}
+
+.ip-ring__value {
+    stroke: var(--ring-color);
+    stroke-linecap: round;
+    stroke-dasharray: 100 100;
+    stroke-dashoffset: calc(100 - var(--ring-value, 0));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .ip-ring__value {
+        animation: ip-ring-draw 1.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+}
+
+@keyframes ip-ring-draw {
+    from { stroke-dashoffset: 100; }
+}
+
+.ip-ring__label {
+    position: relative;
+    font-size: 13px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1;
+}
+
+.ip-ring__label small {
+    font-size: 9px;
+    font-weight: 700;
+}
+
+/* A status pill with a small coloured dot. */
+.ip-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    border: 1px solid transparent;
+    white-space: nowrap;
+}
+
+.ip-pill::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: currentColor;
+}
+
+/* --- Admin console --- */
+
+/* Navigation: a deep indigo panel with a gradient active item. */
+.ip-console-nav {
+    border-radius: 20px;
+    padding: 14px;
+    color: #e0e7ff;
+    background: linear-gradient(160deg, #1e1b4b 0%, #312e81 55%, #3730a3 100%);
+    box-shadow: 0 24px 50px -30px rgba(30, 27, 75, 0.9);
+}
+
+.ip-console-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(224, 231, 255, 0.82);
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.ip-console-link:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+}
+
+.ip-console-link.is-active {
+    color: #ffffff;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    box-shadow: 0 10px 24px -12px rgba(139, 92, 246, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.ip-pill--nodot::before {
+    display: none;
+}
+
+/* Bars (funnel, progress) grow in from the left once. */
+.ip-bar {
+    transform-origin: left center;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .ip-bar {
+        animation: ip-bar-grow 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+}
+
+@keyframes ip-bar-grow {
+    from {
+        transform: scaleX(0);
+    }
+}
+
+/* Initials avatar. */
+.ip-avatar {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    flex: none;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    color: #ffffff;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    box-shadow: 0 6px 14px -8px rgba(99, 102, 241, 0.8);
+}

@@ -10,7 +10,7 @@ const {
     matchesInternshipCriteria,
     buildSavedSearchResultsUrl
 } = require('./queryHelper');
-const { sendSavedSearchAlertEmail } = require('./sendEmail');
+const { sendSavedSearchAlertEmail, sendCertificateIssuedEmail } = require('./sendEmail');
 
 const INSTANT_EMAIL_CONCURRENCY = 5;
 const INSTANT_EMAIL_LEASE_MS = 15 * 60 * 1000;
@@ -583,6 +583,47 @@ async function notifyInterviewCancelled(application, internship) {
     });
 }
 
+async function notifyCertificateIssued(certificate) {
+    if (!certificate || !certificate.candidate) return null;
+
+    try {
+        const title = 'Certificate of Completion Issued!';
+        const message = `Congratulations! ${certificate.companyName || 'Your host company'} has issued your official Internship Certificate of Completion for ${certificate.internshipTitle}.`;
+        const link = `/certificates/${certificate.certificateId}/view`;
+
+        const notification = await Notification.create({
+            recipient: certificate.candidate._id || certificate.candidate,
+            type: 'certificate_issued',
+            title,
+            message,
+            link,
+            internship: certificate.internship?._id || certificate.internship,
+            application: certificate.application?._id || certificate.application
+        });
+
+        const candidateEmail = certificate.candidateEmail || certificate.candidate?.email;
+        if (candidateEmail && typeof sendCertificateIssuedEmail === 'function') {
+            const baseUrl = process.env.APP_URL || 'http://localhost:5000';
+            const viewUrl = `${baseUrl}${link}`;
+            sendCertificateIssuedEmail(
+                candidateEmail,
+                certificate.candidateName,
+                certificate.companyName,
+                certificate.internshipTitle,
+                certificate.certificateId,
+                viewUrl
+            ).catch(err => {
+                console.error('Failed to send certificate email:', err.message);
+            });
+        }
+
+        return notification;
+    } catch (err) {
+        console.error('Error in notifyCertificateIssued:', err);
+        return null;
+    }
+}
+
 module.exports = {
     isRelevantInternship,
     notifyRelevantCandidates,
@@ -596,5 +637,6 @@ module.exports = {
     notifyApplicationStatusChange,
     notifyInterviewScheduled,
     notifyInterviewRescheduled,
-    notifyInterviewCancelled
+    notifyInterviewCancelled,
+    notifyCertificateIssued
 };

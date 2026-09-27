@@ -1,6 +1,6 @@
 <% layout('layouts/boilerplate') %>
 
-<div class="max-w-4xl mx-auto px-4 py-8 space-y-6">
+<div class="max-w-4xl mx-auto px-4 py-8 space-y-6" data-animate-stagger>
 
     <!-- Top Navigation / Breadcrumb -->
     <div class="flex items-center justify-between">
@@ -8,7 +8,8 @@
             <i class="ph-bold ph-arrow-left"></i> Back to all listings
         </a>
         <div class="flex items-center gap-2">
-            <% if (isPaused) { %>
+            <% const appPaused = (typeof isPaused !== 'undefined' && isPaused) || (typeof internship !== 'undefined' && internship && (internship.isPaused || internship.status === 'paused')); %>
+            <% if (appPaused) { %>
                 <span class="text-xs font-bold px-3 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1.5">
                     <i class="ph-bold ph-pause-circle text-sm"></i> Applications Paused
                 </span>
@@ -21,7 +22,7 @@
     </div>
 
     <!-- PAUSED PROMINENT BANNER (Shown when applications are paused) -->
-    <% if (isPaused) { %>
+    <% if (appPaused) { %>
         <div class="bg-amber-50 border-l-4 border-amber-500 rounded-r-xl p-5 shadow-xs flex items-start gap-4" role="alert">
             <div class="p-2 bg-amber-100 text-amber-700 rounded-lg shrink-0 mt-0.5">
                 <i class="ph-bold ph-pause-circle text-2xl"></i>
@@ -54,8 +55,8 @@
                 <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
                     <%= internship.title %>
                 </h1>
-                <% const companyId = (typeof company !== 'undefined' && company && company._id) ? company._id : internship.companyId; %>
-                <% const compDetails = (typeof company !== 'undefined' && company && company.companyDetails) ? company.companyDetails : {}; %>
+                <% const companyId = (typeof company !== 'undefined' && company && company._id) ? company._id : ((typeof internship !== 'undefined' && internship && internship.company && internship.company._id) ? internship.company._id : (internship ? internship.companyId : null)); %>
+                <% const compDetails = (typeof company !== 'undefined' && company && company.companyDetails) ? company.companyDetails : ((internship && internship.company && internship.company.companyDetails) ? internship.company.companyDetails : {}); %>
                 <div class="flex items-center gap-2 mt-2">
                     <% if (compDetails.logo) { %>
                         <img src="<%= compDetails.logo %>" alt="<%= internship.companyName %> Logo" class="w-6 h-6 rounded-md object-cover border border-slate-200" />
@@ -64,16 +65,25 @@
                         <i class="ph-bold ph-buildings text-slate-400 text-base"></i>
                         <% if (companyId) { %>
                             <a href="/company/<%= companyId %>/profile" class="text-indigo-600 hover:text-indigo-800 hover:underline inline-flex items-center gap-1 font-bold">
-                                <span><%= internship.companyName || internship.company %></span>
+                                <span><%= internship.companyName || (internship.company && internship.company.name) || internship.company %></span>
                                 <i class="ph-bold ph-arrow-square-out text-xs"></i>
                             </a>
                         <% } else { %>
-                            <span><%= internship.companyName || internship.company %></span>
+                            <span><%= internship.companyName || (internship.company && internship.company.name) || internship.company %></span>
                         <% } %>
                         <% if (compDetails.isVerified) { %>
                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200" title="Verified Employer">
                                 <i class="ph-bold ph-seal-check"></i> Verified
                             </span>
+                        <% } %>
+                        <% if (typeof reviewStats !== 'undefined' && reviewStats && reviewStats.totalReviews > 0) { %>
+                            <a href="/companies/<%= companyId %>/reviews"
+                                class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition-colors"
+                                title="Verified intern ratings and reviews">
+                                <i class="ph-fill ph-star text-amber-500 text-xs"></i>
+                                <span><%= reviewStats.averageRating %>/5</span>
+                                <span class="text-[10px] font-normal text-amber-700">(<%= reviewStats.totalReviews %> <%= reviewStats.totalReviews === 1 ? 'review' : 'reviews' %>)</span>
+                            </a>
                         <% } %>
                     </p>
                 </div>
@@ -309,9 +319,9 @@
 
             <% } else { %>
                 <!-- Candidate / Student Action Area -->
-                <div>
+                <div data-apply-card>
                     <% if (!currentUser) { %>
-                        <% if (isPaused) { %>
+                        <% if (appPaused) { %>
                             <button disabled
                                 class="w-full py-3 px-4 bg-amber-50 text-amber-700 font-bold text-sm rounded-xl border border-amber-300 cursor-not-allowed flex items-center justify-center gap-2">
                                 <i class="ph-bold ph-pause-circle text-lg"></i>
@@ -327,7 +337,7 @@
                             </a>
                         <% } %>
 
-                    <% } else if (hasApplied) { %>
+                    <% } else if (typeof hasApplied !== 'undefined' && hasApplied) { %>
                         <button disabled
                             class="w-full py-3 px-4 bg-emerald-50 text-emerald-700 font-bold text-sm rounded-xl border border-emerald-200 cursor-not-allowed flex items-center justify-center gap-2">
                             <i class="ph-bold ph-check-circle text-lg"></i> Already Applied
@@ -336,7 +346,7 @@
                             You have submitted an application for this role. Track its status in your <a href="/candidate/applications" class="text-indigo-600 font-semibold hover:underline">Application Tracker</a>.
                         </p>
 
-                    <% } else if (isPaused) { %>
+                    <% } else if (appPaused) { %>
                         <!-- REQUIREMENT: If paused, clearly display banner/badge & disable/hide "Apply Now" -->
                         <button disabled
                             class="w-full py-3 px-4 bg-amber-50 text-amber-700 font-bold text-sm rounded-xl border border-amber-300 cursor-not-allowed flex items-center justify-center gap-2"
@@ -368,7 +378,7 @@
                         <% if (requiresApplicationKit) { %>
                             <p class="mt-2 text-center text-xs text-slate-500">This role includes questions from the hiring team.</p>
                         <% } else { %>
-                            <form action="/internships/<%= internship._id %>/apply" method="POST">
+                            <form action="/internships/<%= internship._id %>/apply" method="POST" data-quick-apply-form data-no-loading data-internship-title="<%= internship.title %>" data-company-name="<%= internship.companyName || internship.company || '' %>">
                                 <button type="submit"
                                     class="mt-2 w-full py-2.5 px-4 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer">
                                     <i class="ph-bold ph-paper-plane-tilt text-lg"></i>

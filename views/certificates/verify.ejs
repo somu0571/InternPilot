@@ -1,0 +1,232 @@
+<% layout('layouts/boilerplate') %>
+
+<div class="max-w-4xl mx-auto space-y-8 py-4">
+
+    <!-- Hero & Search Header -->
+    <div class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-8 sm:p-12 text-white shadow-xl text-center space-y-6 relative overflow-hidden">
+        <div class="absolute -right-12 -top-12 opacity-10 pointer-events-none">
+            <i class="ph-bold ph-shield-check text-[180px] text-white"></i>
+        </div>
+
+        <div class="relative z-10 space-y-3 max-w-2xl mx-auto">
+            <div class="inline-flex items-center gap-2 bg-indigo-500/20 text-indigo-200 border border-indigo-400/30 px-3.5 py-1 rounded-full text-xs font-semibold backdrop-blur-sm">
+                <i class="ph-bold ph-seal-check text-amber-400"></i>
+                PMIS &bull; National Credential Registry
+            </div>
+            <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
+                Verify Internship Credentials
+            </h1>
+            <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+                Enter a unique Certificate ID to instantly verify the authenticity of an Internship Completion Certificate or Letter of Recommendation.
+            </p>
+        </div>
+
+        <!-- Search Bar -->
+        <form action="/verify/certificate" method="GET" class="relative z-10 max-w-xl mx-auto flex flex-col sm:flex-row items-center gap-2">
+            <div class="relative w-full">
+                <i class="ph-bold ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
+                <input type="text" name="certificateId" required
+                    value="<%= searchedId || '' %>"
+                    placeholder="e.g. IP-2026-ABCD-1234"
+                    class="w-full pl-11 pr-4 py-3.5 bg-white text-slate-900 font-mono text-sm rounded-2xl border-2 border-indigo-200 focus:outline-none focus:ring-4 focus:ring-indigo-500/30 focus:border-indigo-500 shadow-md">
+            </div>
+            <button type="submit"
+                class="w-full sm:w-auto px-7 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 shrink-0">
+                <i class="ph-bold ph-shield-check text-lg"></i>
+                Verify
+            </button>
+        </form>
+    </div>
+
+    <!-- Verified Credential Card -->
+    <% if (certificate) { %>
+        <%
+            const completionDateObj = certificate.completionDate ? new Date(certificate.completionDate) : new Date();
+            const formattedCompletionDate = completionDateObj.toLocaleDateString('en-IN', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            const formattedIssuedDate = certificate.issuedAt ? new Date(certificate.issuedAt).toLocaleDateString('en-IN', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            }) : formattedCompletionDate;
+        %>
+
+        <div class="bg-white border-2 border-emerald-300/80 rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
+
+            <!-- Verified Status Badge Banner -->
+            <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-2xl shrink-0 shadow-md shadow-emerald-600/20">
+                        <i class="ph-bold ph-shield-check"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-black uppercase tracking-wider text-emerald-800">
+                                Officially Verified Credential
+                            </span>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                Authentic
+                            </span>
+                        </div>
+                        <p class="text-xs text-emerald-700 mt-0.5">
+                            This certificate was issued under the Prime Minister's Internship Scheme and is registered on the InternPilot Portal.
+                        </p>
+                    </div>
+                </div>
+
+                <a href="/certificates/<%= certificate.certificateId %>/view" target="_blank"
+                    class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-sm hover:shadow transition-all flex items-center gap-1.5 shrink-0">
+                    <i class="ph-bold ph-arrow-square-out text-sm"></i> View Original Certificate
+                </a>
+            </div>
+
+            <!-- Credential Information Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+
+                <!-- Left Column -->
+                <div class="space-y-4">
+                    <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
+                        <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Recipient Candidate</span>
+                        <h3 class="text-lg font-bold text-slate-900"><%= certificate.candidateName %></h3>
+                        <% if (certificate.candidateEmail) { %>
+                            <p class="text-xs text-slate-500 font-medium"><%= certificate.candidateEmail %></p>
+                        <% } %>
+                    </div>
+
+                    <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
+                        <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Host Organisation</span>
+                        <h4 class="text-base font-bold text-slate-900"><%= certificate.companyName %></h4>
+                        <p class="text-xs text-slate-500">Verified Platform Employer Partner</p>
+                    </div>
+
+                    <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
+                        <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Internship Engagement</span>
+                        <h4 class="text-base font-bold text-indigo-700"><%= certificate.internshipTitle %></h4>
+                        <p class="text-xs text-slate-600">Tenure Duration: <strong><%= certificate.duration %></strong></p>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="space-y-4">
+                    <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3">
+                        <div>
+                            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Performance Rating</span>
+                            <span class="inline-flex items-center gap-1.5 mt-1 px-3 py-1 bg-amber-50 border border-amber-300 rounded-lg text-xs font-bold text-amber-900">
+                                <i class="ph-bold ph-star text-amber-500"></i>
+                                <%= certificate.performanceRating %>
+                            </span>
+                        </div>
+
+                        <% if (certificate.skills && certificate.skills.length > 0) { %>
+                            <div>
+                                <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Demonstrated Skills</span>
+                                <div class="flex flex-wrap gap-1.5">
+                                    <% certificate.skills.forEach(skill => { %>
+                                        <span class="text-[11px] font-semibold px-2.5 py-0.5 bg-indigo-50 border border-indigo-200 text-indigo-800 rounded-md">
+                                            <%= skill %>
+                                        </span>
+                                    <% }); %>
+                                </div>
+                            </div>
+                        <% } %>
+                    </div>
+
+                    <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Completion Date</span>
+                            <span class="text-xs font-bold text-slate-800"><%= formattedCompletionDate %></span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Issue Date</span>
+                            <span class="text-xs font-bold text-slate-800"><%= formattedIssuedDate %></span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Signatory</span>
+                            <span class="text-xs font-bold text-slate-800"><%= certificate.signatoryName || 'Authorized Signatory' %></span>
+                        </div>
+                        <% if (certificate.letterOfRecommendation) { %>
+                            <div class="pt-2 border-t border-slate-200/80 flex items-center gap-1.5 text-xs font-bold text-indigo-700">
+                                <i class="ph-bold ph-check-circle text-emerald-500 text-sm"></i>
+                                Includes Official Letter of Recommendation (LOR)
+                            </div>
+                        <% } %>
+                    </div>
+
+                    <div class="p-4 bg-slate-900 text-white rounded-2xl flex items-center justify-between gap-4">
+                        <div>
+                            <span class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider block">Credential ID</span>
+                            <span class="font-mono font-bold text-sm tracking-wider text-amber-400"><%= certificate.certificateId %></span>
+                        </div>
+                        <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest bg-emerald-950 border border-emerald-800 px-2 py-1 rounded">
+                            Status: Active
+                        </span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    <% } else if (notFound) { %>
+
+        <!-- Verification Failed Alert -->
+        <div class="bg-white border-2 border-rose-200 rounded-3xl p-8 sm:p-10 shadow-lg text-center space-y-4">
+            <div class="w-16 h-16 rounded-full bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center text-3xl mx-auto shadow-sm">
+                <i class="ph-bold ph-warning-circle"></i>
+            </div>
+            <h2 class="text-xl font-extrabold text-slate-900">
+                Credential Not Found
+            </h2>
+            <p class="text-sm text-slate-600 max-w-lg mx-auto leading-relaxed">
+                The Certificate ID <strong class="font-mono text-slate-800 bg-slate-100 px-2 py-0.5 rounded"><%= searchedId %></strong> was not found in the official registry. Please check for typos and verify that the ID matches the format <code>IP-YYYY-XXXX-XXXX</code>.
+            </p>
+            <div class="pt-2">
+                <a href="/verify/certificate" class="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-700 hover:underline">
+                    <i class="ph-bold ph-arrow-counter-clockwise"></i> Try Another Search
+                </a>
+            </div>
+        </div>
+
+    <% } else { %>
+
+        <!-- Verification Portal Guide & Trust Pillars -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-3">
+                <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl">
+                    <i class="ph-bold ph-graduation-cap"></i>
+                </div>
+                <h3 class="font-bold text-slate-800 text-sm">For Universities & Colleges</h3>
+                <p class="text-xs text-slate-500 leading-relaxed">
+                    Instantly validate student internship completions to grant academic degree credits and ensure curriculum compliance under PMIS guidelines.
+                </p>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
+                    <i class="ph-bold ph-briefcase"></i>
+                </div>
+                <h3 class="font-bold text-slate-800 text-sm">For Hiring Teams & BGV</h3>
+                <p class="text-xs text-slate-500 leading-relaxed">
+                    Background verification agencies and recruiters can eliminate credential fraud with authentic company-signed tenure and ratings data.
+                </p>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
+                    <i class="ph-bold ph-qr-code"></i>
+                </div>
+                <h3 class="font-bold text-slate-800 text-sm">QR Code Anti-Tamper Tech</h3>
+                <p class="text-xs text-slate-500 leading-relaxed">
+                    Every certificate includes an encrypted QR code and unique ID that resolves directly to this immutable official registry.
+                </p>
+            </div>
+
+        </div>
+
+    <% } %>
+
+</div>

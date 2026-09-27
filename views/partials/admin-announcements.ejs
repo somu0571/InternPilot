@@ -1,0 +1,25 @@
+<%
+const announcementUser = typeof currentUser !== 'undefined' ? currentUser : null;
+const visibleAnnouncements = (typeof activeAnnouncements !== 'undefined' && Array.isArray(activeAnnouncements))
+    ? activeAnnouncements.filter(announcement => {
+        if (announcement.audience === 'all') return true;
+        if (announcement.audience === 'candidates') return announcementUser && announcementUser.role === 'candidate';
+        return announcementUser && ['company', 'recruiter', 'hiring_manager'].includes(announcementUser.role);
+    })
+    : [];
+const announcementTone = {
+    info: 'border-blue-200 bg-blue-50 text-blue-900',
+    warning: 'border-amber-200 bg-amber-50 text-amber-900',
+    success: 'border-emerald-200 bg-emerald-50 text-emerald-900'
+};
+%>
+<% if (visibleAnnouncements.length) { %>
+    <section class="mx-auto mt-4 w-full max-w-7xl space-y-2 px-4 sm:px-6 lg:px-8" aria-label="Platform announcements">
+        <% visibleAnnouncements.forEach(announcement => { %>
+            <div class="rounded-xl border px-4 py-3 shadow-sm <%= announcementTone[announcement.tone] || announcementTone.info %>" role="status">
+                <p class="text-sm font-bold"><%= announcement.title %></p>
+                <p class="mt-0.5 text-sm"><%= announcement.message %></p>
+            </div>
+        <% }) %>
+    </section>
+<% } %>

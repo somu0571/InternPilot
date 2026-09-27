@@ -1,0 +1,59 @@
+<% layout('layouts/boilerplate') %>
+
+<div class="max-w-7xl mx-auto lg:grid lg:grid-cols-[210px_minmax(0,1fr)] gap-6">
+    <%- include('_nav') %>
+
+    <div class="min-w-0 space-y-5">
+        <div class="border-b border-slate-200 pb-4">
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Audit log</h1>
+            <p class="text-xs text-slate-500 mt-0.5">Every action taken from the admin console, newest first. Entries can't be edited or deleted from here.</p>
+        </div>
+
+        <form method="GET" action="/admin/audit" class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 flex flex-wrap items-end gap-3">
+            <label class="text-xs text-slate-600 flex flex-col gap-1">Action
+                <select name="action" class="px-2 py-2 text-xs border border-slate-200 rounded-lg bg-white">
+                    <option value="">Every action</option>
+                    <% Object.entries(actions).forEach(([key, label]) => { %>
+                        <option value="<%= key %>" <%= filters.action === key ? 'selected' : '' %>><%= label %></option>
+                    <% }) %>
+                </select>
+            </label>
+            <button type="submit" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg">Apply</button>
+            <span class="text-xs text-slate-500 ml-auto"><%= total.toLocaleString('en-IN') %> entries</span>
+        </form>
+
+        <% if (!items.length) { %>
+            <div class="bg-white border border-slate-200 rounded-xl p-10 text-center shadow-sm">
+                <p class="text-sm font-semibold text-slate-700">Nothing logged yet.</p>
+            </div>
+        <% } else { %>
+            <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-50 text-[10px] uppercase tracking-wider text-slate-500">
+                        <tr><th class="px-4 py-2.5">When</th><th class="px-4 py-2.5">Admin</th><th class="px-4 py-2.5">Action</th><th class="px-4 py-2.5">On</th><th class="px-4 py-2.5">Reason</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        <% items.forEach(a => { %>
+                            <tr data-action="<%= a.action %>">
+                                <td class="px-4 py-3 text-slate-500 whitespace-nowrap"><%= new Date(a.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' }) %></td>
+                                <td class="px-4 py-3 text-slate-700"><%= (a.admin && a.admin.name) || 'Admin' %></td>
+                                <td class="px-4 py-3 font-semibold text-slate-800"><%= a.label %></td>
+                                <td class="px-4 py-3 text-slate-600 break-words">
+                                    <% if (a.targetType === 'user' && a.targetId && a.action !== 'user.delete') { %>
+                                        <a href="/admin/users/<%= a.targetId %>" class="text-indigo-600 hover:underline"><%= a.targetLabel || 'User' %></a>
+                                    <% } else { %>
+                                        <%= a.targetLabel || '-' %>
+                                    <% } %>
+                                    <% if (a.details && a.details.from && a.details.to) { %><span class="block text-[11px] text-slate-400"><%= a.details.from %> to <%= a.details.to %></span><% } %>
+                                </td>
+                                <td class="px-4 py-3 text-slate-600 max-w-xs break-words"><%= a.reason || '-' %></td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        <% } %>
+
+        <%- include('_pager', { pagerBase: '/admin/audit', pagerParams: { action: filters.action } }) %>
+    </div>
+</div>

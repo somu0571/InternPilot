@@ -1,0 +1,34 @@
+#back-to-top-btn {
+    opacity: 0;
+    transform: translateY(10px);
+    pointer-events: none;
+    visibility: hidden;
+    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
+}
+
+#back-to-top-btn.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+    visibility: visible;
+}
+
+#back-to-top-btn:hover {
+    box-shadow: 0 0 16px rgba(99, 102, 241, 0.45);
+}
+
+#back-to-top-btn:focus-visible {
+    outline: 3px solid #818cf8;
+    outline-offset: 3px;
+}
+
+.invisible-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.invisible-scrollbar::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+}
