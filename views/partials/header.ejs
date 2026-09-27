@@ -40,15 +40,15 @@
         'nav-link inline-flex items-center border-b-2 px-2.5 py-1.5 text-xs transition-colors',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2',
         active
-            ? 'border-indigo-700 bg-indigo-50 text-indigo-900 font-bold'
-            : 'border-transparent text-slate-600 font-semibold hover:border-indigo-300 hover:text-indigo-700'
+            ? 'border-indigo-700 bg-indigo-50 dark:bg-indigo-950 text-indigo-900 dark:text-indigo-300 font-bold'
+            : 'border-transparent text-slate-600 dark:text-slate-300 font-semibold hover:border-indigo-300 dark:hover:border-indigo-600 hover:text-indigo-700 dark:hover:text-indigo-400'
     ].join(' ');
     const mobileLinkClass = active => [
         'nav-link block rounded-lg border-l-4 px-3 py-2.5 text-sm transition-colors',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2',
         active
-            ? 'border-indigo-700 bg-indigo-50 text-indigo-900 font-bold'
-            : 'border-transparent text-slate-600 font-semibold hover:bg-slate-100 hover:text-indigo-700'
+            ? 'border-indigo-700 bg-indigo-50 dark:bg-indigo-950 text-indigo-900 dark:text-indigo-300 font-bold'
+            : 'border-transparent text-slate-600 dark:text-slate-300 font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-indigo-700 dark:hover:text-indigo-400'
     ].join(' ');
     const navPrefixAttribute = name => navPrefixes[name].join('|');
 %>
@@ -57,22 +57,22 @@
 <div class="h-1.5 w-full bg-gradient-to-r from-orange-500 via-white to-emerald-600"></div>
 
 <!-- Official Government Header Bar -->
-<header class="sticky top-0 z-40 border-b border-slate-200 bg-white shadow-sm">
+<header class="sticky top-0 z-40 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm transition-colors">
     <div class="mx-auto w-full max-w-[96rem] px-4 sm:px-6 lg:px-8">
         <div class="flex h-20 items-center justify-between gap-6 lg:gap-10">
             <!-- Left: Official Emblem & Platform Branding -->
             <div class="flex shrink-0 items-center gap-3.5 mr-4 lg:mr-8 xl:mr-12">
                 <div class="flex shrink-0 items-center">
-                    <img src="/images/emblem.jpg" alt="State Emblem of India" class="h-10 sm:h-12 w-auto object-contain mix-blend-multiply">
+                    <img src="/images/emblem.jpg" alt="State Emblem of India" class="h-10 sm:h-12 w-auto object-contain mix-blend-multiply dark:brightness-90 dark:contrast-125 dark:mix-blend-normal">
                 </div>
-                <div class="hidden h-10 w-px bg-slate-200 sm:block"></div>
+                <div class="hidden h-10 w-px bg-slate-200 dark:bg-slate-700 sm:block"></div>
                 <div class="flex flex-col">
-                    <a href="/" class="text-xl font-bold tracking-tight text-slate-900 transition-colors hover:text-indigo-700">
+                    <a href="/" class="text-xl font-bold tracking-tight text-slate-900 dark:text-white transition-colors hover:text-indigo-700 dark:hover:text-indigo-400">
                         InternPilot
                     </a>
                     <div class="hidden items-center gap-1.5 sm:flex">
-                        <span class="rounded-full border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-700">PMIS</span>
-                        <p class="whitespace-nowrap text-[11px] font-medium text-slate-500">Prime Minister's Internship Scheme Portal</p>
+                        <span class="rounded-full border border-indigo-200 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-950 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-300">PMIS</span>
+                        <p class="whitespace-nowrap text-[11px] font-medium text-slate-500 dark:text-slate-400">Prime Minister's Internship Scheme Portal</p>
                     </div>
                 </div>
             </div>
@@ -89,26 +89,26 @@
                             <a href="/candidate/applications" data-nav-link data-nav-variant="desktop" data-nav-prefixes="<%= navPrefixAttribute('applications') %>" class="<%= desktopLinkClass(isActive('applications')) %>" <%- ariaCurrent(isActive('applications')) %>>My Applications</a>
                             <a href="/recommendations/<%= currentUser._id %>" data-nav-link data-nav-variant="desktop" data-nav-prefixes="<%= navPrefixAttribute('recommendations') %>" class="<%= desktopLinkClass(isActive('recommendations')) %>" <%- ariaCurrent(isActive('recommendations')) %>>Recommendations</a>
                             <div class="group relative inline-block">
-                                <button class="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold whitespace-nowrap transition-colors <%= isActive('interview') || isActive('problems') ? 'bg-indigo-100 text-indigo-700' : 'text-slate-600 hover:bg-slate-50 hover:text-indigo-600' %>">
+                                <button class="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold whitespace-nowrap transition-colors <%= isActive('interview') || isActive('problems') ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400' %>">
                                     Prepare <i class="ph-bold ph-caret-down text-xs transition-transform group-hover:rotate-180" aria-hidden="true"></i>
                                 </button>
-                                <div class="absolute left-0 top-full z-50 hidden w-48 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg group-hover:block">
-                                    <a href="/interview" data-nav-link data-nav-variant="desktop" data-nav-prefixes="<%= navPrefixAttribute('interview') %>" class="block px-4 py-2.5 text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-indigo-600 <%= isActive('interview') ? 'bg-indigo-50 font-bold text-indigo-700' : '' %>" <%- ariaCurrent(isActive('interview')) %>>Mock Interviews</a>
-                                    <a href="/problems" data-nav-link data-nav-variant="desktop" data-nav-prefixes="<%= navPrefixAttribute('problems') %>" class="block border-t border-slate-100 px-4 py-2.5 text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-indigo-600 <%= isActive('problems') ? 'bg-indigo-50 font-bold text-indigo-700' : '' %>" <%- ariaCurrent(isActive('problems')) %>>Problem Generator</a>
+                                <div class="absolute left-0 top-full z-50 hidden w-48 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg group-hover:block">
+                                    <a href="/interview" data-nav-link data-nav-variant="desktop" data-nav-prefixes="<%= navPrefixAttribute('interview') %>" class="block px-4 py-2.5 text-sm text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 <%= isActive('interview') ? 'bg-indigo-50 dark:bg-indigo-950 font-bold text-indigo-700 dark:text-indigo-300' : '' %>" <%- ariaCurrent(isActive('interview')) %>>Mock Interviews</a>
+                                    <a href="/problems" data-nav-link data-nav-variant="desktop" data-nav-prefixes="<%= navPrefixAttribute('problems') %>" class="block border-t border-slate-100 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 <%= isActive('problems') ? 'bg-indigo-50 dark:bg-indigo-950 font-bold text-indigo-700 dark:text-indigo-300' : '' %>" <%- ariaCurrent(isActive('problems')) %>>Problem Generator</a>
                                 </div>
                             </div>
                         <% } else if (['company', 'recruiter', 'hiring_manager'].includes(currentUser.role)) { %>
                             <a href="/company/dashboard" data-nav-link data-nav-variant="desktop" data-nav-prefixes="<%= navPrefixAttribute('companyDashboard') %>" class="<%= desktopLinkClass(isActive('companyDashboard')) %>" <%- ariaCurrent(isActive('companyDashboard')) %>>Company Dashboard</a>
                             <% if (['company', 'recruiter'].includes(currentUser.role)) { %>
                                 <div class="group relative inline-block">
-                                    <button class="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors <%= isActive('companyProfile') || isActive('manageTeam') || isActive('activityHistory') ? 'bg-indigo-100 text-indigo-700' : 'text-slate-600 hover:bg-slate-50 hover:text-indigo-600' %>">
+                                    <button class="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors <%= isActive('companyProfile') || isActive('manageTeam') || isActive('activityHistory') ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400' %>">
                                         Manage <i class="ph-bold ph-caret-down text-xs transition-transform group-hover:rotate-180" aria-hidden="true"></i>
                                     </button>
-                                    <div class="absolute left-0 top-full z-50 hidden w-48 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg group-hover:block">
-                                        <a href="/company/profile" data-nav-link data-nav-variant="desktop" data-nav-prefixes="<%= navPrefixAttribute('companyProfile') %>" class="block px-4 py-2.5 text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-indigo-600 <%= isActive('companyProfile') ? 'bg-indigo-50 font-bold text-indigo-700' : '' %>" <%- ariaCurrent(isActive('companyProfile')) %>>Company Profile</a>
+                                    <div class="absolute left-0 top-full z-50 hidden w-48 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg group-hover:block">
+                                        <a href="/company/profile" data-nav-link data-nav-variant="desktop" data-nav-prefixes="<%= navPrefixAttribute('companyProfile') %>" class="block px-4 py-2.5 text-sm text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 <%= isActive('companyProfile') ? 'bg-indigo-50 dark:bg-indigo-950 font-bold text-indigo-700 dark:text-indigo-300' : '' %>" <%- ariaCurrent(isActive('companyProfile')) %>>Company Profile</a>
                                         <% if (currentUser.role === 'company') { %>
-                                            <a href="/company/team" data-nav-link data-nav-variant="desktop" data-nav-prefixes="<%= navPrefixAttribute('manageTeam') %>" class="block border-t border-slate-100 px-4 py-2.5 text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-indigo-600 <%= isActive('manageTeam') ? 'bg-indigo-50 font-bold text-indigo-700' : '' %>" <%- ariaCurrent(isActive('manageTeam')) %>>Manage Team</a>
-                                            <a href="/company/activity" data-nav-link data-nav-variant="desktop" data-nav-prefixes="<%= navPrefixAttribute('activityHistory') %>" class="block border-t border-slate-100 px-4 py-2.5 text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-indigo-600 <%= isActive('activityHistory') ? 'bg-indigo-50 font-bold text-indigo-700' : '' %>" <%- ariaCurrent(isActive('activityHistory')) %>>Activity History</a>
+                                            <a href="/company/team" data-nav-link data-nav-variant="desktop" data-nav-prefixes="<%= navPrefixAttribute('manageTeam') %>" class="block border-t border-slate-100 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 <%= isActive('manageTeam') ? 'bg-indigo-50 dark:bg-indigo-950 font-bold text-indigo-700 dark:text-indigo-300' : '' %>" <%- ariaCurrent(isActive('manageTeam')) %>>Manage Team</a>
+                                            <a href="/company/activity" data-nav-link data-nav-variant="desktop" data-nav-prefixes="<%= navPrefixAttribute('activityHistory') %>" class="block border-t border-slate-100 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 <%= isActive('activityHistory') ? 'bg-indigo-50 dark:bg-indigo-950 font-bold text-indigo-700 dark:text-indigo-300' : '' %>" <%- ariaCurrent(isActive('activityHistory')) %>>Activity History</a>
                                         <% } %>
                                     </div>
                                 </div>
@@ -119,9 +119,9 @@
                     <% } %>
                 </nav>
 
-                <div class="hidden h-8 w-px bg-slate-200 md:block"></div>
+                <div class="hidden h-8 w-px bg-slate-200 dark:bg-slate-700 md:block"></div>
 
-                <button id="mobileNavToggle" type="button" class="inline-flex items-center justify-center rounded-lg p-2 text-slate-700 transition-colors hover:bg-slate-100 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 md:hidden" aria-controls="mobileNavigation" aria-expanded="false">
+                <button id="mobileNavToggle" type="button" class="inline-flex items-center justify-center rounded-lg p-2 text-slate-700 dark:text-slate-300 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-indigo-700 dark:hover:text-indigo-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 md:hidden" aria-controls="mobileNavigation" aria-expanded="false">
                     <i id="mobileNavIcon" class="ph-bold ph-list text-xl" aria-hidden="true"></i>
                     <span id="mobileNavToggleLabel" class="sr-only">Open navigation menu</span>
                 </button>
@@ -132,19 +132,19 @@
                     <div class="flex items-center gap-1 sm:gap-1.5">
                         <% if (currentUser && ['candidate', 'company', 'recruiter'].includes(currentUser.role)) { %>
                             <% if (currentUser.role === 'candidate') { %>
-                                <a href="/candidate/saved-internships" aria-label="Saved Internships" data-nav-link data-nav-variant="icon" data-nav-prefixes="<%= navPrefixAttribute('savedInternships') %>" class="relative inline-flex items-center justify-center rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 <%= isActive('savedInternships') ? 'bg-indigo-100 font-bold text-indigo-900 ring-1 ring-indigo-700' : '' %>" <%- ariaCurrent(isActive('savedInternships')) %> title="Saved Internships">
+                                <a href="/candidate/saved-internships" aria-label="Saved Internships" data-nav-link data-nav-variant="icon" data-nav-prefixes="<%= navPrefixAttribute('savedInternships') %>" class="relative inline-flex items-center justify-center rounded-lg p-2 text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-indigo-700 dark:hover:text-indigo-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 <%= isActive('savedInternships') ? 'bg-indigo-100 dark:bg-indigo-900 font-bold text-indigo-900 dark:text-indigo-300 ring-1 ring-indigo-700' : '' %>" <%- ariaCurrent(isActive('savedInternships')) %> title="Saved Internships">
                                     <i class="ph-bold ph-bookmark-simple text-lg" aria-hidden="true"></i>
                                     <% if (currentUser.savedInternships && currentUser.savedInternships.length > 0) { %>
                                         <span class="absolute -right-0.5 -top-0.5 h-4 min-w-4 rounded-full bg-indigo-600 px-1 text-center text-[9px] font-bold leading-4 text-white"><%= currentUser.savedInternships.length > 99 ? '99+' : currentUser.savedInternships.length %></span>
                                     <% } %>
                                 </a>
-                                <a href="/candidate/saved-searches" aria-label="Saved Searches" data-nav-link data-nav-variant="icon" data-nav-prefixes="<%= navPrefixAttribute('savedSearches') %>" class="relative inline-flex items-center justify-center rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 <%= isActive('savedSearches') ? 'bg-indigo-100 font-bold text-indigo-900 ring-1 ring-indigo-700' : '' %>" <%- ariaCurrent(isActive('savedSearches')) %> title="Saved Searches">
+                                <a href="/candidate/saved-searches" aria-label="Saved Searches" data-nav-link data-nav-variant="icon" data-nav-prefixes="<%= navPrefixAttribute('savedSearches') %>" class="relative inline-flex items-center justify-center rounded-lg p-2 text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-indigo-700 dark:hover:text-indigo-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 <%= isActive('savedSearches') ? 'bg-indigo-100 dark:bg-indigo-900 font-bold text-indigo-900 dark:text-indigo-300 ring-1 ring-indigo-700' : '' %>" <%- ariaCurrent(isActive('savedSearches')) %> title="Saved Searches">
                                     <i class="ph-bold ph-funnel-simple text-lg" aria-hidden="true"></i>
                                 </a>
                             <% } %>
                             <% const notifLink = currentUser.role === 'candidate' ? '/notifications' : '/company/notifications'; %>
                             <% const notificationSection = currentUser.role === 'candidate' ? 'notifications' : 'companyNotifications'; %>
-                            <a href="<%= notifLink %>" aria-label="Notifications" data-nav-link data-nav-variant="icon" data-nav-prefixes="<%= navPrefixAttribute(notificationSection) %>" class="relative inline-flex items-center justify-center rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 <%= isActive(notificationSection) ? 'bg-indigo-100 font-bold text-indigo-900 ring-1 ring-indigo-700' : '' %>" <%- ariaCurrent(isActive(notificationSection)) %> title="Notifications">
+                            <a href="<%= notifLink %>" aria-label="Notifications" data-nav-link data-nav-variant="icon" data-nav-prefixes="<%= navPrefixAttribute(notificationSection) %>" class="relative inline-flex items-center justify-center rounded-lg p-2 text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-indigo-700 dark:hover:text-indigo-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 <%= isActive(notificationSection) ? 'bg-indigo-100 dark:bg-indigo-900 font-bold text-indigo-900 dark:text-indigo-300 ring-1 ring-indigo-700' : '' %>" <%- ariaCurrent(isActive(notificationSection)) %> title="Notifications">
                                 <i class="ph-bold ph-bell text-lg" aria-hidden="true"></i>
                                 <% if (notificationUnreadCount > 0) { %>
                                     <span class="absolute -right-0.5 -top-0.5 h-4 min-w-4 rounded-full bg-rose-600 px-1 text-center text-[9px] font-bold leading-4 text-white"><%= notificationUnreadCount > 99 ? '99+' : notificationUnreadCount %></span>
@@ -154,31 +154,45 @@
                         <% if (typeof messageUnreadCount !== 'undefined') { %><%- include('messages-nav', { variant: 'icon' }) %><% } %>
                     </div>
 
-                    <div class="hidden h-8 w-px bg-slate-200 sm:block"></div>
+                    <div class="hidden h-8 w-px bg-slate-200 dark:bg-slate-700 sm:block"></div>
                 <% } %>
+
+                <!-- Theme toggle: always visible, regardless of role or login state -->
+                <button
+                    id="themeToggle"
+                    type="button"
+                    aria-label="Toggle color theme"
+                    title="Toggle theme"
+                    class="inline-flex items-center justify-center rounded-lg p-2 text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-indigo-700 dark:hover:text-indigo-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
+                >
+                    <i id="themeToggleIcon" class="ph-bold ph-sun text-lg" aria-hidden="true"></i>
+                    <span id="themeToggleLabel" class="sr-only">Light mode</span>
+                </button>
+
+                <div class="hidden h-8 w-px bg-slate-200 dark:bg-slate-700 sm:block"></div>
 
                 <!-- Profile and authentication controls -->
                 <div class="flex items-center gap-2 sm:gap-3">
                     <% if (!currentUser) { %>
-                        <a href="/auth/login" class="rounded-lg px-2.5 py-2 text-xs font-semibold text-slate-700 transition-colors hover:text-indigo-700 sm:px-3">Log In</a>
+                        <a href="/auth/login" class="rounded-lg px-2.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 transition-colors hover:text-indigo-700 dark:hover:text-indigo-400 sm:px-3">Log In</a>
                         <a href="/auth/register" class="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 sm:px-4">Sign Up</a>
                     <% } else { %>
                         <div class="group relative hidden sm:block">
-                            <button class="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-100 px-2.5 py-1.5 transition-colors hover:bg-slate-200 cursor-pointer" title="<%= currentUser.name %>">
+                            <button class="flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 px-2.5 py-1.5 transition-colors hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer" title="<%= currentUser.name %>">
                                 <% if (currentUser.avatar) { %>
-                                    <img src="<%= currentUser.avatar %>" alt="<%= currentUser.name %>" class="h-6 w-6 shrink-0 rounded-full border border-slate-300 object-cover">
+                                    <img src="<%= currentUser.avatar %>" alt="<%= currentUser.name %>" class="h-6 w-6 shrink-0 rounded-full border border-slate-300 dark:border-slate-600 object-cover">
                                 <% } else { %>
                                     <div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-[10px] font-bold text-white"><%= currentUser.name ? currentUser.name.charAt(0).toUpperCase() : 'U' %></div>
                                 <% } %>
-                                <span class="max-w-[140px] sm:max-w-[160px] lg:max-w-[180px] truncate text-xs font-semibold text-slate-700" title="<%= currentUser.name %>"><%= currentUser.name %></span>
-                                <i class="ph-bold ph-caret-down shrink-0 text-[10px] text-slate-500 transition-transform group-hover:rotate-180"></i>
+                                <span class="max-w-[140px] sm:max-w-[160px] lg:max-w-[180px] truncate text-xs font-semibold text-slate-700 dark:text-slate-200" title="<%= currentUser.name %>"><%= currentUser.name %></span>
+                                <i class="ph-bold ph-caret-down shrink-0 text-[10px] text-slate-500 dark:text-slate-400 transition-transform group-hover:rotate-180"></i>
                             </button>
-                            <div class="absolute right-0 top-full z-50 mt-2 hidden w-48 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg group-hover:block">
-                                <div class="border-b border-slate-100 bg-slate-50/50 px-4 py-2.5">
-                                    <p class="truncate text-xs font-bold text-slate-800" title="<%= currentUser.name %>"><%= currentUser.name %></p>
-                                    <p class="truncate text-[11px] capitalize text-slate-500"><%= currentUser.role %></p>
+                            <div class="absolute right-0 top-full z-50 mt-2 hidden w-48 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg group-hover:block">
+                                <div class="border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 px-4 py-2.5">
+                                    <p class="truncate text-xs font-bold text-slate-800 dark:text-slate-100" title="<%= currentUser.name %>"><%= currentUser.name %></p>
+                                    <p class="truncate text-[11px] capitalize text-slate-500 dark:text-slate-400"><%= currentUser.role %></p>
                                 </div>
-                                <a href="/auth/logout" class="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50">
+                                <a href="/auth/logout" class="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-red-600 dark:text-red-400 transition-colors hover:bg-red-50 dark:hover:bg-red-950">
                                     <i class="ph-bold ph-sign-out"></i> Log Out
                                 </a>
                             </div>
@@ -187,12 +201,12 @@
                 </div>
 
                 <div class="hidden items-center justify-center pl-1 xl:flex shrink-0">
-                    <img src="/images/azadi-logo.jpg" alt="Azadi Ka Amrit Mahotsav" class="h-10 w-auto object-contain mix-blend-multiply contrast-125">
+                    <img src="/images/azadi-logo.jpg" alt="Azadi Ka Amrit Mahotsav" class="h-10 w-auto object-contain mix-blend-multiply contrast-125 dark:brightness-90 dark:mix-blend-normal">
                 </div>
             </div>
         </div>
 
-        <div id="mobileNavigation" class="hidden border-t border-slate-200 py-3 md:hidden">
+        <div id="mobileNavigation" class="hidden border-t border-slate-200 dark:border-slate-700 py-3 md:hidden">
             <nav aria-label="Mobile navigation" class="grid gap-1">
                 <a href="/" data-nav-link data-nav-variant="mobile" data-nav-prefixes="<%= navPrefixAttribute('home') %>" class="<%= mobileLinkClass(isActive('home')) %>" <%- ariaCurrent(isActive('home')) %>>Home</a>
                 <a href="/internships" data-nav-link data-nav-variant="mobile" data-nav-prefixes="<%= navPrefixAttribute('opportunities') %>" class="<%= mobileLinkClass(isActive('opportunities')) %>" <%- ariaCurrent(isActive('opportunities')) %>>Opportunities</a>
@@ -223,9 +237,20 @@
                     <% } %>
                 <% } %>
                 <% if (typeof messageUnreadCount !== 'undefined') { %><%- include('messages-nav', { variant: 'mobile' }) %><% } %>
+
+                <!-- Theme toggle (mobile) -->
+                <button
+                    id="themeToggleMobile"
+                    type="button"
+                    class="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-indigo-700 dark:hover:text-indigo-400"
+                >
+                    <i id="themeToggleMobileIcon" class="ph-bold ph-sun text-lg" aria-hidden="true"></i>
+                    <span id="themeToggleMobileLabel">Light mode</span>
+                </button>
+
                 <% if (currentUser) { %>
-                    <div class="my-2 border-t border-slate-200"></div>
-                    <a href="/auth/logout" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50">
+                    <div class="my-2 border-t border-slate-200 dark:border-slate-700"></div>
+                    <a href="/auth/logout" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-red-600 dark:text-red-400 transition-colors hover:bg-red-50 dark:hover:bg-red-950">
                         <i class="ph-bold ph-sign-out"></i> Log Out
                     </a>
                 <% } %>
@@ -241,16 +266,16 @@
         const toggleLabel = document.getElementById('mobileNavToggleLabel');
         const activeClassMap = {
             desktop: {
-                active: ['border-indigo-700', 'bg-indigo-50', 'text-indigo-900', 'font-bold'],
-                inactive: ['border-transparent', 'text-slate-600', 'font-semibold']
+                active: ['border-indigo-700', 'bg-indigo-50', 'dark:bg-indigo-950', 'text-indigo-900', 'dark:text-indigo-300', 'font-bold'],
+                inactive: ['border-transparent', 'text-slate-600', 'dark:text-slate-300', 'font-semibold']
             },
             mobile: {
-                active: ['border-indigo-700', 'bg-indigo-50', 'text-indigo-900', 'font-bold'],
-                inactive: ['border-transparent', 'text-slate-600', 'font-semibold']
+                active: ['border-indigo-700', 'bg-indigo-50', 'dark:bg-indigo-950', 'text-indigo-900', 'dark:text-indigo-300', 'font-bold'],
+                inactive: ['border-transparent', 'text-slate-600', 'dark:text-slate-300', 'font-semibold']
             },
             icon: {
-                active: ['bg-indigo-100', 'font-bold', 'text-indigo-900', 'ring-1', 'ring-indigo-700'],
-                inactive: ['text-slate-600']
+                active: ['bg-indigo-100', 'dark:bg-indigo-900', 'font-bold', 'text-indigo-900', 'dark:text-indigo-300', 'ring-1', 'ring-indigo-700'],
+                inactive: ['text-slate-600', 'dark:text-slate-300']
             }
         };
 
@@ -325,4 +350,62 @@
     })();
 </script>
 
+<script>
+    (() => {
+        const STORAGE_KEY = 'theme';
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
+        const iconMap = {
+            light: 'ph-bold ph-sun text-lg',
+            dark: 'ph-bold ph-moon text-lg',
+            system: 'ph-bold ph-monitor text-lg'
+        };
+        const labelMap = {
+            light: 'Light mode',
+            dark: 'Dark mode',
+            system: 'System theme'
+        };
+
+        const getStored = () => localStorage.getItem(STORAGE_KEY) || 'system';
+
+        const updateToggleUI = mode => {
+            const icon = document.getElementById('themeToggleIcon');
+            const label = document.getElementById('themeToggleLabel');
+            const mobileIcon = document.getElementById('themeToggleMobileIcon');
+            const mobileLabel = document.getElementById('themeToggleMobileLabel');
+            if (icon) icon.className = iconMap[mode] || iconMap.system;
+            if (label) label.textContent = labelMap[mode] || labelMap.system;
+            if (mobileIcon) mobileIcon.className = iconMap[mode] || iconMap.system;
+            if (mobileLabel) mobileLabel.textContent = labelMap[mode] || labelMap.system;
+        };
+
+        const applyTheme = mode => {
+            const isDark = mode === 'dark' || (mode === 'system' && mediaQuery.matches);
+            document.documentElement.classList.toggle('dark', isDark);
+            updateToggleUI(mode);
+        };
+
+        const setTheme = mode => {
+            localStorage.setItem(STORAGE_KEY, mode);
+            applyTheme(mode);
+        };
+
+        const cycleTheme = () => {
+            const order = ['light', 'dark', 'system'];
+            const current = getStored();
+            const next = order[(order.indexOf(current) + 1) % order.length];
+            setTheme(next);
+        };
+
+        mediaQuery.addEventListener('change', () => {
+            if (getStored() === 'system') applyTheme('system');
+        });
+
+        const desktopBtn = document.getElementById('themeToggle');
+        const mobileBtn = document.getElementById('themeToggleMobile');
+        if (desktopBtn) desktopBtn.addEventListener('click', cycleTheme);
+        if (mobileBtn) mobileBtn.addEventListener('click', cycleTheme);
+
+        applyTheme(getStored());
+    })();
+</script>

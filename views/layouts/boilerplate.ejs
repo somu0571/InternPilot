@@ -5,7 +5,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>InternPilot | Prime Minister's Internship Scheme</title>
+
+    <!-- Anti-FOUC: set theme before first paint -->
+    <script>
+        (function () {
+            var stored = localStorage.getItem('theme'); // 'light' | 'dark' | 'system' | null
+            var systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            var isDark = stored === 'dark' || (stored === 'system' && systemDark) || (!stored && systemDark);
+            document.documentElement.classList.toggle('dark', isDark);
+        })();
+    </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        };
+    </script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="stylesheet" href="/css/header.css">
 
@@ -48,7 +64,7 @@
     </style>
 </head>
 
-<body class="h-full flex flex-col bg-slate-50 font-sans text-slate-800 m-0 overflow-x-hidden">
+<body class="h-full flex flex-col bg-slate-50 dark:bg-slate-900 font-sans text-slate-800 dark:text-slate-100 m-0 overflow-x-hidden transition-colors">
 
     <%- include('../partials/header') %>
 
@@ -128,7 +144,63 @@
         })();
     </script>
 
-    <%- include('../partials/loading-script') %>
+        <%- include('../partials/loading-script') %>
+
+    <script>
+        (function () {
+            var STORAGE_KEY = 'theme';
+            var mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+            function getStored() {
+                return localStorage.getItem(STORAGE_KEY) || 'system';
+            }
+
+            function applyTheme(mode) {
+                var isDark = mode === 'dark' || (mode === 'system' && mediaQuery.matches);
+                document.documentElement.classList.toggle('dark', isDark);
+                updateToggleUI(mode);
+            }
+
+            function setTheme(mode) {
+                localStorage.setItem(STORAGE_KEY, mode);
+                applyTheme(mode);
+            }
+
+            function cycleTheme() {
+                var order = ['light', 'dark', 'system'];
+                var current = getStored();
+                var next = order[(order.indexOf(current) + 1) % order.length];
+                setTheme(next);
+            }
+
+            function updateToggleUI(mode) {
+                var icon = document.getElementById('themeToggleIcon');
+                var label = document.getElementById('themeToggleLabel');
+                if (!icon) return;
+                var iconMap = {
+                    light: 'ph-bold ph-sun text-lg',
+                    dark: 'ph-bold ph-moon text-lg',
+                    system: 'ph-bold ph-monitor text-lg'
+                };
+                var labelMap = {
+                    light: 'Light mode',
+                    dark: 'Dark mode',
+                    system: 'System theme'
+                };
+                icon.className = iconMap[mode] || iconMap.system;
+                if (label) label.textContent = labelMap[mode] || labelMap.system;
+            }
+
+            mediaQuery.addEventListener('change', function () {
+                if (getStored() === 'system') applyTheme('system');
+            });
+
+            var toggleBtn = document.getElementById('themeToggle');
+            if (toggleBtn) toggleBtn.addEventListener('click', cycleTheme);
+
+            applyTheme(getStored());
+        })();
+    </script>
 
 </body>
 
