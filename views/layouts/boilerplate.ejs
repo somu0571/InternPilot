@@ -9,8 +9,13 @@
     <!-- Anti-FOUC: set theme before first paint -->
     <script>
         (function () {
-            var stored = localStorage.getItem('theme'); // 'light' | 'dark' | 'system' | null
-            var systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            var stored = null;
+            try {
+                stored = window.localStorage.getItem('theme'); // 'light' | 'dark' | 'system' | null
+            } catch (error) {
+                // Privacy settings can make localStorage unavailable. System mode remains safe.
+            }
+            var systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
             var isDark = stored === 'dark' || (stored === 'system' && systemDark) || (!stored && systemDark);
             document.documentElement.classList.toggle('dark', isDark);
         })();
@@ -24,6 +29,7 @@
     </script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="stylesheet" href="/css/header.css">
+    <link rel="stylesheet" href="/css/theme.css">
 
     <style>
         #back-to-top-btn {
@@ -150,9 +156,25 @@
         (function () {
             var STORAGE_KEY = 'theme';
             var mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+            var modes = ['light', 'dark', 'system'];
+            var labels = {
+                light: 'Light mode',
+                dark: 'Dark mode',
+                system: 'System theme'
+            };
+            var icons = {
+                light: 'ph-bold ph-sun text-lg',
+                dark: 'ph-bold ph-moon text-lg',
+                system: 'ph-bold ph-monitor text-lg'
+            };
 
             function getStored() {
-                return localStorage.getItem(STORAGE_KEY) || 'system';
+                try {
+                    var stored = window.localStorage.getItem(STORAGE_KEY);
+                    return modes.includes(stored) ? stored : 'system';
+                } catch (error) {
+                    return 'system';
+                }
             }
 
             function applyTheme(mode) {
@@ -162,41 +184,49 @@
             }
 
             function setTheme(mode) {
-                localStorage.setItem(STORAGE_KEY, mode);
+                try {
+                    window.localStorage.setItem(STORAGE_KEY, mode);
+                } catch (error) {
+                    // The selected theme still applies for this page when storage is disabled.
+                }
                 applyTheme(mode);
             }
 
             function cycleTheme() {
-                var order = ['light', 'dark', 'system'];
                 var current = getStored();
-                var next = order[(order.indexOf(current) + 1) % order.length];
+                var next = modes[(modes.indexOf(current) + 1) % modes.length];
                 setTheme(next);
             }
 
             function updateToggleUI(mode) {
-                var icon = document.getElementById('themeToggleIcon');
-                var label = document.getElementById('themeToggleLabel');
-                if (!icon) return;
-                var iconMap = {
-                    light: 'ph-bold ph-sun text-lg',
-                    dark: 'ph-bold ph-moon text-lg',
-                    system: 'ph-bold ph-monitor text-lg'
-                };
-                var labelMap = {
-                    light: 'Light mode',
-                    dark: 'Dark mode',
-                    system: 'System theme'
-                };
-                icon.className = iconMap[mode] || iconMap.system;
-                if (label) label.textContent = labelMap[mode] || labelMap.system;
+                var activeMode = modes.includes(mode) ? mode : 'system';
+                var nextMode = modes[(modes.indexOf(activeMode) + 1) % modes.length];
+                var text = labels[activeMode];
+
+                [
+                    ['themeToggle', 'themeToggleIcon', 'themeToggleLabel'],
+                    ['themeToggleMobile', 'themeToggleMobileIcon', 'themeToggleMobileLabel']
+                ].forEach(function (ids) {
+                    var button = document.getElementById(ids[0]);
+                    var icon = document.getElementById(ids[1]);
+                    var label = document.getElementById(ids[2]);
+                    if (icon) icon.className = icons[activeMode];
+                    if (label) label.textContent = text;
+                    if (button) {
+                        button.setAttribute('aria-label', 'Theme: ' + text + '. Activate to switch to ' + labels[nextMode] + '.');
+                        button.setAttribute('title', 'Theme: ' + text + ' (switch to ' + labels[nextMode] + ')');
+                    }
+                });
             }
 
             mediaQuery.addEventListener('change', function () {
                 if (getStored() === 'system') applyTheme('system');
             });
 
-            var toggleBtn = document.getElementById('themeToggle');
-            if (toggleBtn) toggleBtn.addEventListener('click', cycleTheme);
+            ['themeToggle', 'themeToggleMobile'].forEach(function (id) {
+                var toggleBtn = document.getElementById(id);
+                if (toggleBtn) toggleBtn.addEventListener('click', cycleTheme);
+            });
 
             applyTheme(getStored());
         })();

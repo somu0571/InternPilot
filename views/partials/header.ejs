@@ -161,8 +161,8 @@
                 <button
                     id="themeToggle"
                     type="button"
-                    aria-label="Toggle color theme"
-                    title="Toggle theme"
+                    aria-label="Theme: System theme. Activate to switch to Light mode."
+                    title="Theme: System theme (switch to Light mode)"
                     class="inline-flex items-center justify-center rounded-lg p-2 text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-indigo-700 dark:hover:text-indigo-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
                 >
                     <i id="themeToggleIcon" class="ph-bold ph-sun text-lg" aria-hidden="true"></i>
@@ -242,6 +242,8 @@
                 <button
                     id="themeToggleMobile"
                     type="button"
+                    aria-label="Theme: System theme. Activate to switch to Light mode."
+                    title="Theme: System theme (switch to Light mode)"
                     class="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-indigo-700 dark:hover:text-indigo-400"
                 >
                     <i id="themeToggleMobileIcon" class="ph-bold ph-sun text-lg" aria-hidden="true"></i>
@@ -347,65 +349,5 @@
         window.addEventListener('popstate', syncActiveNavigation);
         window.addEventListener('internpilot:navigation', syncActiveNavigation);
         syncActiveNavigation();
-    })();
-</script>
-
-<script>
-    (() => {
-        const STORAGE_KEY = 'theme';
-        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-
-        const iconMap = {
-            light: 'ph-bold ph-sun text-lg',
-            dark: 'ph-bold ph-moon text-lg',
-            system: 'ph-bold ph-monitor text-lg'
-        };
-        const labelMap = {
-            light: 'Light mode',
-            dark: 'Dark mode',
-            system: 'System theme'
-        };
-
-        const getStored = () => localStorage.getItem(STORAGE_KEY) || 'system';
-
-        const updateToggleUI = mode => {
-            const icon = document.getElementById('themeToggleIcon');
-            const label = document.getElementById('themeToggleLabel');
-            const mobileIcon = document.getElementById('themeToggleMobileIcon');
-            const mobileLabel = document.getElementById('themeToggleMobileLabel');
-            if (icon) icon.className = iconMap[mode] || iconMap.system;
-            if (label) label.textContent = labelMap[mode] || labelMap.system;
-            if (mobileIcon) mobileIcon.className = iconMap[mode] || iconMap.system;
-            if (mobileLabel) mobileLabel.textContent = labelMap[mode] || labelMap.system;
-        };
-
-        const applyTheme = mode => {
-            const isDark = mode === 'dark' || (mode === 'system' && mediaQuery.matches);
-            document.documentElement.classList.toggle('dark', isDark);
-            updateToggleUI(mode);
-        };
-
-        const setTheme = mode => {
-            localStorage.setItem(STORAGE_KEY, mode);
-            applyTheme(mode);
-        };
-
-        const cycleTheme = () => {
-            const order = ['light', 'dark', 'system'];
-            const current = getStored();
-            const next = order[(order.indexOf(current) + 1) % order.length];
-            setTheme(next);
-        };
-
-        mediaQuery.addEventListener('change', () => {
-            if (getStored() === 'system') applyTheme('system');
-        });
-
-        const desktopBtn = document.getElementById('themeToggle');
-        const mobileBtn = document.getElementById('themeToggleMobile');
-        if (desktopBtn) desktopBtn.addEventListener('click', cycleTheme);
-        if (mobileBtn) mobileBtn.addEventListener('click', cycleTheme);
-
-        applyTheme(getStored());
     })();
 </script>

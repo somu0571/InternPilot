@@ -1,0 +1,135 @@
+/*
+ * Shared dark-mode palette for existing Tailwind utility-based views.
+ * Explicit `dark:` utilities remain authoritative; these rules cover legacy
+ * neutral surfaces, text, borders, inputs and dividers without a template-by-
+ * template rewrite.
+ */
+
+html.dark {
+    color-scheme: dark;
+}
+
+html.dark .bg-white:not([class*="dark:bg-"]) {
+    background-color: #1e293b;
+}
+
+html.dark .bg-slate-50:not([class*="dark:bg-"]),
+html.dark .bg-gray-50:not([class*="dark:bg-"]) {
+    background-color: #0f172a;
+}
+
+html.dark .bg-slate-100:not([class*="dark:bg-"]),
+html.dark .bg-gray-100:not([class*="dark:bg-"]) {
+    background-color: #1e293b;
+}
+
+html.dark .bg-slate-200:not([class*="dark:bg-"]),
+html.dark .bg-gray-200:not([class*="dark:bg-"]) {
+    background-color: #334155;
+}
+
+html.dark .bg-slate-300:not([class*="dark:bg-"]),
+html.dark .bg-gray-300:not([class*="dark:bg-"]) {
+    background-color: #475569;
+}
+
+html.dark [class*="bg-slate-50/"]:not([class*="dark:bg-"]),
+html.dark [class*="bg-gray-50/"]:not([class*="dark:bg-"]) {
+    background-color: rgb(15 23 42 / 0.7);
+}
+
+html.dark .text-slate-900:not([class*="dark:text-"]),
+html.dark .text-gray-900:not([class*="dark:text-"]) {
+    color: #f8fafc;
+}
+
+html.dark .text-slate-800:not([class*="dark:text-"]),
+html.dark .text-gray-800:not([class*="dark:text-"]) {
+    color: #e2e8f0;
+}
+
+html.dark .text-slate-700:not([class*="dark:text-"]),
+html.dark .text-gray-700:not([class*="dark:text-"]) {
+    color: #cbd5e1;
+}
+
+html.dark .text-slate-600:not([class*="dark:text-"]),
+html.dark .text-gray-600:not([class*="dark:text-"]) {
+    color: #cbd5e1;
+}
+
+html.dark .text-slate-500:not([class*="dark:text-"]),
+html.dark .text-gray-500:not([class*="dark:text-"]) {
+    color: #cbd5e1;
+}
+
+html.dark .text-slate-400:not([class*="dark:text-"]) {
+    color: #94a3b8;
+}
+
+html.dark .border-slate-100:not([class*="dark:border-"]),
+html.dark .border-gray-100:not([class*="dark:border-"]) {
+    border-color: #334155;
+}
+
+html.dark .border-slate-200:not([class*="dark:border-"]),
+html.dark .border-slate-300:not([class*="dark:border-"]),
+html.dark .border-gray-200:not([class*="dark:border-"]),
+html.dark .border-gray-300:not([class*="dark:border-"]) {
+    border-color: #475569;
+}
+
+html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
+    border-color: #334155;
+}
+
+html.dark .ring-slate-100,
+html.dark .ring-gray-100 {
+    --tw-ring-color: #334155;
+}
+
+html.dark input:not([type="checkbox"]):not([type="radio"]),
+html.dark select,
+html.dark textarea {
+    background-color: #0f172a;
+    border-color: #475569;
+    color: #f8fafc;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+    color: #94a3b8;
+    opacity: 1;
+}
+
+html.dark select option {
+    background-color: #0f172a;
+    color: #f8fafc;
+}
+
+html.dark .hover\:bg-slate-50:hover,
+html.dark .hover\:bg-gray-50:hover {
+    background-color: #1e293b;
+}
+
+html.dark .hover\:bg-slate-100:hover,
+html.dark .hover\:bg-gray-100:hover {
+    background-color: #334155;
+}
+
+html.dark .hover\:bg-slate-200:hover,
+html.dark .hover\:bg-gray-200:hover {
+    background-color: #475569;
+}
+
+html.dark::-webkit-scrollbar {
+    background-color: #0f172a;
+}
+
+html.dark::-webkit-scrollbar-thumb {
+    background-color: #475569;
+    border-radius: 9999px;
+}
