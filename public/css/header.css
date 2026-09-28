@@ -17,6 +17,11 @@
     outline-offset: 2px;
 }
 
+/* Prevent horizontal scrollbar leaks in header area */
+header {
+    overflow-x: clip;
+}
+
 /* --- Accessible dropdown menus --- */
 
 /* The panel sits flush against the trigger (no gap) and uses a small
