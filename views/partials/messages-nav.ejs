@@ -14,12 +14,12 @@
 %>
 <% if (msgVariant === 'mobile') { %>
     <a href="/messages" data-nav-link data-nav-variant="mobile" data-nav-prefixes="/messages"
-        class="nav-link block rounded-lg border-l-4 px-3 py-2.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950 <%= msgActive ? 'border-indigo-700 dark:border-indigo-400 bg-indigo-50 dark:bg-indigo-950 text-indigo-900 dark:text-indigo-200 font-bold' : 'border-transparent text-slate-600 dark:text-slate-300 font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-indigo-700 dark:hover:text-indigo-300' %>"
+        class="nav-link block rounded-lg border-l-4 px-3 py-2.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 <%= msgActive ? 'border-indigo-700 bg-indigo-50 text-indigo-900 font-bold' : 'border-transparent text-slate-600 font-semibold hover:bg-slate-100 hover:text-indigo-700' %>"
         <%- msgActive ? 'aria-current="page"' : '' %>>Messages<% if (msgCount > 0) { %> (<%= msgBadge %>)<% } %></a>
 <% } else { %>
     <a href="/messages" aria-label="Messages<%= msgCount > 0 ? ', ' + msgBadge + ' unread' : '' %>" title="Messages"
         data-nav-link data-nav-variant="icon" data-nav-prefixes="/messages"
-        class="relative inline-flex items-center justify-center rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-indigo-300 dark:focus-visible:ring-offset-slate-950 <%= msgActive ? 'bg-indigo-100 dark:bg-indigo-950 font-bold text-indigo-900 dark:text-indigo-200 ring-1 ring-indigo-700 dark:ring-indigo-400' : '' %>"
+        class="relative inline-flex items-center justify-center rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 <%= msgActive ? 'bg-indigo-100 font-bold text-indigo-900 ring-1 ring-indigo-700' : '' %>"
         <%- msgActive ? 'aria-current="page"' : '' %>>
         <i class="ph-bold ph-chat-circle-text text-lg" aria-hidden="true"></i>
         <% if (msgCount > 0) { %>
