@@ -86,7 +86,7 @@ router.get(
             });
 
             if (existingCertificate) {
-                if (req.flash) req.flash('info_msg', 'An official certificate has already been issued for this intern.');
+                if (req.flash) req.flash('success_msg', 'An official certificate has already been issued for this intern.');
                 return res.redirect(`/certificates/${existingCertificate.certificateId}/view`);
             }
 
@@ -154,7 +154,7 @@ router.post(
             });
 
             if (existingCertificate) {
-                if (req.flash) req.flash('info_msg', 'An official certificate has already been issued for this intern.');
+                if (req.flash) req.flash('success_msg', 'An official certificate has already been issued for this intern.');
                 return res.redirect(`/certificates/${existingCertificate.certificateId}/view`);
             }
 

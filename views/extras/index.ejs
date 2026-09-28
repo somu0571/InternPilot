@@ -1,11 +1,8 @@
 <% layout('layouts/boilerplate') %>
 
-    <!-- 1. Animation & Icon Libraries -->
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    <script src="https://unpkg.com/phosphor-icons"></script>
+    <!-- 1. Animation & Effect Stylesheets -->
     <link href="/css/GradientWaves.css" rel="stylesheet">
     <link href="/css/TechText.css" rel="stylesheet">
-    <link href="/css/Dither.css" rel="stylesheet">
 
     <style>
         /* Continuous background glow shift for AI gradient text */
@@ -62,10 +59,19 @@
 
         /* Hero Graphic Floating Animation */
         @keyframes heroFloat {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-15px); }
-            100% { transform: translateY(0px); }
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-15px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
         }
+
         .hero-graphic-float {
             animation: heroFloat 6s ease-in-out infinite;
         }
@@ -78,8 +84,7 @@
     <div id="home-page-wrapper" style="position: relative; overflow-x: hidden;">
 
         <!-- Gradient Waves: full page coverage, CSS-masked at bottom -->
-        <div id="gradient-waves" class="gradient-waves-container"
-            style="
+        <div id="gradient-waves" class="gradient-waves-container" style="
                 position: absolute;
                 top: 0;
                 left: 50%;
@@ -98,53 +103,65 @@
 
             <!-- ===== HERO SECTION ===== -->
             <section class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-center relative z-10">
-                
+
                 <!-- Left Side: Content -->
                 <div class="flex flex-col items-center md:items-start text-center md:text-left space-y-5">
                     <!-- PMIS Badge -->
-                    <div class="inline-flex items-center gap-3 px-4 py-1.5 bg-white/70 border border-white/40 text-slate-700 rounded-full text-xs font-semibold shadow-sm backdrop-blur-md" data-aos="fade-right" data-aos-duration="600">
+                    <div class="inline-flex items-center gap-3 px-4 py-1.5 bg-white/70 border border-white/40 text-slate-700 rounded-full text-xs font-semibold shadow-sm backdrop-blur-md"
+                        data-aos="fade-right" data-aos-duration="600">
                         <span class="relative flex h-2.5 w-2.5">
-                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                            <span
+                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
                             <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-indigo-600"></span>
                         </span>
                         <span>Prime Minister's Internship Scheme Portal</span>
                     </div>
 
                     <!-- TechText Wordmark -->
-                    <div id="tech-text-wrapper" class="w-full max-w-[320px] md:-ml-2" style="height:80px;" aria-hidden="true" data-aos="fade-right" data-aos-duration="700" data-aos-delay="50">
+                    <div id="tech-text-wrapper" class="w-full max-w-[320px] md:-ml-2" style="height:80px;"
+                        aria-hidden="true" data-aos="fade-right" data-aos-duration="700" data-aos-delay="50">
                         <div id="tech-text-container" style="width:100%;height:100%;position:relative;"></div>
                     </div>
                     <h1 class="sr-only">InternPilot</h1>
 
                     <!-- Main Headline -->
-                    <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight max-w-lg mt-0" data-aos="fade-right" data-aos-delay="150">
+                    <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight max-w-lg mt-0"
+                        data-aos="fade-right" data-aos-delay="150">
                         Bridging India's Youth with
-                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 animate-gradient-text block mt-1">AI-Driven Internships</span>
+                        <span
+                            class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 animate-gradient-text block mt-1">AI-Driven
+                            Internships</span>
                     </h2>
 
                     <!-- Subtitle -->
-                    <p class="text-sm sm:text-base text-slate-600 leading-relaxed max-w-md" data-aos="fade-right" data-aos-delay="250">
-                        InternPilot leverages neural skill-matching algorithms to connect eligible youth aged 18&ndash;24 with top private &amp; public sector leaders across India in real-time.
+                    <p class="text-sm sm:text-base text-slate-600 leading-relaxed max-w-md" data-aos="fade-right"
+                        data-aos-delay="250">
+                        InternPilot leverages neural skill-matching algorithms to connect eligible youth aged
+                        18&ndash;24 with top private &amp; public sector leaders across India in real-time.
                     </p>
 
                     <!-- Action Button -->
                     <div data-aos="fade-right" data-aos-delay="350" class="pt-2">
                         <a href="/internships"
                             class="group inline-flex items-center justify-center gap-2.5 px-7 py-3 bg-slate-900 text-white font-semibold text-sm rounded-xl shadow-md hover:bg-indigo-700 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200">
-                            <i class="ph-bold ph-magnifying-glass text-lg group-hover:scale-110 transition-transform duration-200"></i>
+                            <i
+                                class="ph-bold ph-magnifying-glass text-lg group-hover:scale-110 transition-transform duration-200"></i>
                             <span>Explore Opportunities</span>
                         </a>
                     </div>
                 </div>
 
                 <!-- Right Side: Floating Graphic -->
-                <div class="relative w-full aspect-square md:aspect-auto md:h-[550px] flex items-center justify-center pointer-events-none" data-aos="fade-left" data-aos-duration="800">
+                <div class="relative w-full aspect-square md:aspect-auto md:h-[550px] flex items-center justify-center pointer-events-none"
+                    data-aos="fade-left" data-aos-duration="800">
                     <!-- Organic radial purple glow -->
                     <div class="absolute w-[80%] h-[80%] bg-purple-500/20 blur-[80px] rounded-full z-0 transform"></div>
-                    
+
                     <!-- Floating Image Wrapper -->
-                    <div id="hero-parallax-wrapper" class="relative w-full h-full max-w-[600px] z-10 flex items-center justify-center hero-graphic-float will-change-transform">
-                        <img src="/images/hero_graphic_transparent_1790501169026.png" alt="InternPilot Illustration" class="w-full h-auto object-contain" />
+                    <div id="hero-parallax-wrapper"
+                        class="relative w-full h-full max-w-[600px] z-10 flex items-center justify-center hero-graphic-float will-change-transform">
+                        <img src="/images/hero_graphic_transparent_1790501169026.png" alt="InternPilot Illustration"
+                            class="w-full h-auto object-contain" />
                     </div>
                 </div>
 
@@ -264,7 +281,8 @@
             <!-- ===== FEATURES SECTION ===== -->
             <section class="space-y-8" data-aos="fade-up">
                 <div class="text-center space-y-1.5">
-                    <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Built for Youth &amp; Employers
+                    <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Built for Youth &amp;
+                        Employers
                     </h2>
                     <p class="text-xs sm:text-sm text-slate-500">Next-generation modules powering the PMIS digital
                         ecosystem</p>
@@ -329,69 +347,87 @@
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
 
                     <!-- Tata Motors -->
-                    <div class="group bg-white/90 border border-slate-200/80 hover:border-indigo-300 rounded-2xl p-4 text-center shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center gap-2.5 h-28 sm:h-24">
+                    <div
+                        class="group bg-white/90 border border-slate-200/80 hover:border-indigo-300 rounded-2xl p-4 text-center shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center gap-2.5 h-28 sm:h-24">
                         <div class="h-9 flex items-center justify-center w-full">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/8/8e/Tata_logo.svg"
                                 alt="Tata Motors Logo"
                                 class="max-h-8 max-w-[100px] w-auto object-contain flex-shrink-0 opacity-75 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300"
                                 onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=Tata+Motors&background=e0e7ff&color=3730a3&bold=true'" />
                         </div>
-                        <span class="text-xs font-bold text-slate-700 group-hover:text-indigo-600 transition-colors leading-snug">Tata Motors</span>
+                        <span
+                            class="text-xs font-bold text-slate-700 group-hover:text-indigo-600 transition-colors leading-snug">Tata
+                            Motors</span>
                     </div>
 
                     <!-- Mahindra & Mahindra -->
-                    <div class="group bg-white/90 border border-slate-200/80 hover:border-indigo-300 rounded-2xl p-4 text-center shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center gap-2.5 h-28 sm:h-24">
+                    <div
+                        class="group bg-white/90 border border-slate-200/80 hover:border-indigo-300 rounded-2xl p-4 text-center shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center gap-2.5 h-28 sm:h-24">
                         <div class="h-9 flex items-center justify-center w-full">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/8/89/Mahindra_logo.svg"
                                 alt="Mahindra & Mahindra Logo"
                                 class="max-h-8 max-w-[100px] w-auto object-contain flex-shrink-0 opacity-75 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300"
                                 onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=Mahindra&background=e0e7ff&color=3730a3&bold=true'" />
                         </div>
-                        <span class="text-xs font-bold text-slate-700 group-hover:text-indigo-600 transition-colors leading-snug">Mahindra &amp; Mahindra</span>
+                        <span
+                            class="text-xs font-bold text-slate-700 group-hover:text-indigo-600 transition-colors leading-snug">Mahindra
+                            &amp; Mahindra</span>
                     </div>
 
                     <!-- Maruti Suzuki -->
-                    <div class="group bg-white/90 border border-slate-200/80 hover:border-indigo-300 rounded-2xl p-4 text-center shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center gap-2.5 h-28 sm:h-24">
+                    <div
+                        class="group bg-white/90 border border-slate-200/80 hover:border-indigo-300 rounded-2xl p-4 text-center shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center gap-2.5 h-28 sm:h-24">
                         <div class="h-9 flex items-center justify-center w-full">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/8/86/Maruti_Suzuki_logo.svg"
                                 alt="Maruti Suzuki Logo"
                                 class="max-h-8 max-w-[100px] w-auto object-contain flex-shrink-0 opacity-75 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300"
                                 onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=Maruti+Suzuki&background=e0e7ff&color=3730a3&bold=true'" />
                         </div>
-                        <span class="text-xs font-bold text-slate-700 group-hover:text-indigo-600 transition-colors leading-snug">Maruti Suzuki</span>
+                        <span
+                            class="text-xs font-bold text-slate-700 group-hover:text-indigo-600 transition-colors leading-snug">Maruti
+                            Suzuki</span>
                     </div>
 
                     <!-- Tech Mahindra -->
-                    <div class="group bg-white/90 border border-slate-200/80 hover:border-indigo-300 rounded-2xl p-4 text-center shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center gap-2.5 h-28 sm:h-24">
+                    <div
+                        class="group bg-white/90 border border-slate-200/80 hover:border-indigo-300 rounded-2xl p-4 text-center shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center gap-2.5 h-28 sm:h-24">
                         <div class="h-9 flex items-center justify-center w-full">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/3/34/Tech_Mahindra_New_Logo.svg"
                                 alt="Tech Mahindra Logo"
                                 class="max-h-8 max-w-[100px] w-auto object-contain flex-shrink-0 opacity-75 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300"
                                 onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=Tech+Mahindra&background=e0e7ff&color=3730a3&bold=true'" />
                         </div>
-                        <span class="text-xs font-bold text-slate-700 group-hover:text-indigo-600 transition-colors leading-snug">Tech Mahindra</span>
+                        <span
+                            class="text-xs font-bold text-slate-700 group-hover:text-indigo-600 transition-colors leading-snug">Tech
+                            Mahindra</span>
                     </div>
 
                     <!-- HDFC Bank -->
-                    <div class="group bg-white/90 border border-slate-200/80 hover:border-indigo-300 rounded-2xl p-4 text-center shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center gap-2.5 h-28 sm:h-24">
+                    <div
+                        class="group bg-white/90 border border-slate-200/80 hover:border-indigo-300 rounded-2xl p-4 text-center shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center gap-2.5 h-28 sm:h-24">
                         <div class="h-9 flex items-center justify-center w-full">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/2/28/HDFC_Bank_Logo.svg"
                                 alt="HDFC Bank Logo"
                                 class="max-h-8 max-w-[100px] w-auto object-contain flex-shrink-0 opacity-75 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300"
                                 onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=HDFC+Bank&background=e0e7ff&color=3730a3&bold=true'" />
                         </div>
-                        <span class="text-xs font-bold text-slate-700 group-hover:text-indigo-600 transition-colors leading-snug">HDFC Bank</span>
+                        <span
+                            class="text-xs font-bold text-slate-700 group-hover:text-indigo-600 transition-colors leading-snug">HDFC
+                            Bank</span>
                     </div>
 
                     <!-- Reliance Retail -->
-                    <div class="group bg-white/90 border border-slate-200/80 hover:border-indigo-300 rounded-2xl p-4 text-center shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center gap-2.5 h-28 sm:h-24">
+                    <div
+                        class="group bg-white/90 border border-slate-200/80 hover:border-indigo-300 rounded-2xl p-4 text-center shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center gap-2.5 h-28 sm:h-24">
                         <div class="h-9 flex items-center justify-center w-full">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/a/ad/Reliance_Digital.svg"
                                 alt="Reliance Retail Logo"
                                 class="max-h-8 max-w-[100px] w-auto object-contain flex-shrink-0 opacity-75 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300"
                                 onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=Reliance+Retail&background=e0e7ff&color=3730a3&bold=true'" />
                         </div>
-                        <span class="text-xs font-bold text-slate-700 group-hover:text-indigo-600 transition-colors leading-snug">Reliance Digital</span>
+                        <span
+                            class="text-xs font-bold text-slate-700 group-hover:text-indigo-600 transition-colors leading-snug">Reliance
+                            Digital</span>
                     </div>
 
                 </div>
@@ -558,15 +594,35 @@
                 labels: false
             });
         }
-        
-        // Subtle Mouse Parallax for Hero Graphic
+
+        // Subtle Mouse Parallax for Hero Graphic with 60fps rAF Smoothing
         const parallaxWrapper = document.getElementById('hero-parallax-wrapper');
         if (parallaxWrapper && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            let rafId = null;
+            let targetX = 0;
+            let targetY = 0;
+            let currentX = 0;
+            let currentY = 0;
+
+            const updateParallax = () => {
+                currentX += (targetX - currentX) * 0.12;
+                currentY += (targetY - currentY) * 0.12;
+                parallaxWrapper.style.transform = `translate3d(${currentX.toFixed(2)}px, ${currentY.toFixed(2)}px, 0)`;
+
+                if (Math.abs(targetX - currentX) > 0.05 || Math.abs(targetY - currentY) > 0.05) {
+                    rafId = requestAnimationFrame(updateParallax);
+                } else {
+                    rafId = null;
+                }
+            };
+
             document.addEventListener('mousemove', (e) => {
                 if (window.innerWidth < 768) return; // Disable on mobile
-                const x = (e.clientX / window.innerWidth - 0.5) * 20; // max 10px move
-                const y = (e.clientY / window.innerHeight - 0.5) * 20;
-                parallaxWrapper.style.transform = `translate(${x}px, ${y}px)`;
-            });
+                targetX = (e.clientX / window.innerWidth - 0.5) * 20; // max 10px move
+                targetY = (e.clientY / window.innerHeight - 0.5) * 20;
+                if (!rafId) {
+                    rafId = requestAnimationFrame(updateParallax);
+                }
+            }, { passive: true });
         }
     </script>

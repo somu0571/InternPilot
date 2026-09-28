@@ -58,7 +58,11 @@ app.set("views", path.join(__dirname, "views"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(methodOverride("_method"));
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "public"), {
+    maxAge: '1h',
+    etag: true,
+    lastModified: true
+}));
 
 // Session configuration. Sessions are kept in MongoDB so a restart or deploy
 // doesn't sign everyone out, and they last 7 days from the last visit (#179).
@@ -82,7 +86,11 @@ app.use(async (req, res, next) => {
     res.locals.checkPmisEligibility = checkPmisEligibility;
     res.locals.calculateProfileCompletion = calculateProfileCompletion;
 
-    if (req.user) {
+    // Only query notification counts for page navigations (HTML responses).
+    // Static assets (CSS, JS, images) and API/XHR calls skip the DB round-trip.
+    const needsNotifications = req.user && req.accepts('html');
+
+    if (needsNotifications) {
         try {
             const role = req.user.role;
             if (role === 'candidate') {
@@ -134,9 +142,11 @@ app.use(require('./routes/grievances'));
 // Homepage Route (Renders views/extras/index.ejs)
 app.get('/', async (req, res) => {
     try {
-        const totalInternships = await Internship.countDocuments({ status: { $ne: 'draft' } });
-        const totalCandidates = await User.countDocuments({ role: 'candidate' });
-        const totalCompanies = await User.countDocuments({ role: 'company' });
+        const [totalInternships, totalCandidates, totalCompanies] = await Promise.all([
+            Internship.countDocuments({ status: { $ne: 'draft' } }),
+            User.countDocuments({ role: 'candidate' }),
+            User.countDocuments({ role: 'company' })
+        ]);
 
         res.render('extras/index', { totalInternships, totalCandidates, totalCompanies });
     } catch (error) {
@@ -220,7 +230,7 @@ async function startServer() {
         });
     } catch (err) {
         console.error('Database startup failed:', err);
-        await mongoose.disconnect().catch(() => {});
+        await mongoose.disconnect().catch(() => { });
         process.exitCode = 1;
     }
 }

@@ -1,25 +1,23 @@
 <% layout('layouts/boilerplate') %>
 
-<%
-    const query = typeof queryState !== 'undefined' && queryState ? queryState : {};
-    const filter = typeof currentFilter !== 'undefined' ? currentFilter : (query.status || 'all');
-    const paginationData = typeof pagination !== 'undefined' ? pagination : null;
-    const availableSectors = typeof sectors !== 'undefined' && Array.isArray(sectors) ? sectors : [];
-    const queryBuilder = typeof buildQueryString === 'function' ? buildQueryString : function(curr, over) {
-        const p = new URLSearchParams();
-        const m = { ...curr, ...over };
-        Object.keys(m).forEach(k => {
-            if (m[k] !== undefined && m[k] !== null && m[k] !== '' && m[k] !== 'all') {
-                p.set(k, m[k]);
-            }
+    <% const query=typeof queryState !=='undefined' && queryState ? queryState : {}; const filter=typeof currentFilter
+        !=='undefined' ? currentFilter : (query.status || 'all' ); const paginationData=typeof pagination !=='undefined'
+        ? pagination : null; const availableSectors=typeof sectors !=='undefined' && Array.isArray(sectors) ? sectors :
+        []; const queryBuilder=typeof buildQueryString==='function' ? buildQueryString : function(curr, over) { const
+        p=new URLSearchParams(); const m={ ...curr, ...over }; Object.keys(m).forEach(k=> {
+        if (m[k] !== undefined && m[k] !== null && m[k] !== '' && m[k] !== 'all') {
+        p.set(k, m[k]);
+        }
         });
         const qs = p.toString();
         return qs ? `/internships?${qs}` : '/internships';
-    };
-    const isCompanyTeamMember = currentUser && ['company', 'recruiter', 'hiring_manager'].includes(currentUser.role);
-    const canCreateListings = currentUser && ['company', 'recruiter'].includes(currentUser.role);
-    const currentUserCompanyId = currentUser && (currentUser.companyId || (currentUser.role === 'company' ? currentUser._id : null));
-    const savedSearchCriteria = {
+        };
+        const isCompanyTeamMember = currentUser && ['company', 'recruiter',
+        'hiring_manager'].includes(currentUser.role);
+        const canCreateListings = currentUser && ['company', 'recruiter'].includes(currentUser.role);
+        const currentUserCompanyId = currentUser && (currentUser.companyId || (currentUser.role === 'company' ?
+        currentUser._id : null));
+        const savedSearchCriteria = {
         search: query.search || '',
         sector: query.sector || '',
         location: query.location || '',
@@ -27,857 +25,1079 @@
         minStipend: query.minStipend || '',
         maxStipend: query.maxStipend || '',
         duration: Array.isArray(query.duration) ? query.duration : []
-    };
-    const canSaveCurrentSearch = Boolean(
+        };
+        const canSaveCurrentSearch = Boolean(
         savedSearchCriteria.search || savedSearchCriteria.sector || savedSearchCriteria.location ||
         savedSearchCriteria.skills.length || savedSearchCriteria.minStipend ||
         savedSearchCriteria.maxStipend || savedSearchCriteria.duration.length
-    );
-    const savedSearchReturnQuery = queryBuilder(query, {});
-    const savedSearchReturnUrl = savedSearchReturnQuery.startsWith('?')
+        );
+        const savedSearchReturnQuery = queryBuilder(query, {});
+        const savedSearchReturnUrl = savedSearchReturnQuery.startsWith('?')
         ? `/internships${savedSearchReturnQuery}`
         : savedSearchReturnQuery;
-%>
+        %>
 
-    <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-            <h2 class="text-2xl font-bold text-slate-900 tracking-tight">PMIS Internship Listings</h2>
-            <p class="text-xs text-slate-500 mt-1">
-                Official opportunities posted by top partner organizations under the Prime Minister's Internship Scheme.
-            </p>
-        </div>
-
-        <div class="flex items-center gap-3 flex-wrap">
-            <!-- Filter Tabs: All, Active, Paused -->
-            <div data-live-region="tabs" class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl text-xs font-semibold border border-slate-200">
-                <a href="<%= queryBuilder(query, { status: 'all', page: 1 }) %>"
-                    class="px-3 py-1.5 rounded-lg transition-colors <%= (filter === 'all' || !filter) ? 'bg-white text-indigo-700 shadow-xs' : 'text-slate-600 hover:text-slate-900' %>">
-                    All Listings
-                </a>
-                <a href="<%= queryBuilder(query, { status: 'active', page: 1 }) %>"
-                    class="px-3 py-1.5 rounded-lg transition-colors <%= filter === 'active' ? 'bg-white text-emerald-700 shadow-xs' : 'text-slate-600 hover:text-slate-900' %>">
-                    Active Openings
-                </a>
-                <a href="<%= queryBuilder(query, { status: 'paused', page: 1 }) %>"
-                    class="px-3 py-1.5 rounded-lg transition-colors <%= filter === 'paused' ? 'bg-white text-amber-700 shadow-xs' : 'text-slate-600 hover:text-slate-900' %>">
-                    Applications Paused
-                </a>
+        <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-900 tracking-tight">PMIS Internship Listings</h2>
+                <p class="text-xs text-slate-500 mt-1">
+                    Official opportunities posted by top partner organizations under the Prime Minister's Internship
+                    Scheme.
+                </p>
             </div>
 
-            <% if (canCreateListings) { %>
-                <button onclick="openModal()" class="px-4 py-2 bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors flex items-center gap-1.5">
-                    <i class="ph-bold ph-plus text-sm"></i> Post New Listing
-                </button>
-            <% } %>
-        </div>
-    </div>
-
-    <!-- Search, Filter & Sort Bar -->
-    <div class="bg-white border border-slate-200 rounded-xl p-4 mb-6 shadow-sm">
-        <%# data-no-loading: results load in place, so the global submit spinner would never clear. %>
-        <form action="/internships" method="GET" class="space-y-3" data-internship-filters data-no-loading>
-            <input type="hidden" name="status" value="<%= filter %>">
-            <input type="hidden" name="limit" value="<%= (query && query.limit && query.limit !== 12) ? query.limit : '' %>">
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3">
-                <!-- Search Input -->
-                <div class="lg:col-span-4 relative">
-                    <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none"></i>
-                    <input type="text" name="search" value="<%= query ? (query.search || '') : '' %>" placeholder="Search title, company, skills..."
-                        class="w-full pl-9 pr-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600 bg-slate-50 focus:bg-white transition-colors" />
+            <div class="flex items-center gap-3 flex-wrap">
+                <!-- Filter Tabs: All, Active, Paused -->
+                <div data-live-region="tabs"
+                    class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl text-xs font-semibold border border-slate-200">
+                    <a href="<%= queryBuilder(query, { status: 'all', page: 1 }) %>"
+                        class="px-3 py-1.5 rounded-lg transition-colors <%= (filter === 'all' || !filter) ? 'bg-white text-indigo-700 shadow-xs' : 'text-slate-600 hover:text-slate-900' %>">
+                        All Listings
+                    </a>
+                    <a href="<%= queryBuilder(query, { status: 'active', page: 1 }) %>"
+                        class="px-3 py-1.5 rounded-lg transition-colors <%= filter === 'active' ? 'bg-white text-emerald-700 shadow-xs' : 'text-slate-600 hover:text-slate-900' %>">
+                        Active Openings
+                    </a>
+                    <a href="<%= queryBuilder(query, { status: 'paused', page: 1 }) %>"
+                        class="px-3 py-1.5 rounded-lg transition-colors <%= filter === 'paused' ? 'bg-white text-amber-700 shadow-xs' : 'text-slate-600 hover:text-slate-900' %>">
+                        Applications Paused
+                    </a>
                 </div>
 
-                <!-- Sector Filter -->
-                <div class="lg:col-span-3">
-                    <select name="sector" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600 bg-slate-50 focus:bg-white transition-colors cursor-pointer">
-                        <option value="">All Sectors</option>
-                        <% if (availableSectors && availableSectors.length > 0) { %>
-                            <% availableSectors.forEach(sec => { %>
-                                <option value="<%= sec %>" <%= (query && query.sector && query.sector.toLowerCase() === sec.toLowerCase()) ? 'selected' : '' %>><%= sec %></option>
-                            <% }) %>
-                        <% } %>
-                    </select>
-                </div>
-
-                <!-- Location Filter -->
-                <div class="lg:col-span-3 relative">
-                    <i class="ph-bold ph-map-pin absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none"></i>
-                    <input type="text" name="location" value="<%= query ? (query.location || '') : '' %>" placeholder="District or State..."
-                        class="w-full pl-9 pr-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600 bg-slate-50 focus:bg-white transition-colors" />
-                </div>
-
-                <!-- Sort Selection -->
-                <div class="lg:col-span-2">
-                    <select name="sort" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600 bg-slate-50 focus:bg-white transition-colors cursor-pointer">
-                        <option value="latest" <%= (query && query.sort === 'latest') ? 'selected' : '' %>>Sort: Latest</option>
-                        <option value="stipend_high" <%= (query && query.sort === 'stipend_high') ? 'selected' : '' %>>Stipend: High to Low</option>
-                        <option value="stipend_low" <%= (query && query.sort === 'stipend_low') ? 'selected' : '' %>>Stipend: Low to High</option>
-                        <option value="vacancies" <%= (query && query.sort === 'vacancies') ? 'selected' : '' %>>Most Vacancies</option>
-                    </select>
-                </div>
+                <% if (canCreateListings) { %>
+                    <button onclick="openModal()"
+                        class="px-4 py-2 bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors flex items-center gap-1.5">
+                        <i class="ph-bold ph-plus text-sm"></i> Post New Listing
+                    </button>
+                    <% } %>
             </div>
+        </div>
 
-            <%- include('../partials/internship-filter-panel') %>
+        <!-- Search, Filter & Sort Bar -->
+        <div class="bg-white border border-slate-200 rounded-xl p-4 mb-6 shadow-sm">
+            <%# data-no-loading: results load in place, so the global submit spinner would never clear. %>
+                <form action="/internships" method="GET" class="space-y-3" data-internship-filters data-no-loading>
+                    <input type="hidden" name="status" value="<%= filter %>">
+                    <input type="hidden" name="limit"
+                        value="<%= (query && query.limit && query.limit !== 12) ? query.limit : '' %>">
 
-            <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
-                <div class="flex items-center gap-2">
-                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer">
-                        <i class="ph-bold ph-funnel"></i> Apply Filters
-                    </button>
-                    <button type="button" id="clear-filters-btn"
-                        class="px-4 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 font-semibold hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 transition-colors flex items-center gap-1.5 cursor-pointer">
-                        <i class="ph-bold ph-x-circle"></i> Clear Filters
-                    </button>
-                    <% if (currentUser && currentUser.role === 'candidate') { %>
-                        <div data-live-region="save-search">
-                            <% if (canSaveCurrentSearch) { %>
-                                <button type="button" data-save-search-open
-                                    data-criteria="<%= JSON.stringify(savedSearchCriteria) %>"
-                                    data-return-to="<%= savedSearchReturnUrl %>"
-                                    class="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 font-semibold text-indigo-700 transition-colors hover:bg-indigo-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2">
-                                    <i class="ph-bold ph-bookmark-simple text-sm"></i>
-                                    Save this search
-                                </button>
-                            <% } else { %>
-                                <span class="hidden text-[11px] font-medium text-slate-400 sm:inline">Choose a filter to save this search</span>
-                            <% } %>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3">
+                        <!-- Search Input -->
+                        <div class="lg:col-span-4 relative">
+                            <i
+                                class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none"></i>
+                            <input type="text" name="search" value="<%= query ? (query.search || '') : '' %>"
+                                placeholder="Search title, company, skills..."
+                                class="w-full pl-9 pr-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600 bg-slate-50 focus:bg-white transition-colors" />
                         </div>
-                    <% } %>
-                </div>
-                <span class="text-slate-500 font-medium" data-live-region="count" aria-live="polite">
-                    <% if (!paginationData || paginationData.totalItems === 0) { %>
-                        0 Opportunities
-                    <% } else if (paginationData.totalItems <= paginationData.limit) { %>
-                        Showing <%= paginationData.totalItems %> <%= paginationData.totalItems === 1 ? 'Opportunity' : 'Opportunities' %>
-                    <% } else { %>
-                        Showing <%= paginationData.startItem %>–<%= paginationData.endItem %> of <%= paginationData.totalItems %> Opportunities
-                    <% } %>
-                </span>
-            </div>
-        </form>
-    </div>
 
-    <% if (currentUser && currentUser.role === 'candidate') { %>
-        <div id="saveSearchModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/45 p-4" role="dialog" aria-modal="true" aria-labelledby="saveSearchTitle" aria-hidden="true">
-            <div class="w-full max-w-md rounded-2xl bg-white shadow-xl">
-                <div class="flex items-start justify-between border-b border-slate-100 px-5 py-4">
-                    <div>
-                        <h2 id="saveSearchTitle" class="text-base font-bold text-slate-900">Save this search</h2>
-                        <p class="mt-1 text-xs leading-5 text-slate-500">Choose how often you want to hear about new matching internships.</p>
+                        <!-- Sector Filter -->
+                        <div class="lg:col-span-3">
+                            <select name="sector"
+                                class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600 bg-slate-50 focus:bg-white transition-colors cursor-pointer">
+                                <option value="">All Sectors</option>
+                                <% if (availableSectors && availableSectors.length> 0) { %>
+                                    <% availableSectors.forEach(sec=> { %>
+                                        <option value="<%= sec %>" <%=(query && query.sector &&
+                                            query.sector.toLowerCase()===sec.toLowerCase()) ? 'selected' : '' %>><%= sec
+                                                %>
+                                        </option>
+                                        <% }) %>
+                                            <% } %>
+                            </select>
+                        </div>
+
+                        <!-- Location Filter -->
+                        <div class="lg:col-span-3 relative">
+                            <i
+                                class="ph-bold ph-map-pin absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none"></i>
+                            <input type="text" name="location" value="<%= query ? (query.location || '') : '' %>"
+                                placeholder="District or State..."
+                                class="w-full pl-9 pr-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600 bg-slate-50 focus:bg-white transition-colors" />
+                        </div>
+
+                        <!-- Sort Selection -->
+                        <div class="lg:col-span-2">
+                            <select name="sort"
+                                class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600 bg-slate-50 focus:bg-white transition-colors cursor-pointer">
+                                <option value="latest" <%=(query && query.sort==='latest' ) ? 'selected' : '' %>>Sort:
+                                    Latest</option>
+                                <option value="stipend_high" <%=(query && query.sort==='stipend_high' ) ? 'selected'
+                                    : '' %>>Stipend: High to Low</option>
+                                <option value="stipend_low" <%=(query && query.sort==='stipend_low' ) ? 'selected' : ''
+                                    %>>Stipend: Low to High</option>
+                                <option value="vacancies" <%=(query && query.sort==='vacancies' ) ? 'selected' : '' %>
+                                    >Most Vacancies</option>
+                            </select>
+                        </div>
                     </div>
-                    <button type="button" data-save-search-close class="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600" aria-label="Close save search dialog">
-                        <i class="ph-bold ph-x text-lg" aria-hidden="true"></i>
-                    </button>
-                </div>
-                <form action="/candidate/saved-searches" method="POST" class="space-y-4 px-5 py-5">
-                    <input type="hidden" name="criteria" id="savedSearchCriteriaInput">
-                    <input type="hidden" name="returnTo" id="savedSearchReturnToInput" value="/internships">
-                    <div>
-                        <label for="savedSearchName" class="mb-1.5 block text-xs font-bold text-slate-700">Search name</label>
-                        <input id="savedSearchName" name="name" required maxlength="80" placeholder="e.g. Pune JavaScript internships" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100">
-                    </div>
-                    <div>
-                        <label for="savedSearchFrequency" class="mb-1.5 block text-xs font-bold text-slate-700">Alert frequency</label>
-                        <select id="savedSearchFrequency" name="frequency" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100">
-                            <option value="instant">Instant — when a match is published</option>
-                            <option value="daily">Daily digest</option>
-                            <option value="weekly">Weekly digest</option>
-                            <option value="off">Off — save filters only</option>
-                        </select>
-                    </div>
-                    <fieldset class="rounded-xl border border-slate-200 bg-slate-50 p-3">
-                        <legend class="px-1 text-xs font-bold text-slate-700">Deliver alerts by</legend>
-                        <input type="hidden" name="deliveryConfigured" value="true">
-                        <label class="flex cursor-pointer items-center gap-2 py-1.5 text-sm text-slate-700">
-                            <input type="checkbox" name="inApp" checked class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600">
-                            In-app notification
-                        </label>
-                        <label class="flex cursor-pointer items-center gap-2 py-1.5 text-sm text-slate-700">
-                            <input type="checkbox" name="email" class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600">
-                            Email
-                        </label>
-                    </fieldset>
-                    <div class="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
-                        <button type="button" data-save-search-close class="rounded-lg px-3.5 py-2 text-xs font-bold text-slate-600 transition hover:bg-slate-100">Cancel</button>
-                        <button type="submit" class="inline-flex items-center justify-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2">
-                            <i class="ph-bold ph-bookmark-simple"></i> Save search
+
+                    <%- include('../partials/internship-filter-panel') %>
+
+                        <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+                            <div class="flex items-center gap-2">
+                                <button type="submit"
+                                    class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer">
+                                    <i class="ph-bold ph-funnel"></i> Apply Filters
+                                </button>
+                                <button type="button" id="clear-filters-btn"
+                                    class="px-4 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 font-semibold hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 transition-colors flex items-center gap-1.5 cursor-pointer">
+                                    <i class="ph-bold ph-x-circle"></i> Clear Filters
+                                </button>
+                                <% if (currentUser && currentUser.role==='candidate' ) { %>
+                                    <div data-live-region="save-search">
+                                        <% if (canSaveCurrentSearch) { %>
+                                            <button type="button" data-save-search-open
+                                                data-criteria="<%= JSON.stringify(savedSearchCriteria) %>"
+                                                data-return-to="<%= savedSearchReturnUrl %>"
+                                                class="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 font-semibold text-indigo-700 transition-colors hover:bg-indigo-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2">
+                                                <i class="ph-bold ph-bookmark-simple text-sm"></i>
+                                                Save this search
+                                            </button>
+                                            <% } else { %>
+                                                <span
+                                                    class="hidden text-[11px] font-medium text-slate-400 sm:inline">Choose
+                                                    a filter to save this search</span>
+                                                <% } %>
+                                    </div>
+                                    <% } %>
+                            </div>
+                            <span class="text-slate-500 font-medium" data-live-region="count" aria-live="polite">
+                                <% if (!paginationData || paginationData.totalItems===0) { %>
+                                    0 Opportunities
+                                    <% } else if (paginationData.totalItems <=paginationData.limit) { %>
+                                        Showing <%= paginationData.totalItems %>
+                                            <%= paginationData.totalItems===1 ? 'Opportunity' : 'Opportunities' %>
+                                                <% } else { %>
+                                                    Showing <%= paginationData.startItem %>–<%= paginationData.endItem
+                                                            %> of <%= paginationData.totalItems %> Opportunities
+                                                                <% } %>
+                            </span>
+                        </div>
+                </form>
+        </div>
+
+        <% if (currentUser && currentUser.role==='candidate' ) { %>
+            <div id="saveSearchModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/45 p-4"
+                role="dialog" aria-modal="true" aria-labelledby="saveSearchTitle" aria-hidden="true">
+                <div class="w-full max-w-md rounded-2xl bg-white shadow-xl">
+                    <div class="flex items-start justify-between border-b border-slate-100 px-5 py-4">
+                        <div>
+                            <h2 id="saveSearchTitle" class="text-base font-bold text-slate-900">Save this search</h2>
+                            <p class="mt-1 text-xs leading-5 text-slate-500">Choose how often you want to hear about new
+                                matching internships.</p>
+                        </div>
+                        <button type="button" data-save-search-close
+                            class="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
+                            aria-label="Close save search dialog">
+                            <i class="ph-bold ph-x text-lg" aria-hidden="true"></i>
                         </button>
                     </div>
-                </form>
-            </div>
-        </div>
-        <script>
-            (() => {
-                const modal = document.getElementById('saveSearchModal');
-                if (!modal) return;
-                const criteriaInput = document.getElementById('savedSearchCriteriaInput');
-                const returnToInput = document.getElementById('savedSearchReturnToInput');
-                const nameInput = document.getElementById('savedSearchName');
-                let opener = null;
-
-                const close = () => {
-                    modal.classList.add('hidden');
-                    modal.classList.remove('flex');
-                    modal.setAttribute('aria-hidden', 'true');
-                    if (opener) opener.focus();
-                };
-
-                document.addEventListener('click', event => {
-                    const openButton = event.target.closest('[data-save-search-open]');
-                    if (openButton) {
-                        opener = openButton;
-                        criteriaInput.value = openButton.dataset.criteria || '{}';
-                        returnToInput.value = openButton.dataset.returnTo || '/internships';
-                        modal.classList.remove('hidden');
-                        modal.classList.add('flex');
-                        modal.setAttribute('aria-hidden', 'false');
-                        window.setTimeout(() => nameInput.focus(), 0);
-                        return;
-                    }
-                    if (event.target === modal || event.target.closest('[data-save-search-close]')) close();
-                });
-
-                document.addEventListener('keydown', event => {
-                    if (event.key === 'Escape' && !modal.classList.contains('hidden')) close();
-                });
-            })();
-        </script>
-    <% } %>
-
-    <%# Swapped in place by the filter script. data-state carries the filters the server actually applied. %>
-    <div data-live-region="results" data-state="<%= JSON.stringify(query) %>" aria-live="polite" class="transition-opacity scroll-mt-24">
-
-    <%- include('../partials/internship-active-filters') %>
-
-    <% if (!internships || internships.length === 0) { %>
-        <div class="bg-white border border-slate-200 rounded-xl p-12 text-center shadow-sm my-6">
-            <i class="ph-bold ph-magnifying-glass text-4xl text-slate-300 mb-2"></i>
-            <h3 class="text-base font-bold text-slate-800">
-                <%= filter === 'paused' ? 'No paused internship listings found' : 'No matching internships found' %>
-            </h3>
-            <p class="text-xs text-slate-500 mt-1 mb-4">
-                <%= filter === 'paused' ? 'There are currently no paused internship listings.' : 'Try relaxing your search terms or clearing filters.' %>
-            </p>
-            <a href="/internships?status=all" class="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition-colors">
-                Reset All Filters
-            </a>
-        </div>
-    <% } else { %>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-animate-stagger>
-        <% internships.forEach(item => { %>
-            <% const isItemPaused = item.status === 'paused' || item.isPaused; %>
-            <% const isOwnedByCurrentCompany = currentUserCompanyId && item.companyId && item.companyId.toString() === currentUserCompanyId.toString(); %>
-            <% const canEditItem = isOwnedByCurrentCompany && currentUser && ['company', 'recruiter'].includes(currentUser.role); %>
-            <% const canDeleteItem = isOwnedByCurrentCompany && currentUser && currentUser.role === 'company'; %>
-            <div data-tilt
-                class="internship-card bg-white border <%= isItemPaused ? 'border-amber-300' : 'border-slate-200' %> rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between relative group"
-                data-stipend="<%= item.monthlyStipend || 5000 %>"
-                data-duration="<%= parseInt(item.duration) || 12 %>"
-                data-posted="<%= item._id.getTimestamp ? item._id.getTimestamp().getTime() : Date.now() %>">
-
-                <div>
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <% if (typeof currentUser === 'undefined' || !currentUser || currentUser.role === 'candidate') { %>
-                                <label class="inline-flex items-center gap-1.5 cursor-pointer group/cb">
-                                    <input type="checkbox" value="<%= item._id %>" class="compare-checkbox w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600 cursor-pointer">
-                                    <span class="text-[10px] uppercase font-bold text-slate-400 group-hover/cb:text-indigo-600 transition-colors hidden sm:inline">Compare</span>
-                                </label>
-                            <% } %>
-                            <span
-                                class="text-[11px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100 px-2.5 py-0.5 rounded-full">
-                                <%= item.sector || "General" %>
-                            </span>
-                            <% if (isItemPaused) { %>
-                                <span
-                                    class="text-[11px] font-bold text-amber-800 bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-full flex items-center gap-1">
-                                    <i class="ph-bold ph-pause-circle"></i> Applications Paused
-                                </span>
-                            <% } %>
+                    <form action="/candidate/saved-searches" method="POST" class="space-y-4 px-5 py-5">
+                        <input type="hidden" name="criteria" id="savedSearchCriteriaInput">
+                        <input type="hidden" name="returnTo" id="savedSearchReturnToInput" value="/internships">
+                        <div>
+                            <label for="savedSearchName" class="mb-1.5 block text-xs font-bold text-slate-700">Search
+                                name</label>
+                            <input id="savedSearchName" name="name" required maxlength="80"
+                                placeholder="e.g. Pune JavaScript internships"
+                                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100">
                         </div>
-
-                        <div class="flex items-center gap-2">
-                            <span
-                                class="text-[11px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded">
-                                <%= item.vacancies || 1 %> Openings
-                            </span>
-
-                            <% if (canEditItem) { %>
-                                <button onclick="openEditModal(this)" data-item='<%= JSON.stringify(item) %>'
-                                    class="text-slate-400 hover:text-indigo-600 transition-colors cursor-pointer p-0.5"
-                                    title="Edit">
-                                    <i class="ph-bold ph-pencil-simple text-sm"></i>
-                                </button>
-
-                            <% } %>
-
-                            <% if (canDeleteItem) { %>
-                                <form action="/internships/<%= item._id %>/delete" method="POST"
-                                    onsubmit="return confirm('Delete this internship?');" class="inline">
-                                    <button type="submit"
-                                        class="text-slate-400 hover:text-rose-600 transition-colors cursor-pointer p-0.5"
-                                        title="Delete">
-                                        <i class="ph-bold ph-trash text-sm"></i>
-                                    </button>
-                                </form>
-                            <% } %>
+                        <div>
+                            <label for="savedSearchFrequency"
+                                class="mb-1.5 block text-xs font-bold text-slate-700">Alert frequency</label>
+                            <select id="savedSearchFrequency" name="frequency"
+                                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100">
+                                <option value="instant">Instant — when a match is published</option>
+                                <option value="daily">Daily digest</option>
+                                <option value="weekly">Weekly digest</option>
+                                <option value="off">Off — save filters only</option>
+                            </select>
                         </div>
-                    </div>
-
-                    <a href="/internships/<%= item._id %>" class="hover:text-indigo-600 transition-colors">
-                        <h3 class="text-base font-bold text-slate-900 group-hover:text-indigo-600 transition-colors leading-snug">
-                            <%= item.title %>
-                        </h3>
-                    </a>
-                    <p class="text-xs font-semibold text-slate-600 mt-0.5 flex items-center gap-1">
-                        <i class="ph-bold ph-buildings text-slate-400"></i>
-                        <% if (item.companyId) { %>
-                            <a href="/company/<%= item.companyId %>/profile" class="hover:text-indigo-600 hover:underline">
-                                <%= item.companyName || item.company %>
-                            </a>
-                        <% } else { %>
-                            <span><%= item.companyName || item.company %></span>
-                        <% } %>
-                    </p>
-
-                    <div
-                        class="my-4 p-3 bg-slate-50 border border-slate-100 rounded-lg text-xs space-y-1.5 text-slate-600">
-                        <div class="flex items-center gap-1.5">
-                            <i class="ph-bold ph-map-pin text-rose-500"></i>
-                            <span>
-                                <%= typeof item.location === 'object' && item.location !== null ? ((item.location.district
-                                    ? item.location.district + ', ' : '') + (item.location.state || '')) :
-                                    (item.location || 'Location Not Specified') %>
-                            </span>
-                        </div>
-                        <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-                            <span class="flex items-center gap-1.5">
-                                <i class="ph-bold ph-currency-inr text-emerald-600"></i>
-                                <strong class="text-slate-800">
-                                    ₹<%= item.monthlyStipend ? Number(item.monthlyStipend).toLocaleString('en-IN')
-                                        : '5,000' %> / month
-                                </strong>
-                            </span>
-                            <span class="flex items-center gap-1 text-slate-500">
-                                <i class="ph-bold ph-clock"></i>
-                                <%= item.duration || "12 Months" %>
-                            </span>
-                        </div>
-
-                        <% if (isItemPaused) { %>
-                            <div class="flex items-center gap-1.5 mt-1.5 pt-1.5 border-t border-amber-200 text-amber-800 font-semibold text-xs bg-amber-50/80 px-2 py-1 rounded">
-                                <i class="ph-bold ph-pause-circle text-amber-600 text-sm"></i>
-                                <span>Applications are temporarily paused.</span>
-                            </div>
-                        <% } %>
-                    </div>
-
-                    <div class="mb-4">
-                        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Required Skills</p>
-                        <div class="flex flex-wrap gap-1.5">
-                            <% if (Array.isArray(item.requiredSkills)) { %>
-                                <% item.requiredSkills.forEach(skill => { %>
-                                    <span
-                                        class="text-xs font-medium text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200">
-                                        <%= skill %>
-                                    </span>
-                                <% }) %>
-                            <% } %>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Candidate-only application controls. Team accounts are read-only here. -->
-                <% if (!currentUser || currentUser.role === 'candidate') { %>
-                    <div class="pt-2">
-                        <% if (!currentUser) { %>
-                            <!-- 1. NOT LOGGED IN -> Redirect to Login Page or show Paused -->
-                            <% if (isItemPaused) { %>
-                                <button disabled
-                                    class="w-full text-center py-2 bg-amber-50 text-amber-700 border border-amber-200 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 cursor-not-allowed"
-                                    title="Applications for this position are temporarily paused.">
-                                    <i class="ph-bold ph-pause-circle text-base"></i> Applications Paused
-                                </button>
-                            <% } else { %>
-                                <a href="/auth/login"
-                                    class="w-full text-center py-2 bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-sm">
-                                    <i class="ph-bold ph-paper-plane-tilt"></i> Apply Now
-                                </a>
-                            <% } %>
-                        <% } else if (typeof appliedIds !== 'undefined' && Array.isArray(appliedIds) && appliedIds.includes(item._id.toString())) { %>
-                            <!-- 2. LOGGED IN CANDIDATE & ALREADY APPLIED -->
-                            <button disabled
-                                class="w-full text-center py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 cursor-not-allowed">
-                                <i class="ph-bold ph-check-circle text-base"></i> Applied
+                        <fieldset class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                            <legend class="px-1 text-xs font-bold text-slate-700">Deliver alerts by</legend>
+                            <input type="hidden" name="deliveryConfigured" value="true">
+                            <label class="flex cursor-pointer items-center gap-2 py-1.5 text-sm text-slate-700">
+                                <input type="checkbox" name="inApp" checked
+                                    class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600">
+                                In-app notification
+                            </label>
+                            <label class="flex cursor-pointer items-center gap-2 py-1.5 text-sm text-slate-700">
+                                <input type="checkbox" name="email"
+                                    class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600">
+                                Email
+                            </label>
+                        </fieldset>
+                        <div class="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
+                            <button type="button" data-save-search-close
+                                class="rounded-lg px-3.5 py-2 text-xs font-bold text-slate-600 transition hover:bg-slate-100">Cancel</button>
+                            <button type="submit"
+                                class="inline-flex items-center justify-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2">
+                                <i class="ph-bold ph-bookmark-simple"></i> Save search
                             </button>
-                        <% } else if (isItemPaused) { %>
-                            <!-- 3. LOGGED IN CANDIDATE & APPLICATIONS PAUSED -->
-                            <button disabled
-                                class="w-full text-center py-2 bg-amber-50 text-amber-700 border border-amber-200 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 cursor-not-allowed"
-                                title="The recruiter has temporarily paused new applications for this position.">
-                                <i class="ph-bold ph-pause-circle text-base"></i> Applications Paused
-                            </button>
-                        <% } else if (item.applicationDeadline && new Date() > new Date(item.applicationDeadline)) { %>
-                            <!-- 4. DEADLINE PASSED -->
-                            <button disabled
-                                class="w-full text-center py-2 bg-rose-50 text-rose-700 border border-rose-200 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 cursor-not-allowed">
-                                <i class="ph-bold ph-x-circle text-base"></i> Applications Closed
-                            </button>
-                        <% } else { %>
-                            <!-- 5. LOGGED IN CANDIDATE & HAS NOT APPLIED & OPEN -->
-                            <% const requiresApplicationKit = Array.isArray(item.applicationQuestions) && item.applicationQuestions.some(question => question && question.prompt); %>
-                            <a href="/internships/<%= item._id %>/application-kit"
-                                class="w-full text-center py-2 bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-sm">
-                                <i class="ph-bold ph-briefcase"></i> <%= requiresApplicationKit ? 'Prepare Application Kit' : 'Tailor Application' %>
-                            </a>
-                            <% if (!requiresApplicationKit) { %>
-                                <form action="/internships/<%= item._id %>/apply" method="POST" class="w-full" data-quick-apply-form data-no-loading data-internship-title="<%= item.title %>" data-company-name="<%= item.companyName || item.company || '' %>">
-                                    <button type="submit"
-                                        class="mt-2 w-full text-center py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1.5">
-                                        <i class="ph-bold ph-paper-plane-tilt"></i> Quick Apply
-                                    </button>
-                                </form>
-                            <% } %>
-                        <% } %>
-
-                        <% if (currentUser && currentUser.role === 'candidate') { %>
-                            <div class="flex items-center gap-2 mt-2 w-full">
-                                <a href="/internships/<%= item._id %>/skill-gap"
-                                    class="flex-1 text-center py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1.5">
-                                    <i class="ph-bold ph-chart-donut text-base text-indigo-600"></i>
-                                    Skill Gap Analysis
-                                </a>
-                                <% const isSaved = currentUser.savedInternships && currentUser.savedInternships.includes(item._id.toString()); %>
-                                <button class="bookmark-btn flex-shrink-0 w-[34px] h-[34px] flex items-center justify-center bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-slate-400 hover:text-indigo-600 transition-all active:scale-95 shadow-sm" data-id="<%= item._id %>" title="Save Internship">
-                                    <i class="<%= isSaved ? 'ph-fill text-indigo-600' : 'ph-bold' %> ph-bookmark-simple text-base"></i>
-                                </button>
-                            </div>
-                        <% } %>
-                    </div>
-                <% } %>
-
+                        </div>
+                    </form>
+                </div>
             </div>
-        <% }) %>
-    </div>
+            <script>
+                (() => {
+                    const modal = document.getElementById('saveSearchModal');
+                    if (!modal) return;
+                    const criteriaInput = document.getElementById('savedSearchCriteriaInput');
+                    const returnToInput = document.getElementById('savedSearchReturnToInput');
+                    const nameInput = document.getElementById('savedSearchName');
+                    let opener = null;
 
-    <!-- Pagination Controls Bar -->
-    <% if (paginationData && paginationData.totalPages > 1) { %>
-        <nav aria-label="Internship listings pagination" class="mt-8 flex flex-col md:flex-row items-center justify-between gap-4 border-t border-slate-200 pt-6 text-xs">
-            <div class="text-slate-600 font-medium flex items-center gap-1.5 flex-wrap">
-                <span>
-                    Showing <strong class="font-bold text-slate-900"><%= paginationData.startItem %></strong> to <strong class="font-bold text-slate-900"><%= paginationData.endItem %></strong> of <strong class="font-bold text-slate-900"><%= paginationData.totalItems %></strong> opportunities
-                </span>
-                <span class="text-slate-400 mx-1">&bull;</span>
-                <span>
-                    Page <strong class="font-bold text-slate-900"><%= paginationData.currentPage %></strong> of <strong class="font-bold text-slate-900"><%= paginationData.totalPages %></strong>
-                </span>
-            </div>
+                    const close = () => {
+                        modal.classList.add('hidden');
+                        modal.classList.remove('flex');
+                        modal.setAttribute('aria-hidden', 'true');
+                        if (opener) opener.focus();
+                    };
 
-            <div class="flex items-center gap-1.5 flex-wrap justify-center">
-                <!-- Previous Page Button -->
-                <% if (paginationData.hasPrevPage) { %>
-                    <a href="<%= queryBuilder(query, { page: paginationData.prevPage }) %>"
-                       class="px-3 py-2 border border-slate-200 rounded-lg bg-white hover:bg-slate-50 hover:border-slate-300 text-slate-700 font-semibold transition-colors flex items-center gap-1 shadow-2xs"
-                       aria-label="Go to previous page">
-                        <i class="ph-bold ph-caret-left" aria-hidden="true"></i> Previous
-                    </a>
-                <% } else { %>
-                    <span class="px-3 py-2 border border-slate-200/60 rounded-lg bg-slate-50 text-slate-300 font-semibold cursor-not-allowed flex items-center gap-1"
-                          aria-disabled="true">
-                        <i class="ph-bold ph-caret-left" aria-hidden="true"></i> Previous
-                    </span>
-                <% } %>
-
-                <!-- Numbered Page Buttons with Ellipses -->
-                <% (paginationData.pages || []).forEach(p => { %>
-                    <% if (p === '...') { %>
-                        <span class="px-2 py-2 text-slate-400 select-none font-bold" aria-hidden="true">&hellip;</span>
-                    <% } else if (p === paginationData.currentPage) { %>
-                        <span class="px-3.5 py-2 bg-indigo-600 border border-indigo-600 text-white font-bold rounded-lg shadow-sm"
-                              aria-current="page">
-                            <%= p %>
-                        </span>
-                    <% } else { %>
-                        <a href="<%= queryBuilder(query, { page: p }) %>"
-                           class="px-3.5 py-2 border border-slate-200 rounded-lg bg-white hover:bg-slate-50 hover:border-slate-300 text-slate-700 font-semibold transition-colors shadow-2xs"
-                           aria-label="Go to page <%= p %>">
-                            <%= p %>
-                        </a>
-                    <% } %>
-                <% }) %>
-
-                <!-- Next Page Button -->
-                <% if (paginationData.hasNextPage) { %>
-                    <a href="<%= queryBuilder(query, { page: paginationData.nextPage }) %>"
-                       class="px-3 py-2 border border-slate-200 rounded-lg bg-white hover:bg-slate-50 hover:border-slate-300 text-slate-700 font-semibold transition-colors flex items-center gap-1 shadow-2xs"
-                       aria-label="Go to next page">
-                        Next <i class="ph-bold ph-caret-right" aria-hidden="true"></i>
-                    </a>
-                <% } else { %>
-                    <span class="px-3 py-2 border border-slate-200/60 rounded-lg bg-slate-50 text-slate-300 font-semibold cursor-not-allowed flex items-center gap-1"
-                          aria-disabled="true">
-                        Next <i class="ph-bold ph-caret-right" aria-hidden="true"></i>
-                    </span>
-                <% } %>
-            </div>
-        </nav>
-    <% } %>
-
-    <% } %>
-
-    </div>
-
-    <% if (canCreateListings) { %>
-    <!-- POST NEW MODAL -->
-    <div id="postingModal"
-        class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white border border-slate-200 rounded-xl max-w-lg w-full p-6 shadow-xl relative max-h-[90vh] overflow-y-auto">
-            <div class="flex items-center justify-between pb-4 border-b border-slate-100">
-                <div>
-                    <h3 class="text-lg font-bold text-slate-900">Post New Internship Listing</h3>
-                    <p class="text-xs text-slate-500">Add an opportunity to match eligible candidates under PMIS.</p>
-                </div>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
-                    <i class="ph-bold ph-x text-xl"></i>
-                </button>
-            </div>
-
-            <form action="/internships/new" method="POST" class="mt-4 space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Internship Role Title</label>
-                    <input type="text" name="title" required placeholder="e.g. Quality Control Assistant"
-                        class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Company / Organization</label>
-                        <input type="text" name="company" placeholder="e.g. Tata Motors"
-                            class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Industry Sector</label>
-                        <input type="text" name="sector" required placeholder="e.g. Automotive"
-                            class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Location (District, State)</label>
-                        <input type="text" name="location" required placeholder="e.g. Pune, Maharashtra"
-                            class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Total Open Vacancies</label>
-                        <input type="number" name="vacancies" min="1" value="5" required
-                            class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Monthly Stipend (₹)</label>
-                        <input type="number" name="stipend" required placeholder="e.g. 10000" min="0" step="500"
-                            class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Duration</label>
-                        <input type="text" name="duration" placeholder="e.g. 12 Months"
-                            class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Min Qualifications</label>
-                    <input type="text" name="minQualifications" placeholder="e.g. B.Tech / Diploma / Any"
-                        class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Required Skills (Comma Separated)</label>
-                    <input type="text" name="requiredSkills" required placeholder="e.g. Quality Control, Python"
-                        class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Application Deadline (Optional)</label>
-                    <input type="date" name="deadline"
-                        class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600 text-slate-600">
-                </div>
-                <%- include('../partials/application-question-builder', { applicationQuestions: [] }) %>
-                <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2">
-                    <button type="button" onclick="closeModal()"
-                        class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg border border-slate-200">Cancel</button>
-                    <button type="submit" name="action" value="draft" formnovalidate
-                        class="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-300">Save as Draft</button>
-                    <button type="submit" name="action" value="publish"
-                        class="px-4 py-2 text-xs font-semibold text-white bg-indigo-700 hover:bg-indigo-800 rounded-lg shadow-sm">Publish Listing</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    <% } %>
-
-
-    <% if (canCreateListings) { %>
-    <div id="editModal"
-        class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white border border-slate-200 rounded-xl max-w-lg w-full p-6 shadow-xl relative max-h-[90vh] overflow-y-auto">
-            <div class="flex items-center justify-between pb-4 border-b border-slate-100">
-                <div>
-                    <h3 class="text-lg font-bold text-slate-900">Edit Internship Listing</h3>
-                    <p class="text-xs text-slate-500">Update listing details for PMIS candidates.</p>
-                </div>
-                <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
-                    <i class="ph-bold ph-x text-xl"></i>
-                </button>
-            </div>
-
-            <form id="editForm" method="POST" class="mt-4 space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Internship Role Title</label>
-                    <input type="text" id="edit_title" name="title" required
-                        class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Company / Organization</label>
-                        <input type="text" id="edit_company" name="company" required
-                            class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Industry Sector</label>
-                        <input type="text" id="edit_sector" name="sector" required
-                            class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Location (District, State)</label>
-                        <input type="text" id="edit_location" name="location" required
-                            class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Total Open Vacancies</label>
-                        <input type="number" id="edit_vacancies" name="vacancies" min="1" required
-                            class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Monthly Stipend (₹)</label>
-                        <input type="number" id="edit_stipend" name="stipend" required
-                            class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Duration</label>
-                        <input type="text" id="edit_duration" name="duration"
-                            class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Min Qualifications</label>
-                    <input type="text" id="edit_minQualifications" name="minQualifications" placeholder="e.g. B.Tech / Diploma / Any"
-                        class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Required Skills (Comma Separated)</label>
-                    <input type="text" id="edit_skills" name="requiredSkills" required
-                        class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Application Deadline (Optional)</label>
-                    <input type="date" id="edit_deadline" name="deadline"
-                        class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600 text-slate-600">
-                </div>
-                <%- include('../partials/application-question-builder', { applicationQuestions: [] }) %>
-                <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2">
-                    <button type="button" onclick="closeEditModal()"
-                        class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg border border-slate-200">Cancel</button>
-                    <button type="submit"
-                        class="px-4 py-2 text-xs font-semibold text-white bg-indigo-700 hover:bg-indigo-800 rounded-lg shadow-sm">Save Changes</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    <% } %>
-
-    <%- include('../partials/internship-filters-script') %>
-
-    <script>
-        function openModal() {
-            document.getElementById('postingModal').classList.remove('hidden');
-        }
-        function closeModal() {
-            document.getElementById('postingModal').classList.add('hidden');
-        }
-
-        function openEditModal(button) {
-            try {
-                const item = JSON.parse(button.getAttribute('data-item'));
-                document.getElementById('editForm').action = '/internships/' + item._id + '/edit';
-                document.getElementById('edit_title').value = item.title || '';
-                document.getElementById('edit_company').value = item.companyName || item.company || '';
-                document.getElementById('edit_sector').value = item.sector || '';
-
-                let locStr = '';
-                if (typeof item.location === 'object' && item.location !== null) {
-                    locStr = (item.location.district || '') + (item.location.state ? ', ' + item.location.state : '');
-                } else {
-                    locStr = item.location || '';
-                }
-                document.getElementById('edit_location').value = locStr;
-
-                document.getElementById('edit_vacancies').value = item.vacancies || 1;
-                document.getElementById('edit_stipend').value = item.monthlyStipend || 5000;
-                document.getElementById('edit_duration').value = item.duration || '12 Months';
-                document.getElementById('edit_minQualifications').value = item.minQualifications || item.minQualification || '';
-                document.getElementById('edit_skills').value = Array.isArray(item.requiredSkills) ? item.requiredSkills.join(', ') : '';
-
-                if (item.applicationDeadline) {
-                    const dateObj = new Date(item.applicationDeadline);
-                    if (!isNaN(dateObj.getTime())) {
-                        document.getElementById('edit_deadline').value = dateObj.toISOString().split('T')[0];
-                    } else {
-                        document.getElementById('edit_deadline').value = '';
-                    }
-                } else {
-                    document.getElementById('edit_deadline').value = '';
-                }
-
-                const questionBuilder = document.querySelector('#editForm [data-application-question-builder]');
-                if (questionBuilder && typeof questionBuilder.__setApplicationQuestions === 'function') {
-                    questionBuilder.__setApplicationQuestions(item.applicationQuestions || []);
-                }
-
-                document.getElementById('editModal').classList.remove('hidden');
-            } catch (err) {
-                console.error('Error parsing item data:', err);
-            }
-        }
-
-        function closeEditModal() {
-            document.getElementById('editModal').classList.add('hidden');
-        }
-
-        // Bookmark Toggle Logic
-        document.addEventListener('DOMContentLoaded', () => {
-            const bookmarkBtns = document.querySelectorAll('.bookmark-btn');
-            bookmarkBtns.forEach(btn => {
-                btn.addEventListener('click', async (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const icon = btn.querySelector('i');
-                    const internshipId = btn.getAttribute('data-id');
-                    
-                    // Optimistic UI update for sleek feel
-                    const isCurrentlySaved = icon.classList.contains('ph-fill');
-                    if (isCurrentlySaved) {
-                        icon.classList.remove('ph-fill', 'text-indigo-600');
-                        icon.classList.add('ph-bold');
-                    } else {
-                        icon.classList.remove('ph-bold');
-                        icon.classList.add('ph-fill', 'text-indigo-600');
-                    }
-                    
-                    try {
-                        const response = await fetch(`/candidate/saved-internships/${internshipId}/toggle`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' }
-                        });
-                        const data = await response.json();
-                        if (!data.success) {
-                            // Revert on failure
-                            if (isCurrentlySaved) {
-                                icon.classList.remove('ph-bold');
-                                icon.classList.add('ph-fill', 'text-indigo-600');
-                            } else {
-                                icon.classList.remove('ph-fill', 'text-indigo-600');
-                                icon.classList.add('ph-bold');
-                            }
-                            alert('Failed to save internship. Please try again.');
-                        }
-                    } catch (err) {
-                        console.error(err);
-                        // Revert on error
-                        if (isCurrentlySaved) {
-                            icon.classList.remove('ph-bold');
-                            icon.classList.add('ph-fill', 'text-indigo-600');
-                        } else {
-                            icon.classList.remove('ph-fill', 'text-indigo-600');
-                            icon.classList.add('ph-bold');
-                        }
-                    }
-                });
-            });
-        });
-    </script>
-
-    <!-- Compare Action Bar -->
-    <div id="compareBar" class="fixed bottom-0 left-0 right-0 bg-white border-t border-indigo-100 shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.1)] p-4 flex justify-between items-center z-50 transform translate-y-full transition-transform duration-300">
-        <div class="flex items-center gap-4 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 justify-between">
-            <div class="text-sm font-semibold text-slate-700">
-                <span id="compareCount" class="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full mr-1.5">0</span> 
-                <span class="hidden sm:inline">internships selected (Max 3)</span>
-                <span class="sm:hidden">selected</span>
-            </div>
-            <div class="flex gap-3">
-                <button id="clearCompareBtn" class="text-slate-500 text-sm hover:text-slate-800 transition-colors cursor-pointer font-medium px-2 py-2">Clear</button>
-                <button id="compareSubmitBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-sm">
-                    Compare
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const checkboxes = document.querySelectorAll('.compare-checkbox');
-            const compareBar = document.getElementById('compareBar');
-            const compareCount = document.getElementById('compareCount');
-            const clearCompareBtn = document.getElementById('clearCompareBtn');
-            const compareSubmitBtn = document.getElementById('compareSubmitBtn');
-            
-            let selectedIds = new Set();
-
-            function updateUI() {
-                compareCount.textContent = selectedIds.size;
-                
-                if (selectedIds.size > 0) {
-                    compareBar.classList.remove('translate-y-full');
-                } else {
-                    compareBar.classList.add('translate-y-full');
-                }
-
-                if (selectedIds.size >= 2) {
-                    compareSubmitBtn.disabled = false;
-                } else {
-                    compareSubmitBtn.disabled = true;
-                }
-            }
-
-            checkboxes.forEach(cb => {
-                cb.addEventListener('change', (e) => {
-                    if (e.target.checked) {
-                        if (selectedIds.size >= 3) {
-                            alert("You can only compare up to 3 internships at a time.");
-                            e.target.checked = false;
+                    document.addEventListener('click', event => {
+                        const openButton = event.target.closest('[data-save-search-open]');
+                        if (openButton) {
+                            opener = openButton;
+                            criteriaInput.value = openButton.dataset.criteria || '{}';
+                            returnToInput.value = openButton.dataset.returnTo || '/internships';
+                            modal.classList.remove('hidden');
+                            modal.classList.add('flex');
+                            modal.setAttribute('aria-hidden', 'false');
+                            window.setTimeout(() => nameInput.focus(), 0);
                             return;
                         }
-                        selectedIds.add(e.target.value);
-                    } else {
-                        selectedIds.delete(e.target.value);
-                    }
-                    updateUI();
-                });
-            });
+                        if (event.target === modal || event.target.closest('[data-save-search-close]')) close();
+                    });
 
-            clearCompareBtn.addEventListener('click', () => {
-                selectedIds.clear();
-                checkboxes.forEach(cb => cb.checked = false);
-                updateUI();
-            });
+                    document.addEventListener('keydown', event => {
+                        if (event.key === 'Escape' && !modal.classList.contains('hidden')) close();
+                    });
+                })();
+            </script>
+            <% } %>
 
-            compareSubmitBtn.addEventListener('click', () => {
-                if (selectedIds.size >= 2 && selectedIds.size <= 3) {
-                    const ids = Array.from(selectedIds).join(',');
-                    window.location.href = `/internships/compare?ids=${ids}`;
-                }
-            });
-        });
-    </script>
+                <%# Swapped in place by the filter script. data-state carries the filters the server actually applied.
+                    %>
+                    <div data-live-region="results" data-state="<%= JSON.stringify(query) %>" aria-live="polite"
+                        class="transition-opacity scroll-mt-24">
+
+                        <%- include('../partials/internship-active-filters') %>
+
+                            <% if (!internships || internships.length===0) { %>
+                                <div
+                                    class="bg-white border border-slate-200 rounded-xl p-12 text-center shadow-sm my-6">
+                                    <i class="ph-bold ph-magnifying-glass text-4xl text-slate-300 mb-2"></i>
+                                    <h3 class="text-base font-bold text-slate-800">
+                                        <%= filter==='paused' ? 'No paused internship listings found'
+                                            : 'No matching internships found' %>
+                                    </h3>
+                                    <p class="text-xs text-slate-500 mt-1 mb-4">
+                                        <%= filter==='paused' ? 'There are currently no paused internship listings.'
+                                            : 'Try relaxing your search terms or clearing filters.' %>
+                                    </p>
+                                    <a href="/internships?status=all"
+                                        class="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition-colors">
+                                        Reset All Filters
+                                    </a>
+                                </div>
+                                <% } else { %>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                                        data-animate-stagger>
+                                        <% internships.forEach(item=> { %>
+                                            <% const isItemPaused=item.status==='paused' || item.isPaused; %>
+                                                <% const isOwnedByCurrentCompany=currentUserCompanyId && item.companyId
+                                                    && item.companyId.toString()===currentUserCompanyId.toString(); %>
+                                                    <% const canEditItem=isOwnedByCurrentCompany && currentUser &&
+                                                        ['company', 'recruiter' ].includes(currentUser.role); %>
+                                                        <% const canDeleteItem=isOwnedByCurrentCompany && currentUser &&
+                                                            currentUser.role==='company' ; %>
+                                                            <div data-tilt
+                                                                class="internship-card bg-white border <%= isItemPaused ? 'border-amber-300' : 'border-slate-200' %> rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between relative group"
+                                                                data-stipend="<%= item.monthlyStipend || 5000 %>"
+                                                                data-duration="<%= parseInt(item.duration) || 12 %>"
+                                                                data-posted="<%= item._id.getTimestamp ? item._id.getTimestamp().getTime() : Date.now() %>">
+
+                                                                <div>
+                                                                    <div class="flex items-center justify-between mb-3">
+                                                                        <div class="flex items-center gap-2 flex-wrap">
+                                                                            <% if (typeof currentUser==='undefined' ||
+                                                                                !currentUser ||
+                                                                                currentUser.role==='candidate' ) { %>
+                                                                                <label
+                                                                                    class="inline-flex items-center gap-1.5 cursor-pointer group/cb">
+                                                                                    <input type="checkbox"
+                                                                                        value="<%= item._id %>"
+                                                                                        class="compare-checkbox w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600 cursor-pointer">
+                                                                                    <span
+                                                                                        class="text-[10px] uppercase font-bold text-slate-400 group-hover/cb:text-indigo-600 transition-colors hidden sm:inline">Compare</span>
+                                                                                </label>
+                                                                                <% } %>
+                                                                                    <span
+                                                                                        class="text-[11px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100 px-2.5 py-0.5 rounded-full">
+                                                                                        <%= item.sector || "General" %>
+                                                                                    </span>
+                                                                                    <% if (isItemPaused) { %>
+                                                                                        <span
+                                                                                            class="text-[11px] font-bold text-amber-800 bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                                                                            <i
+                                                                                                class="ph-bold ph-pause-circle"></i>
+                                                                                            Applications Paused
+                                                                                        </span>
+                                                                                        <% } %>
+                                                                        </div>
+
+                                                                        <div class="flex items-center gap-2">
+                                                                            <span
+                                                                                class="text-[11px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded">
+                                                                                <%= item.vacancies || 1 %> Openings
+                                                                            </span>
+
+                                                                            <% if (canEditItem) { %>
+                                                                                <button onclick="openEditModal(this)"
+                                                                                    data-item='<%= JSON.stringify(item) %>'
+                                                                                    class="text-slate-400 hover:text-indigo-600 transition-colors cursor-pointer p-0.5"
+                                                                                    title="Edit">
+                                                                                    <i
+                                                                                        class="ph-bold ph-pencil-simple text-sm"></i>
+                                                                                </button>
+
+                                                                                <% } %>
+
+                                                                                    <% if (canDeleteItem) { %>
+                                                                                        <form
+                                                                                            action="/internships/<%= item._id %>/delete"
+                                                                                            method="POST"
+                                                                                            onsubmit="return confirm('Delete this internship?');"
+                                                                                            class="inline">
+                                                                                            <button type="submit"
+                                                                                                class="text-slate-400 hover:text-rose-600 transition-colors cursor-pointer p-0.5"
+                                                                                                title="Delete">
+                                                                                                <i
+                                                                                                    class="ph-bold ph-trash text-sm"></i>
+                                                                                            </button>
+                                                                                        </form>
+                                                                                        <% } %>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <a href="/internships/<%= item._id %>"
+                                                                        class="hover:text-indigo-600 transition-colors">
+                                                                        <h3
+                                                                            class="text-base font-bold text-slate-900 group-hover:text-indigo-600 transition-colors leading-snug">
+                                                                            <%= item.title %>
+                                                                        </h3>
+                                                                    </a>
+                                                                    <p
+                                                                        class="text-xs font-semibold text-slate-600 mt-0.5 flex items-center gap-1">
+                                                                        <i
+                                                                            class="ph-bold ph-buildings text-slate-400"></i>
+                                                                        <% if (item.companyId) { %>
+                                                                            <a href="/company/<%= item.companyId %>/profile"
+                                                                                class="hover:text-indigo-600 hover:underline">
+                                                                                <%= item.companyName || item.company %>
+                                                                            </a>
+                                                                            <% } else { %>
+                                                                                <span>
+                                                                                    <%= item.companyName || item.company
+                                                                                        %>
+                                                                                </span>
+                                                                                <% } %>
+                                                                    </p>
+
+                                                                    <div
+                                                                        class="my-4 p-3 bg-slate-50 border border-slate-100 rounded-lg text-xs space-y-1.5 text-slate-600">
+                                                                        <div class="flex items-center gap-1.5">
+                                                                            <i
+                                                                                class="ph-bold ph-map-pin text-rose-500"></i>
+                                                                            <span>
+                                                                                <%= typeof item.location==='object' &&
+                                                                                    item.location !==null ?
+                                                                                    ((item.location.district ?
+                                                                                    item.location.district + ', ' : '' )
+                                                                                    + (item.location.state || '' )) :
+                                                                                    (item.location
+                                                                                    || 'Location Not Specified' ) %>
+                                                                            </span>
+                                                                        </div>
+                                                                        <div
+                                                                            class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                                                                            <span class="flex items-center gap-1.5">
+                                                                                <i
+                                                                                    class="ph-bold ph-currency-inr text-emerald-600"></i>
+                                                                                <strong class="text-slate-800">
+                                                                                    ₹<%= item.monthlyStipend ?
+                                                                                        Number(item.monthlyStipend).toLocaleString('en-IN')
+                                                                                        : '5,000' %> / month
+                                                                                </strong>
+                                                                            </span>
+                                                                            <span
+                                                                                class="flex items-center gap-1 text-slate-500">
+                                                                                <i class="ph-bold ph-clock"></i>
+                                                                                <%= item.duration || "12 Months" %>
+                                                                            </span>
+                                                                        </div>
+
+                                                                        <% if (isItemPaused) { %>
+                                                                            <div
+                                                                                class="flex items-center gap-1.5 mt-1.5 pt-1.5 border-t border-amber-200 text-amber-800 font-semibold text-xs bg-amber-50/80 px-2 py-1 rounded">
+                                                                                <i
+                                                                                    class="ph-bold ph-pause-circle text-amber-600 text-sm"></i>
+                                                                                <span>Applications are temporarily
+                                                                                    paused.</span>
+                                                                            </div>
+                                                                            <% } %>
+                                                                    </div>
+
+                                                                    <div class="mb-4">
+                                                                        <p
+                                                                            class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                                                                            Required Skills</p>
+                                                                        <div class="flex flex-wrap gap-1.5">
+                                                                            <% if (Array.isArray(item.requiredSkills)) {
+                                                                                %>
+                                                                                <% item.requiredSkills.forEach(skill=> {
+                                                                                    %>
+                                                                                    <span
+                                                                                        class="text-xs font-medium text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200">
+                                                                                        <%= skill %>
+                                                                                    </span>
+                                                                                    <% }) %>
+                                                                                        <% } %>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <!-- Candidate-only application controls. Team accounts are read-only here. -->
+                                                                <% if (!currentUser || currentUser.role==='candidate' )
+                                                                    { %>
+                                                                    <div class="pt-2">
+                                                                        <% if (!currentUser) { %>
+                                                                            <!-- 1. NOT LOGGED IN -> Redirect to Login Page or show Paused -->
+                                                                            <% if (isItemPaused) { %>
+                                                                                <button disabled
+                                                                                    class="w-full text-center py-2 bg-amber-50 text-amber-700 border border-amber-200 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 cursor-not-allowed"
+                                                                                    title="Applications for this position are temporarily paused.">
+                                                                                    <i
+                                                                                        class="ph-bold ph-pause-circle text-base"></i>
+                                                                                    Applications Paused
+                                                                                </button>
+                                                                                <% } else { %>
+                                                                                    <a href="/auth/login"
+                                                                                        class="w-full text-center py-2 bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-sm">
+                                                                                        <i
+                                                                                            class="ph-bold ph-paper-plane-tilt"></i>
+                                                                                        Apply Now
+                                                                                    </a>
+                                                                                    <% } %>
+                                                                                        <% } else if (typeof appliedIds
+                                                                                            !=='undefined' &&
+                                                                                            Array.isArray(appliedIds) &&
+                                                                                            appliedIds.includes(item._id.toString()))
+                                                                                            { %>
+                                                                                            <!-- 2. LOGGED IN CANDIDATE & ALREADY APPLIED -->
+                                                                                            <button disabled
+                                                                                                class="w-full text-center py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 cursor-not-allowed">
+                                                                                                <i
+                                                                                                    class="ph-bold ph-check-circle text-base"></i>
+                                                                                                Applied
+                                                                                            </button>
+                                                                                            <% } else if (isItemPaused)
+                                                                                                { %>
+                                                                                                <!-- 3. LOGGED IN CANDIDATE & APPLICATIONS PAUSED -->
+                                                                                                <button disabled
+                                                                                                    class="w-full text-center py-2 bg-amber-50 text-amber-700 border border-amber-200 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 cursor-not-allowed"
+                                                                                                    title="The recruiter has temporarily paused new applications for this position.">
+                                                                                                    <i
+                                                                                                        class="ph-bold ph-pause-circle text-base"></i>
+                                                                                                    Applications Paused
+                                                                                                </button>
+                                                                                                <% } else if
+                                                                                                    (item.applicationDeadline
+                                                                                                    && new Date()> new
+                                                                                                    Date(item.applicationDeadline))
+                                                                                                    { %>
+                                                                                                    <!-- 4. DEADLINE PASSED -->
+                                                                                                    <button disabled
+                                                                                                        class="w-full text-center py-2 bg-rose-50 text-rose-700 border border-rose-200 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 cursor-not-allowed">
+                                                                                                        <i
+                                                                                                            class="ph-bold ph-x-circle text-base"></i>
+                                                                                                        Applications
+                                                                                                        Closed
+                                                                                                    </button>
+                                                                                                    <% } else { %>
+                                                                                                        <!-- 5. LOGGED IN CANDIDATE & HAS NOT APPLIED & OPEN -->
+                                                                                                        <% const
+                                                                                                            requiresApplicationKit=Array.isArray(item.applicationQuestions)
+                                                                                                            &&
+                                                                                                            item.applicationQuestions.some(question=>
+                                                                                                            question &&
+                                                                                                            question.prompt);
+                                                                                                            %>
+                                                                                                            <a href="/internships/<%= item._id %>/application-kit"
+                                                                                                                class="w-full text-center py-2 bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-sm">
+                                                                                                                <i
+                                                                                                                    class="ph-bold ph-briefcase"></i>
+                                                                                                                <%= requiresApplicationKit
+                                                                                                                    ? 'Prepare Application Kit'
+                                                                                                                    : 'Tailor Application'
+                                                                                                                    %>
+                                                                                                            </a>
+                                                                                                            <% if
+                                                                                                                (!requiresApplicationKit)
+                                                                                                                { %>
+                                                                                                                <form
+                                                                                                                    action="/internships/<%= item._id %>/apply"
+                                                                                                                    method="POST"
+                                                                                                                    class="w-full"
+                                                                                                                    data-quick-apply-form
+                                                                                                                    data-no-loading
+                                                                                                                    data-internship-title="<%= item.title %>"
+                                                                                                                    data-company-name="<%= item.companyName || item.company || '' %>">
+                                                                                                                    <button
+                                                                                                                        type="submit"
+                                                                                                                        class="mt-2 w-full text-center py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1.5">
+                                                                                                                        <i
+                                                                                                                            class="ph-bold ph-paper-plane-tilt"></i>
+                                                                                                                        Quick
+                                                                                                                        Apply
+                                                                                                                    </button>
+                                                                                                                </form>
+                                                                                                                <% } %>
+                                                                                                                    <% }
+                                                                                                                        %>
+
+                                                                                                                        <% if
+                                                                                                                            (currentUser
+                                                                                                                            &&
+                                                                                                                            currentUser.role==='candidate'
+                                                                                                                            )
+                                                                                                                            {
+                                                                                                                            %>
+                                                                                                                            <div
+                                                                                                                                class="flex items-center gap-2 mt-2 w-full">
+                                                                                                                                <a href="/internships/<%= item._id %>/skill-gap"
+                                                                                                                                    class="flex-1 text-center py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1.5">
+                                                                                                                                    <i
+                                                                                                                                        class="ph-bold ph-chart-donut text-base text-indigo-600"></i>
+                                                                                                                                    Skill
+                                                                                                                                    Gap
+                                                                                                                                    Analysis
+                                                                                                                                </a>
+                                                                                                                                <% const
+                                                                                                                                    isSaved=currentUser.savedInternships
+                                                                                                                                    &&
+                                                                                                                                    currentUser.savedInternships.includes(item._id.toString());
+                                                                                                                                    %>
+                                                                                                                                    <button
+                                                                                                                                        class="bookmark-btn flex-shrink-0 w-[34px] h-[34px] flex items-center justify-center bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-slate-400 hover:text-indigo-600 transition-all active:scale-95 shadow-sm"
+                                                                                                                                        data-id="<%= item._id %>"
+                                                                                                                                        title="Save Internship">
+                                                                                                                                        <i
+                                                                                                                                            class="<%= isSaved ? 'ph-fill text-indigo-600' : 'ph-bold' %> ph-bookmark-simple text-base"></i>
+                                                                                                                                    </button>
+                                                                                                                            </div>
+                                                                                                                            <% }
+                                                                                                                                %>
+                                                                    </div>
+                                                                    <% } %>
+
+                                                            </div>
+                                                            <% }) %>
+                                    </div>
+
+                                    <!-- Pagination Controls Bar -->
+                                    <% if (paginationData && paginationData.totalPages> 1) { %>
+                                        <nav aria-label="Internship listings pagination"
+                                            class="mt-8 flex flex-col md:flex-row items-center justify-between gap-4 border-t border-slate-200 pt-6 text-xs">
+                                            <div class="text-slate-600 font-medium flex items-center gap-1.5 flex-wrap">
+                                                <span>
+                                                    Showing <strong class="font-bold text-slate-900">
+                                                        <%= paginationData.startItem %>
+                                                    </strong> to <strong class="font-bold text-slate-900">
+                                                        <%= paginationData.endItem %>
+                                                    </strong> of <strong class="font-bold text-slate-900">
+                                                        <%= paginationData.totalItems %>
+                                                    </strong> opportunities
+                                                </span>
+                                                <span class="text-slate-400 mx-1">&bull;</span>
+                                                <span>
+                                                    Page <strong class="font-bold text-slate-900">
+                                                        <%= paginationData.currentPage %>
+                                                    </strong> of <strong class="font-bold text-slate-900">
+                                                        <%= paginationData.totalPages %>
+                                                    </strong>
+                                                </span>
+                                            </div>
+
+                                            <div class="flex items-center gap-1.5 flex-wrap justify-center">
+                                                <!-- Previous Page Button -->
+                                                <% if (paginationData.hasPrevPage) { %>
+                                                    <a href="<%= queryBuilder(query, { page: paginationData.prevPage }) %>"
+                                                        class="px-3 py-2 border border-slate-200 rounded-lg bg-white hover:bg-slate-50 hover:border-slate-300 text-slate-700 font-semibold transition-colors flex items-center gap-1 shadow-2xs"
+                                                        aria-label="Go to previous page">
+                                                        <i class="ph-bold ph-caret-left" aria-hidden="true"></i>
+                                                        Previous
+                                                    </a>
+                                                    <% } else { %>
+                                                        <span
+                                                            class="px-3 py-2 border border-slate-200/60 rounded-lg bg-slate-50 text-slate-300 font-semibold cursor-not-allowed flex items-center gap-1"
+                                                            aria-disabled="true">
+                                                            <i class="ph-bold ph-caret-left" aria-hidden="true"></i>
+                                                            Previous
+                                                        </span>
+                                                        <% } %>
+
+                                                            <!-- Numbered Page Buttons with Ellipses -->
+                                                            <% (paginationData.pages || []).forEach(p=> { %>
+                                                                <% if (p==='...' ) { %>
+                                                                    <span
+                                                                        class="px-2 py-2 text-slate-400 select-none font-bold"
+                                                                        aria-hidden="true">&hellip;</span>
+                                                                    <% } else if (p===paginationData.currentPage) { %>
+                                                                        <span
+                                                                            class="px-3.5 py-2 bg-indigo-600 border border-indigo-600 text-white font-bold rounded-lg shadow-sm"
+                                                                            aria-current="page">
+                                                                            <%= p %>
+                                                                        </span>
+                                                                        <% } else { %>
+                                                                            <a href="<%= queryBuilder(query, { page: p }) %>"
+                                                                                class="px-3.5 py-2 border border-slate-200 rounded-lg bg-white hover:bg-slate-50 hover:border-slate-300 text-slate-700 font-semibold transition-colors shadow-2xs"
+                                                                                aria-label="Go to page <%= p %>">
+                                                                                <%= p %>
+                                                                            </a>
+                                                                            <% } %>
+                                                                                <% }) %>
+
+                                                                                    <!-- Next Page Button -->
+                                                                                    <% if (paginationData.hasNextPage) {
+                                                                                        %>
+                                                                                        <a href="<%= queryBuilder(query, { page: paginationData.nextPage }) %>"
+                                                                                            class="px-3 py-2 border border-slate-200 rounded-lg bg-white hover:bg-slate-50 hover:border-slate-300 text-slate-700 font-semibold transition-colors flex items-center gap-1 shadow-2xs"
+                                                                                            aria-label="Go to next page">
+                                                                                            Next <i
+                                                                                                class="ph-bold ph-caret-right"
+                                                                                                aria-hidden="true"></i>
+                                                                                        </a>
+                                                                                        <% } else { %>
+                                                                                            <span
+                                                                                                class="px-3 py-2 border border-slate-200/60 rounded-lg bg-slate-50 text-slate-300 font-semibold cursor-not-allowed flex items-center gap-1"
+                                                                                                aria-disabled="true">
+                                                                                                Next <i
+                                                                                                    class="ph-bold ph-caret-right"
+                                                                                                    aria-hidden="true"></i>
+                                                                                            </span>
+                                                                                            <% } %>
+                                            </div>
+                                        </nav>
+                                        <% } %>
+
+                                            <% } %>
+
+                    </div>
+
+                    <% if (canCreateListings) { %>
+                        <!-- POST NEW MODAL -->
+                        <div id="postingModal"
+                            class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+                            <div
+                                class="bg-white border border-slate-200 rounded-xl max-w-lg w-full p-6 shadow-xl relative max-h-[90vh] overflow-y-auto">
+                                <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                                    <div>
+                                        <h3 class="text-lg font-bold text-slate-900">Post New Internship Listing</h3>
+                                        <p class="text-xs text-slate-500">Add an opportunity to match eligible
+                                            candidates under PMIS.</p>
+                                    </div>
+                                    <button onclick="closeModal()"
+                                        class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+                                        <i class="ph-bold ph-x text-xl"></i>
+                                    </button>
+                                </div>
+
+                                <form action="/internships/new" method="POST" class="mt-4 space-y-4">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-700 mb-1">Internship Role
+                                            Title</label>
+                                        <input type="text" name="title" required
+                                            placeholder="e.g. Quality Control Assistant"
+                                            class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="block text-xs font-semibold text-slate-700 mb-1">Company /
+                                                Organization</label>
+                                            <input type="text" name="company" placeholder="e.g. Tata Motors"
+                                                class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-semibold text-slate-700 mb-1">Industry
+                                                Sector</label>
+                                            <input type="text" name="sector" required placeholder="e.g. Automotive"
+                                                class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="block text-xs font-semibold text-slate-700 mb-1">Location
+                                                (District, State)</label>
+                                            <input type="text" name="location" required
+                                                placeholder="e.g. Pune, Maharashtra"
+                                                class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-semibold text-slate-700 mb-1">Total Open
+                                                Vacancies</label>
+                                            <input type="number" name="vacancies" min="1" value="5" required
+                                                class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="block text-xs font-semibold text-slate-700 mb-1">Monthly
+                                                Stipend (₹)</label>
+                                            <input type="number" name="stipend" required placeholder="e.g. 10000"
+                                                min="0" step="500"
+                                                class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
+                                        </div>
+                                        <div>
+                                            <label
+                                                class="block text-xs font-semibold text-slate-700 mb-1">Duration</label>
+                                            <input type="text" name="duration" placeholder="e.g. 12 Months"
+                                                class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-700 mb-1">Min
+                                            Qualifications</label>
+                                        <input type="text" name="minQualifications"
+                                            placeholder="e.g. B.Tech / Diploma / Any"
+                                            class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-700 mb-1">Required Skills
+                                            (Comma Separated)</label>
+                                        <input type="text" name="requiredSkills" required
+                                            placeholder="e.g. Quality Control, Python"
+                                            class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-700 mb-1">Application
+                                            Deadline (Optional)</label>
+                                        <input type="date" name="deadline"
+                                            class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600 text-slate-600">
+                                    </div>
+                                    <%- include('../partials/application-question-builder', { applicationQuestions: []
+                                        }) %>
+                                        <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2">
+                                            <button type="button" onclick="closeModal()"
+                                                class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg border border-slate-200">Cancel</button>
+                                            <button type="submit" name="action" value="draft" formnovalidate
+                                                class="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-300">Save
+                                                as Draft</button>
+                                            <button type="submit" name="action" value="publish"
+                                                class="px-4 py-2 text-xs font-semibold text-white bg-indigo-700 hover:bg-indigo-800 rounded-lg shadow-sm">Publish
+                                                Listing</button>
+                                        </div>
+                                </form>
+                            </div>
+                        </div>
+                        <% } %>
+
+
+                            <% if (canCreateListings) { %>
+                                <div id="editModal"
+                                    class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+                                    <div
+                                        class="bg-white border border-slate-200 rounded-xl max-w-lg w-full p-6 shadow-xl relative max-h-[90vh] overflow-y-auto">
+                                        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                                            <div>
+                                                <h3 class="text-lg font-bold text-slate-900">Edit Internship Listing
+                                                </h3>
+                                                <p class="text-xs text-slate-500">Update listing details for PMIS
+                                                    candidates.</p>
+                                            </div>
+                                            <button onclick="closeEditModal()"
+                                                class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+                                                <i class="ph-bold ph-x text-xl"></i>
+                                            </button>
+                                        </div>
+
+                                        <form id="editForm" method="POST" class="mt-4 space-y-4">
+                                            <div>
+                                                <label
+                                                    class="block text-xs font-semibold text-slate-700 mb-1">Internship
+                                                    Role Title</label>
+                                                <input type="text" id="edit_title" name="title" required
+                                                    class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
+                                            </div>
+                                            <div class="grid grid-cols-2 gap-3">
+                                                <div>
+                                                    <label
+                                                        class="block text-xs font-semibold text-slate-700 mb-1">Company
+                                                        / Organization</label>
+                                                    <input type="text" id="edit_company" name="company" required
+                                                        class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
+                                                </div>
+                                                <div>
+                                                    <label
+                                                        class="block text-xs font-semibold text-slate-700 mb-1">Industry
+                                                        Sector</label>
+                                                    <input type="text" id="edit_sector" name="sector" required
+                                                        class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
+                                                </div>
+                                            </div>
+                                            <div class="grid grid-cols-2 gap-3">
+                                                <div>
+                                                    <label
+                                                        class="block text-xs font-semibold text-slate-700 mb-1">Location
+                                                        (District, State)</label>
+                                                    <input type="text" id="edit_location" name="location" required
+                                                        class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
+                                                </div>
+                                                <div>
+                                                    <label class="block text-xs font-semibold text-slate-700 mb-1">Total
+                                                        Open Vacancies</label>
+                                                    <input type="number" id="edit_vacancies" name="vacancies" min="1"
+                                                        required
+                                                        class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
+                                                </div>
+                                            </div>
+                                            <div class="grid grid-cols-2 gap-3">
+                                                <div>
+                                                    <label
+                                                        class="block text-xs font-semibold text-slate-700 mb-1">Monthly
+                                                        Stipend (₹)</label>
+                                                    <input type="number" id="edit_stipend" name="stipend" required
+                                                        class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
+                                                </div>
+                                                <div>
+                                                    <label
+                                                        class="block text-xs font-semibold text-slate-700 mb-1">Duration</label>
+                                                    <input type="text" id="edit_duration" name="duration"
+                                                        class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-semibold text-slate-700 mb-1">Min
+                                                    Qualifications</label>
+                                                <input type="text" id="edit_minQualifications" name="minQualifications"
+                                                    placeholder="e.g. B.Tech / Diploma / Any"
+                                                    class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-semibold text-slate-700 mb-1">Required
+                                                    Skills (Comma Separated)</label>
+                                                <input type="text" id="edit_skills" name="requiredSkills" required
+                                                    class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600">
+                                            </div>
+                                            <div>
+                                                <label
+                                                    class="block text-xs font-semibold text-slate-700 mb-1">Application
+                                                    Deadline (Optional)</label>
+                                                <input type="date" id="edit_deadline" name="deadline"
+                                                    class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600 text-slate-600">
+                                            </div>
+                                            <%- include('../partials/application-question-builder', {
+                                                applicationQuestions: [] }) %>
+                                                <div
+                                                    class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2">
+                                                    <button type="button" onclick="closeEditModal()"
+                                                        class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg border border-slate-200">Cancel</button>
+                                                    <button type="submit"
+                                                        class="px-4 py-2 text-xs font-semibold text-white bg-indigo-700 hover:bg-indigo-800 rounded-lg shadow-sm">Save
+                                                        Changes</button>
+                                                </div>
+                                        </form>
+                                    </div>
+                                </div>
+                                <% } %>
+
+                                    <%- include('../partials/internship-filters-script') %>
+
+                                        <script>
+                                            function openModal() {
+                                                document.getElementById('postingModal').classList.remove('hidden');
+                                            }
+                                            function closeModal() {
+                                                document.getElementById('postingModal').classList.add('hidden');
+                                            }
+
+                                            function openEditModal(button) {
+                                                try {
+                                                    const item = JSON.parse(button.getAttribute('data-item'));
+                                                    document.getElementById('editForm').action = '/internships/' + item._id + '/edit';
+                                                    document.getElementById('edit_title').value = item.title || '';
+                                                    document.getElementById('edit_company').value = item.companyName || item.company || '';
+                                                    document.getElementById('edit_sector').value = item.sector || '';
+
+                                                    let locStr = '';
+                                                    if (typeof item.location === 'object' && item.location !== null) {
+                                                        locStr = (item.location.district || '') + (item.location.state ? ', ' + item.location.state : '');
+                                                    } else {
+                                                        locStr = item.location || '';
+                                                    }
+                                                    document.getElementById('edit_location').value = locStr;
+
+                                                    document.getElementById('edit_vacancies').value = item.vacancies || 1;
+                                                    document.getElementById('edit_stipend').value = item.monthlyStipend || 5000;
+                                                    document.getElementById('edit_duration').value = item.duration || '12 Months';
+                                                    document.getElementById('edit_minQualifications').value = item.minQualifications || item.minQualification || '';
+                                                    document.getElementById('edit_skills').value = Array.isArray(item.requiredSkills) ? item.requiredSkills.join(', ') : '';
+
+                                                    if (item.applicationDeadline) {
+                                                        const dateObj = new Date(item.applicationDeadline);
+                                                        if (!isNaN(dateObj.getTime())) {
+                                                            document.getElementById('edit_deadline').value = dateObj.toISOString().split('T')[0];
+                                                        } else {
+                                                            document.getElementById('edit_deadline').value = '';
+                                                        }
+                                                    } else {
+                                                        document.getElementById('edit_deadline').value = '';
+                                                    }
+
+                                                    const questionBuilder = document.querySelector('#editForm [data-application-question-builder]');
+                                                    if (questionBuilder && typeof questionBuilder.__setApplicationQuestions === 'function') {
+                                                        questionBuilder.__setApplicationQuestions(item.applicationQuestions || []);
+                                                    }
+
+                                                    document.getElementById('editModal').classList.remove('hidden');
+                                                } catch (err) {
+                                                    console.error('Error parsing item data:', err);
+                                                }
+                                            }
+
+                                            function closeEditModal() {
+                                                document.getElementById('editModal').classList.add('hidden');
+                                            }
+
+                                            // Bookmark Toggle Logic
+                                            document.addEventListener('DOMContentLoaded', () => {
+                                                const bookmarkBtns = document.querySelectorAll('.bookmark-btn');
+                                                bookmarkBtns.forEach(btn => {
+                                                    btn.addEventListener('click', async (e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        const icon = btn.querySelector('i');
+                                                        const internshipId = btn.getAttribute('data-id');
+
+                                                        // Optimistic UI update for sleek feel
+                                                        const isCurrentlySaved = icon.classList.contains('ph-fill');
+                                                        if (isCurrentlySaved) {
+                                                            icon.classList.remove('ph-fill', 'text-indigo-600');
+                                                            icon.classList.add('ph-bold');
+                                                        } else {
+                                                            icon.classList.remove('ph-bold');
+                                                            icon.classList.add('ph-fill', 'text-indigo-600');
+                                                        }
+
+                                                        try {
+                                                            const response = await fetch(`/candidate/saved-internships/${internshipId}/toggle`, {
+                                                                method: 'POST',
+                                                                headers: { 'Content-Type': 'application/json' }
+                                                            });
+                                                            const data = await response.json();
+                                                            if (!data.success) {
+                                                                // Revert on failure
+                                                                if (isCurrentlySaved) {
+                                                                    icon.classList.remove('ph-bold');
+                                                                    icon.classList.add('ph-fill', 'text-indigo-600');
+                                                                } else {
+                                                                    icon.classList.remove('ph-fill', 'text-indigo-600');
+                                                                    icon.classList.add('ph-bold');
+                                                                }
+                                                                alert('Failed to save internship. Please try again.');
+                                                            }
+                                                        } catch (err) {
+                                                            console.error(err);
+                                                            // Revert on error
+                                                            if (isCurrentlySaved) {
+                                                                icon.classList.remove('ph-bold');
+                                                                icon.classList.add('ph-fill', 'text-indigo-600');
+                                                            } else {
+                                                                icon.classList.remove('ph-fill', 'text-indigo-600');
+                                                                icon.classList.add('ph-bold');
+                                                            }
+                                                        }
+                                                    });
+                                                });
+                                            });
+                                        </script>
+
+                                        <!-- Compare Action Bar -->
+                                        <div id="compareBar"
+                                            class="fixed bottom-0 left-0 right-0 bg-white border-t border-indigo-100 shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.1)] p-4 flex justify-between items-center z-50 transform translate-y-full transition-transform duration-300 ease-out will-change-transform">
+                                            <div
+                                                class="flex items-center gap-4 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 justify-between">
+                                                <div class="text-sm font-semibold text-slate-700">
+                                                    <span id="compareCount"
+                                                        class="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full mr-1.5">0</span>
+                                                    <span class="hidden sm:inline">internships selected (Max 3)</span>
+                                                    <span class="sm:hidden">selected</span>
+                                                </div>
+                                                <div class="flex gap-3">
+                                                    <button id="clearCompareBtn"
+                                                        class="text-slate-500 text-sm hover:text-slate-800 transition-colors cursor-pointer font-medium px-2 py-2">Clear</button>
+                                                    <button id="compareSubmitBtn"
+                                                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-sm">
+                                                        Compare
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <script>
+                                            document.addEventListener('DOMContentLoaded', () => {
+                                                const checkboxes = document.querySelectorAll('.compare-checkbox');
+                                                const compareBar = document.getElementById('compareBar');
+                                                const compareCount = document.getElementById('compareCount');
+                                                const clearCompareBtn = document.getElementById('clearCompareBtn');
+                                                const compareSubmitBtn = document.getElementById('compareSubmitBtn');
+
+                                                let selectedIds = new Set();
+
+                                                function updateUI() {
+                                                    compareCount.textContent = selectedIds.size;
+
+                                                    if (selectedIds.size > 0) {
+                                                        compareBar.classList.remove('translate-y-full');
+                                                    } else {
+                                                        compareBar.classList.add('translate-y-full');
+                                                    }
+
+                                                    if (selectedIds.size >= 2) {
+                                                        compareSubmitBtn.disabled = false;
+                                                    } else {
+                                                        compareSubmitBtn.disabled = true;
+                                                    }
+                                                }
+
+                                                checkboxes.forEach(cb => {
+                                                    cb.addEventListener('change', (e) => {
+                                                        if (e.target.checked) {
+                                                            if (selectedIds.size >= 3) {
+                                                                alert("You can only compare up to 3 internships at a time.");
+                                                                e.target.checked = false;
+                                                                return;
+                                                            }
+                                                            selectedIds.add(e.target.value);
+                                                        } else {
+                                                            selectedIds.delete(e.target.value);
+                                                        }
+                                                        updateUI();
+                                                    });
+                                                });
+
+                                                clearCompareBtn.addEventListener('click', () => {
+                                                    selectedIds.clear();
+                                                    checkboxes.forEach(cb => cb.checked = false);
+                                                    updateUI();
+                                                });
+
+                                                compareSubmitBtn.addEventListener('click', () => {
+                                                    if (selectedIds.size >= 2 && selectedIds.size <= 3) {
+                                                        const ids = Array.from(selectedIds).join(',');
+                                                        window.location.href = `/internships/compare?ids=${ids}`;
+                                                    }
+                                                });
+                                            });
+                                        </script>

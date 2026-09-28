@@ -18,31 +18,36 @@
                     <div class="flex flex-wrap items-center gap-y-2 gap-x-4 text-sm text-slate-600">
                         <span class="flex items-center gap-1.5">
                             <i class="ph-bold ph-map-pin text-indigo-500"></i>
-                            <%= (user && user.location) ? ([user.location.district, user.location.state].filter(Boolean).join(', ') || 'Location Not Specified') : 'Location Not Specified' %>
+                            <%= (user && user.location) ? ([user.location.district,
+                                user.location.state].filter(Boolean).join(', ') || ' Location Not Specified')
+                                : 'Location Not Specified' %>
                         </span>
                         <span class="flex items-center gap-1.5">
                             <i class="ph-bold ph-graduation-cap text-indigo-500"></i>
-                            <%= (user && user.education && user.education.qualification) ? user.education.qualification : 'Qualification N/A' %>
-                            <% const inst = (user && (user.institution || user.education?.institutionName)); %>
-                            <% if (inst) { %> (<%= inst %>)<% } %>
+                            <%= (user && user.education && user.education.qualification) ? user.education.qualification
+                                : 'Qualification N/A' %>
+                                <% const inst=(user && (user.institution || user.education?.institutionName)); %>
+                                    <% if (inst) { %> (<%= inst %>)<% } %>
                         </span>
                         <span class="flex items-center gap-1.5">
                             <i class="ph-bold ph-currency-inr text-emerald-600"></i>
-                            Income: <%= (user && user.familyIncome) ? '₹' + Number(user.familyIncome).toLocaleString('en-IN') + '/yr' : '₹N/A' %>
+                            Income: <%= (user && user.familyIncome) ? '₹' +
+                                Number(user.familyIncome).toLocaleString('en-IN') + '/yr' : '₹N/A' %>
                         </span>
                     </div>
 
                     <div class="flex flex-wrap gap-1.5 pt-1">
-                        <% if (user && Array.isArray(user.skills) && user.skills.length > 0) { %>
-                            <% user.skills.forEach(skill => { %>
+                        <% if (user && Array.isArray(user.skills) && user.skills.length> 0) { %>
+                            <% user.skills.forEach(skill=> { %>
                                 <span
                                     class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-100">
                                     <%= skill %>
                                 </span>
-                            <% }) %>
-                        <% } else { %>
-                            <span class="text-xs text-slate-400 italic">No skills listed yet. Update your profile to improve matches!</span>
-                        <% } %>
+                                <% }) %>
+                                    <% } else { %>
+                                        <span class="text-xs text-slate-400 italic">No skills listed yet. Update your
+                                            profile to improve matches!</span>
+                                        <% } %>
                     </div>
                 </div>
 
@@ -53,28 +58,30 @@
                             <i class="ph-fill ph-check-circle text-emerald-600 text-lg"></i>
                             PMIS Eligible
                         </div>
-                    <% } else { %>
-                        <div
-                            class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-rose-50 border border-rose-200 text-rose-800 font-semibold text-sm">
-                            <i class="ph-fill ph-warning-circle text-rose-600 text-lg"></i>
-                            Scheme Ineligible
-                        </div>
-                    <% } %>
+                        <% } else { %>
+                            <div
+                                class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-rose-50 border border-rose-200 text-rose-800 font-semibold text-sm">
+                                <i class="ph-fill ph-warning-circle text-rose-600 text-lg"></i>
+                                Scheme Ineligible
+                            </div>
+                            <% } %>
                 </div>
             </div>
 
-            <% if (eligibility && !eligibility.isEligible && eligibility.reasons && eligibility.reasons.length > 0) { %>
+            <% if (eligibility && !eligibility.isEligible && eligibility.reasons && eligibility.reasons.length> 0) { %>
                 <div class="mt-6 rounded-xl bg-rose-50 border border-rose-200 p-4 text-rose-900 text-sm space-y-1">
                     <div class="font-bold flex items-center gap-1.5">
                         <i class="ph-bold ph-x-circle text-rose-600"></i> Gate Rule Status
                     </div>
                     <ul class="list-disc list-inside space-y-0.5 text-rose-700 pl-1 text-xs">
-                        <% eligibility.reasons.forEach(reason => { %>
-                            <li><%= reason %></li>
-                        <% }) %>
+                        <% eligibility.reasons.forEach(reason=> { %>
+                            <li>
+                                <%= reason %>
+                            </li>
+                            <% }) %>
                     </ul>
                 </div>
-            <% } %>
+                <% } %>
         </div>
 
         <div class="flex items-center justify-between pt-2">
@@ -86,135 +93,167 @@
             </span>
         </div>
 
-        <% if (!recommendations || recommendations.length === 0) { %>
+        <% if (!recommendations || recommendations.length===0) { %>
             <div class="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-500">
                 <i class="ph-bold ph-magnifying-glass text-4xl mb-2 text-slate-400"></i>
                 <p>No matching internships found. Browse all opportunities on the listings page!</p>
-                <a href="/internships" class="mt-3 inline-block px-4 py-2 bg-indigo-600 text-white rounded-lg text-xs font-semibold hover:bg-indigo-700">
+                <a href="/internships"
+                    class="mt-3 inline-block px-4 py-2 bg-indigo-600 text-white rounded-lg text-xs font-semibold hover:bg-indigo-700">
                     Browse All Listings
                 </a>
             </div>
-        <% } else { %>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" data-animate-stagger>
-                <% recommendations.forEach(rec => { %>
-                    <div
-                        class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between p-5">
+            <% } else { %>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" data-animate-stagger>
+                    <% recommendations.forEach(rec=> { %>
+                        <div data-tilt
+                            class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between p-5">
 
-                        <div class="space-y-3">
-                            <div class="flex items-center justify-between gap-2">
-                                <span
-                                    class="text-xs font-semibold tracking-wider uppercase bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md border border-slate-200 truncate">
-                                    <%= (rec.role && rec.role.sector) ? rec.role.sector : 'General' %>
-                                </span>
-                                <% const ringScore = Math.max(0, Math.min(100, Number(rec.matchScore) || 0)); %>
-                                <span class="ip-ring" style="--ring-value: <%= ringScore %>; --ring-color: <%= ringScore >= 75 ? '#10b981' : (ringScore >= 40 ? '#f59e0b' : '#94a3b8') %>" role="img" aria-label="<%= ringScore %>% match">
-                                    <svg viewBox="0 0 36 36" aria-hidden="true"><circle class="ip-ring__track" cx="18" cy="18" r="15.9155" fill="none" stroke-width="3.4"></circle><circle class="ip-ring__value" cx="18" cy="18" r="15.9155" fill="none" stroke-width="3.4" pathLength="100"></circle></svg>
-                                    <span class="ip-ring__label" aria-hidden="true"><span data-count-up><%= ringScore %>%</span><br><small>match</small></span>
-                                </span>
-                            </div>
-
-                            <div>
-                                <h3 class="font-bold text-slate-900 text-lg leading-snug line-clamp-1">
-                                    <%= rec.role.title %>
-                                </h3>
-                                <p class="text-sm font-medium text-slate-500">
-                                    <%= rec.role.companyName || rec.role.company || 'Organization' %>
-                                </p>
-                            </div>
-
-                            <div class="text-xs space-y-1.5 text-slate-600 border-y border-slate-100 py-3">
-                                <div class="flex items-center gap-2">
-                                    <i class="ph-bold ph-map-pin text-rose-500"></i>
-                                    <span>
-                                        <%= typeof rec.role.location === 'object' && rec.role.location !== null
-                                            ? ([rec.role.location.district, rec.role.location.state].filter(Boolean).join(', ') || 'Remote')
-                                            : (rec.role.location || 'Remote') %>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between gap-2">
+                                    <span
+                                        class="text-xs font-semibold tracking-wider uppercase bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md border border-slate-200 truncate">
+                                        <%= (rec.role && rec.role.sector) ? rec.role.sector : 'General' %>
                                     </span>
+                                    <% const ringScore=Math.max(0, Math.min(100, Number(rec.matchScore) || 0)); %>
+                                        <span class="ip-ring"
+                                            style="--ring-value: <%= ringScore %>; --ring-color: <%= ringScore >= 75 ? '#10b981' : (ringScore >= 40 ? '#f59e0b' : '#94a3b8') %>"
+                                            role="img" aria-label="<%= ringScore %>% match">
+                                            <svg viewBox="0 0 36 36" aria-hidden="true">
+                                                <circle class="ip-ring__track" cx="18" cy="18" r="15.9155" fill="none"
+                                                    stroke-width="3.4"></circle>
+                                                <circle class="ip-ring__value" cx="18" cy="18" r="15.9155" fill="none"
+                                                    stroke-width="3.4" pathLength="100"></circle>
+                                            </svg>
+                                            <span class="ip-ring__label" aria-hidden="true"><span data-count-up>
+                                                    <%= ringScore %>%
+                                                </span><br><small>match</small></span>
+                                        </span>
                                 </div>
-                                <div class="flex items-center gap-2">
-                                    <i class="ph-bold ph-graduation-cap text-indigo-500"></i>
-                                    <span>Min Qualification: <strong class="text-slate-800">
-                                            <%= rec.role.minQualifications || rec.role.minQualification || 'Any' %>
-                                        </strong></span>
+
+                                <div>
+                                    <h3 class="font-bold text-slate-900 text-lg leading-snug line-clamp-1">
+                                        <%= rec.role.title %>
+                                    </h3>
+                                    <p class="text-sm font-medium text-slate-500">
+                                        <%= rec.role.companyName || rec.role.company || 'Organization' %>
+                                    </p>
                                 </div>
-                                <div class="flex items-center gap-2">
-                                    <i class="ph-bold ph-currency-inr text-emerald-600"></i>
-                                    <span>Stipend: <strong class="text-slate-800">₹<%=
-                                                Number(rec.role.monthlyStipend || 5000).toLocaleString('en-IN') %>
-                                                /mo</strong></span>
+
+                                <div class="text-xs space-y-1.5 text-slate-600 border-y border-slate-100 py-3">
+                                    <div class="flex items-center gap-2">
+                                        <i class="ph-bold ph-map-pin text-rose-500"></i>
+                                        <span>
+                                            <%= typeof rec.role.location==='object' && rec.role.location !==null ?
+                                                ([rec.role.location.district,
+                                                rec.role.location.state].filter(Boolean).join(', ') || ' Remote') :
+                                                (rec.role.location || 'Remote' ) %>
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <i class="ph-bold ph-graduation-cap text-indigo-500"></i>
+                                        <span>Min Qualification: <strong class="text-slate-800">
+                                                <%= rec.role.minQualifications || rec.role.minQualification || 'Any' %>
+                                            </strong></span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <i class="ph-bold ph-currency-inr text-emerald-600"></i>
+                                        <span>Stipend: <strong class="text-slate-800">₹<%=
+                                                    Number(rec.role.monthlyStipend || 5000).toLocaleString('en-IN') %>
+                                                    /mo</strong></span>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+                                        Required Skills</p>
+                                    <div class="flex flex-wrap gap-1">
+                                        <% if (Array.isArray(rec.role.requiredSkills)) { %>
+                                            <% rec.role.requiredSkills.forEach(skill=> { %>
+                                                <span
+                                                    class="px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                                                    <%= skill %>
+                                                </span>
+                                                <% }) %>
+                                                    <% } %>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div>
-                                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-                                    Required Skills</p>
-                                <div class="flex flex-wrap gap-1">
-                                    <% if (Array.isArray(rec.role.requiredSkills)) { %>
-                                        <% rec.role.requiredSkills.forEach(skill => { %>
-                                            <span
-                                                class="px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
-                                                <%= skill %>
-                                            </span>
-                                        <% }) %>
+                            <% if (!rec.isFallback) { %>
+                                <div class="mt-4 p-3 bg-indigo-50 border border-indigo-100 rounded-lg">
+                                    <h4 class="text-xs font-bold text-indigo-900 mb-1 flex items-center gap-1.5">
+                                        <i class="ph-bold ph-sparkle text-indigo-600"></i> AI Match Analysis
+                                    </h4>
+                                    <p class="text-xs text-indigo-800 leading-snug">
+                                        <%= rec.matchReasoning %>
+                                    </p>
+
+                                    <h4 class="text-xs font-bold text-rose-900 mt-2.5 mb-1 flex items-center gap-1.5">
+                                        <i class="ph-bold ph-warning-circle text-rose-600"></i> Skill Gap
+                                    </h4>
+                                    <p class="text-xs text-rose-800 leading-snug">
+                                        <%= rec.skillGapAnalysis %>
+                                    </p>
+                                </div>
+                                <% } else { %>
+                                    <div
+                                        class="mt-4 p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-500">
+                                        <i class="ph-bold ph-info text-slate-400 mr-1"></i>
+                                        <%= rec.matchReasoning %>
+                                    </div>
                                     <% } %>
-                                </div>
-                            </div>
+
+                                        <div class="pt-5 mt-auto">
+                                            <% const isApplied=typeof appliedIds !=='undefined' &&
+                                                appliedIds.includes(rec.role._id.toString()); %>
+                                                <% const isExpired=rec.role.applicationDeadline && new Date()> new
+                                                    Date(rec.role.applicationDeadline); %>
+                                                    <% if (isApplied) { %>
+                                                        <button disabled
+                                                            class="w-full py-2.5 px-4 bg-emerald-50 text-emerald-700 font-semibold text-sm rounded-xl border border-emerald-200 cursor-not-allowed flex items-center justify-center gap-1.5">
+                                                            <i class="ph-bold ph-check-circle text-base"></i> Applied
+                                                        </button>
+                                                        <% } else if (isExpired) { %>
+                                                            <button disabled
+                                                                class="w-full py-2.5 px-4 bg-slate-100 text-slate-400 font-medium text-sm rounded-xl cursor-not-allowed border border-slate-200">
+                                                                Applications Closed
+                                                            </button>
+                                                            <% } else if (eligibility && eligibility.isEligible) { %>
+                                                                <% const
+                                                                    hasListingQuestions=Array.isArray(rec.role.applicationQuestions)
+                                                                    && rec.role.applicationQuestions.some(question=>
+                                                                    question && question.prompt); %>
+                                                                    <a href="/internships/<%= rec.role._id %>/application-kit"
+                                                                        class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl transition-colors shadow-sm shadow-indigo-200 flex items-center justify-center gap-1.5 cursor-pointer">
+                                                                        <i class="ph-bold ph-briefcase"></i>
+                                                                        <%= hasListingQuestions
+                                                                            ? 'Prepare Application Kit'
+                                                                            : 'Tailor Application' %>
+                                                                    </a>
+                                                                    <% if (!hasListingQuestions) { %>
+                                                                        <form
+                                                                            action="/internships/<%= rec.role._id %>/apply"
+                                                                            method="POST" class="mt-2"
+                                                                            data-quick-apply-form data-no-loading
+                                                                            data-internship-title="<%= rec.role.title %>"
+                                                                            data-company-name="<%= rec.role.companyName || rec.role.company || '' %>">
+                                                                            <button type="submit"
+                                                                                class="w-full py-2.5 px-4 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold text-sm rounded-xl transition-colors flex items-center justify-center gap-1.5 cursor-pointer"><i
+                                                                                    class="ph-bold ph-paper-plane-tilt"></i>
+                                                                                Quick Apply</button>
+                                                                        </form>
+                                                                        <% } %>
+                                                                            <% } else { %>
+                                                                                <button disabled
+                                                                                    class="w-full py-2.5 px-4 bg-slate-100 text-slate-400 font-medium text-sm rounded-xl cursor-not-allowed border border-slate-200">
+                                                                                    Ineligible to Apply
+                                                                                </button>
+                                                                                <% } %>
+                                        </div>
+
                         </div>
-
-                        <% if (!rec.isFallback) { %>
-                            <div class="mt-4 p-3 bg-indigo-50 border border-indigo-100 rounded-lg">
-                                <h4 class="text-xs font-bold text-indigo-900 mb-1 flex items-center gap-1.5">
-                                    <i class="ph-bold ph-sparkle text-indigo-600"></i> AI Match Analysis
-                                </h4>
-                                <p class="text-xs text-indigo-800 leading-snug"><%= rec.matchReasoning %></p>
-                                
-                                <h4 class="text-xs font-bold text-rose-900 mt-2.5 mb-1 flex items-center gap-1.5">
-                                    <i class="ph-bold ph-warning-circle text-rose-600"></i> Skill Gap
-                                </h4>
-                                <p class="text-xs text-rose-800 leading-snug"><%= rec.skillGapAnalysis %></p>
-                            </div>
-                        <% } else { %>
-                            <div class="mt-4 p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-500">
-                                <i class="ph-bold ph-info text-slate-400 mr-1"></i>
-                                <%= rec.matchReasoning %>
-                            </div>
-                        <% } %>
-
-                        <div class="pt-5 mt-auto">
-                            <% const isApplied = typeof appliedIds !== 'undefined' && appliedIds.includes(rec.role._id.toString()); %>
-                            <% const isExpired = rec.role.applicationDeadline && new Date() > new Date(rec.role.applicationDeadline); %>
-                            <% if (isApplied) { %>
-                                <button disabled
-                                    class="w-full py-2.5 px-4 bg-emerald-50 text-emerald-700 font-semibold text-sm rounded-xl border border-emerald-200 cursor-not-allowed flex items-center justify-center gap-1.5">
-                                    <i class="ph-bold ph-check-circle text-base"></i> Applied
-                                </button>
-                            <% } else if (isExpired) { %>
-                                <button disabled
-                                    class="w-full py-2.5 px-4 bg-slate-100 text-slate-400 font-medium text-sm rounded-xl cursor-not-allowed border border-slate-200">
-                                    Applications Closed
-                                </button>
-                            <% } else if (eligibility && eligibility.isEligible) { %>
-                                <% const hasListingQuestions = Array.isArray(rec.role.applicationQuestions) && rec.role.applicationQuestions.some(question => question && question.prompt); %>
-                                <a href="/internships/<%= rec.role._id %>/application-kit"
-                                    class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl transition-colors shadow-sm shadow-indigo-200 flex items-center justify-center gap-1.5 cursor-pointer">
-                                    <i class="ph-bold ph-briefcase"></i> <%= hasListingQuestions ? 'Prepare Application Kit' : 'Tailor Application' %>
-                                </a>
-                                <% if (!hasListingQuestions) { %>
-                                    <form action="/internships/<%= rec.role._id %>/apply" method="POST" class="mt-2" data-quick-apply-form data-no-loading data-internship-title="<%= rec.role.title %>" data-company-name="<%= rec.role.companyName || rec.role.company || '' %>">
-                                        <button type="submit" class="w-full py-2.5 px-4 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold text-sm rounded-xl transition-colors flex items-center justify-center gap-1.5 cursor-pointer"><i class="ph-bold ph-paper-plane-tilt"></i> Quick Apply</button>
-                                    </form>
-                                <% } %>
-                            <% } else { %>
-                                <button disabled
-                                    class="w-full py-2.5 px-4 bg-slate-100 text-slate-400 font-medium text-sm rounded-xl cursor-not-allowed border border-slate-200">
-                                    Ineligible to Apply
-                                </button>
-                            <% } %>
-                        </div>
-
-                    </div>
-                <% }) %>
-            </div>
-        <% } %>
+                        <% }) %>
+                </div>
+                <% } %>
 
     </div>

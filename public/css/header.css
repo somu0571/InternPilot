@@ -5,7 +5,7 @@
     image-rendering: -webkit-optimize-contrast;
     image-rendering: crisp-edges;
     flex-shrink: 0;
-    transition: transform 0.2s ease, filter 0.2s ease;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), filter 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .header-brand-link:hover .header-brand-logo {
@@ -15,4 +15,70 @@
 .header-brand-link:focus-visible {
     outline: 2px solid #4f46e5;
     outline-offset: 2px;
+}
+
+/* --- Accessible dropdown menus --- */
+
+/* The panel sits flush against the trigger (no gap) and uses a small
+   padding-top to create a visual gap without breaking hover continuity. */
+.ip-dropdown__panel {
+    transform-origin: top center;
+    transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform, opacity;
+}
+
+.ip-dropdown__panel:not(.hidden) {
+    animation: ip-dropdown-in 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes ip-dropdown-in {
+    from {
+        opacity: 0;
+        transform: translateY(-6px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Rotate the caret smoothly when the dropdown is open */
+.ip-dropdown__trigger .ph-caret-down {
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ip-dropdown__trigger[aria-expanded="true"] .ph-caret-down {
+    transform: rotate(180deg);
+}
+
+/* Focus ring for dropdown trigger when opened via keyboard */
+.ip-dropdown__trigger:focus-visible {
+    outline: 2px solid #4f46e5;
+    outline-offset: 2px;
+}
+
+/* Menu items get a focus ring for keyboard navigation */
+.ip-dropdown__panel a:focus-visible {
+    outline: 2px solid #6366f1;
+    outline-offset: -2px;
+    background-color: #eef2ff;
+}
+
+/* Mobile drawer smooth reveal animation */
+#mobileNavigation:not(.hidden) {
+    animation: ip-drawer-in 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    transform-origin: top;
+}
+
+@keyframes ip-drawer-in {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }

@@ -1,14 +1,42 @@
+/* Global App Shell & Performance Smoothing */
+@media (prefers-reduced-motion: no-preference) {
+    html {
+        scroll-behavior: smooth;
+    }
+}
+
+html {
+    -webkit-tap-highlight-color: transparent;
+    text-rendering: optimizeLegibility;
+}
+
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Touch & Interaction Optimization */
+a,
+button,
+input,
+select,
+textarea {
+    touch-action: manipulation;
+}
+
+/* Back to Top Smooth Button */
 #back-to-top-btn {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(10px) translateZ(0);
     pointer-events: none;
     visibility: hidden;
-    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform, opacity;
 }
 
 #back-to-top-btn.visible {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) translateZ(0);
     pointer-events: auto;
     visibility: visible;
 }
@@ -22,6 +50,7 @@
     outline-offset: 3px;
 }
 
+/* Invisible Scrollbar Utility */
 .invisible-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -31,4 +60,17 @@
     display: none;
     width: 0;
     height: 0;
+}
+
+/* GPU Hardware Promotion for Smooth 60fps Animations */
+header.sticky {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}
+
+[data-tilt],
+.internship-card {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
