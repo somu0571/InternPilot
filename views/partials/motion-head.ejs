@@ -21,29 +21,17 @@
     })();
 </script>
 <script>
-    // Both scripts run before Tailwind's CDN script in the page layout. Tailwind
-    // therefore generates `dark:` utilities only for an explicit html.dark class,
-    // instead of automatically following the operating-system preference.
-    window.tailwind = window.tailwind || {};
-    window.tailwind.config = Object.assign({}, window.tailwind.config, { darkMode: 'class' });
-
-    // Apply the saved (or system) preference before the first paint so dark-mode
-    // visitors do not see a flash of the light header and page background.
-    (function bootstrapTheme() {
-        var mode = 'system';
-        try {
-            var stored = window.localStorage.getItem('internpilot:theme');
-            if (['light', 'dark', 'system'].includes(stored)) mode = stored;
-        } catch (error) {
-            // Storage can be unavailable in privacy-restricted browsers.
+    // Tailwind's CDN build follows the operating system's dark mode by default,
+    // so pages using dark: classes (the admin dashboard) turned dark on their own
+    // while the rest of the site stayed light. Only an explicit html.dark class
+    // (a dark mode toggle, #118) should switch them. Runs as soon as the CDN
+    // script (next in <head>) has loaded, keeping any other config.
+    (function useClassDarkMode(attempt) {
+        if (window.tailwind) {
+            window.tailwind.config = Object.assign({}, window.tailwind.config, { darkMode: 'class' });
+        } else if (attempt < 100) {
+            setTimeout(function () { useClassDarkMode(attempt + 1); }, 10);
         }
-
-        var systemDark = Boolean(
-            window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-        );
-        var isDark = mode === 'dark' || (mode === 'system' && systemDark);
-        document.documentElement.classList.toggle('dark', isDark);
-        document.documentElement.setAttribute('data-theme', mode);
-    })();
+    })(0);
 </script>
 <script src="/js/motion-ui.js" defer></script>
