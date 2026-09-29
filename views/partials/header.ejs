@@ -1,12 +1,11 @@
-<% const navPrefixes={ home: ['/'], opportunities: ['/internships'], candidateProfile:
-    ['/candidate/profile', '/candidate/resume-builder' ], applications:
-    ['/candidate/applications', '/candidate/my-applications' ], certificates: ['/candidate/certificates'],
-    savedInternships: ['/candidate/saved-internships'], savedSearches: ['/candidate/saved-searches'], recommendations:
-    ['/recommendations'], interview: ['/interview'], problems: ['/problems'], notifications: ['/notifications'],
-    companyNotifications: ['/company/notifications'], companyDashboard: [ '/company/dashboard' , '/company/internships'
-    , '/company/applications' ], companyProfile: ['/company/profile'], manageTeam: ['/company/team'], activityHistory:
-    ['/company/activity'], adminDashboard: ['/admin'] }; const activePath=typeof currentPath==='string' ? currentPath
-    : '/' ; const normalizePath=value=> {
+<% const navPrefixes={ home: ['/'], opportunities: ['/internships'], candidateProfile: [ '/candidate/profile'
+    , '/candidate/resume-builder' ], applications: [ '/candidate/applications' , '/candidate/my-applications' ],
+    certificates: ['/candidate/certificates'], savedInternships: ['/candidate/saved-internships'], savedSearches:
+    ['/candidate/saved-searches'], recommendations: ['/recommendations'], interview: ['/interview'], problems:
+    ['/problems'], notifications: ['/notifications'], companyNotifications: ['/company/notifications'],
+    companyDashboard: [ '/company/dashboard' , '/company/internships' , '/company/applications' ], companyProfile:
+    ['/company/profile'], manageTeam: ['/company/team'], activityHistory: ['/company/activity'], adminDashboard:
+    ['/admin'] }; const activePath=typeof currentPath==='string' ? currentPath : '/' ; const normalizePath=value=> {
     const path =
     String(value || '/').split(/[?#]/, 1)[0] || '/';
 
@@ -87,7 +86,8 @@
     <!-- TOP TRICOLOR BORDER                                   -->
     <!-- ===================================================== -->
 
-    <div class="h-1.5 w-full bg-gradient-to-r from-orange-500 via-white to-emerald-600"></div>
+    <div class="h-1.5 w-full bg-gradient-to-r from-orange-500 via-white to-emerald-600">
+    </div>
 
 
     <!-- ===================================================== -->
@@ -96,22 +96,17 @@
 
     <header class="sticky top-0 z-40 border-b border-slate-200 bg-white shadow-sm">
 
-        <!--
-        IMPORTANT:
-        No max-w-7xl here.
-        Header now uses the complete available width.
-    -->
-
         <div class="w-full px-5 sm:px-7 lg:px-8 xl:px-10">
 
             <div class="flex h-20 w-full items-center justify-between gap-3 xl:gap-5">
 
 
                 <!-- ================================================= -->
-                <!-- LEFT: GOVERNMENT EMBLEM + INTERNPILOT              -->
+                <!-- LEFT: BRANDING                                   -->
                 <!-- ================================================= -->
 
                 <div class="flex shrink-0 items-center gap-3">
+
 
                     <!-- Government Emblem -->
 
@@ -165,7 +160,7 @@
 
 
                 <!-- ================================================= -->
-                <!-- RIGHT SIDE                                         -->
+                <!-- RIGHT SIDE                                       -->
                 <!-- ================================================= -->
 
                 <div class="flex min-w-0 flex-1 items-center justify-end gap-1 sm:gap-2 xl:gap-3">
@@ -267,43 +262,34 @@
 
                                 <div class="ip-dropdown relative inline-block">
 
-                                    <button type="button" class="ip-dropdown__trigger flex items-center gap-1 rounded-lg px-2.5 py-2 text-sm font-semibold whitespace-nowrap transition-colors cursor-pointer
-                                    <%= isActive('interview') || isActive('problems')
-                                        ? 'bg-indigo-100 text-indigo-700'
-                                        : 'text-slate-600 hover:bg-slate-50 hover:text-indigo-600' %>"
+                                    <button type="button"
+                                        class="ip-dropdown__trigger flex items-center gap-1 rounded-lg px-2 py-2 text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer <%= isActive('interview') || isActive('problems') ? 'bg-indigo-100 text-indigo-700' : 'text-slate-600 hover:bg-slate-50 hover:text-indigo-600' %>"
                                         aria-expanded="false" aria-haspopup="true">
 
                                         Prepare
 
-                                        <i class="ph-bold ph-caret-down text-xs transition-transform"
-                                            aria-hidden="true">
+                                        <i class="ph-bold ph-caret-down text-[10px]" aria-hidden="true">
                                         </i>
 
                                     </button>
 
 
-                                    <div class="ip-dropdown__panel absolute left-0 top-full z-50 hidden w-48 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg pt-1"
+                                    <div class="ip-dropdown__panel absolute left-0 top-full z-50 hidden w-48 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"
                                         role="menu">
 
 
-                                        <!-- Mock Interviews -->
-
                                         <a href="/interview" role="menuitem" data-nav-link data-nav-variant="desktop"
                                             data-nav-prefixes="<%= navPrefixAttribute('interview') %>"
-                                            class="block px-4 py-2.5 text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-indigo-600 <%= isActive('interview') ? 'bg-indigo-50 font-bold text-indigo-700' : '' %>"
-                                            <%- ariaCurrent(isActive('interview')) %>>
+                                            class="block px-4 py-2.5 text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-indigo-600 <%= isActive('interview') ? 'bg-indigo-50 font-bold text-indigo-700' : '' %>">
 
                                             Mock Interviews
 
                                         </a>
 
 
-                                        <!-- Problem Generator -->
-
                                         <a href="/problems" role="menuitem" data-nav-link data-nav-variant="desktop"
                                             data-nav-prefixes="<%= navPrefixAttribute('problems') %>"
-                                            class="block border-t border-slate-100 px-4 py-2.5 text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-indigo-600 <%= isActive('problems') ? 'bg-indigo-50 font-bold text-indigo-700' : '' %>"
-                                            <%- ariaCurrent(isActive('problems')) %>>
+                                            class="block border-t border-slate-100 px-4 py-2.5 text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-indigo-600 <%= isActive('problems') ? 'bg-indigo-50 font-bold text-indigo-700' : '' %>">
 
                                             Problem Generator
 
@@ -315,14 +301,12 @@
 
 
                                 <!-- ================================================= -->
-                                <!-- COMPANY / RECRUITER                              -->
+                                <!-- COMPANY NAVIGATION                                -->
                                 <!-- ================================================= -->
 
                                 <% } else if ( ['company', 'recruiter' , 'hiring_manager' ] .includes(currentUser.role)
                                     ) { %>
 
-
-                                    <!-- Company Dashboard -->
 
                                     <a href="/company/dashboard" data-nav-link data-nav-variant="desktop"
                                         data-nav-prefixes="<%= navPrefixAttribute('companyDashboard') %>"
@@ -336,39 +320,26 @@
 
                                     <% if ( ['company', 'recruiter' ] .includes(currentUser.role) ) { %>
 
-
-                                        <!-- Manage Dropdown -->
-
                                         <div class="ip-dropdown relative inline-block">
 
-                                            <button type="button" class="ip-dropdown__trigger flex items-center gap-1 rounded-lg px-2.5 py-2 text-sm font-semibold whitespace-nowrap transition-colors cursor-pointer
-                                        <%= isActive('companyProfile') ||
-                                           isActive('manageTeam') ||
-                                           isActive('activityHistory')
-                                            ? 'bg-indigo-100 text-indigo-700'
-                                            : 'text-slate-600 hover:bg-slate-50 hover:text-indigo-600' %>"
+                                            <button type="button"
+                                                class="ip-dropdown__trigger flex items-center gap-1 rounded-lg px-2 py-2 text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer <%= isActive('companyProfile') || isActive('manageTeam') || isActive('activityHistory') ? 'bg-indigo-100 text-indigo-700' : 'text-slate-600 hover:bg-slate-50 hover:text-indigo-600' %>"
                                                 aria-expanded="false" aria-haspopup="true">
 
                                                 Manage
 
-                                                <i class="ph-bold ph-caret-down text-xs transition-transform"
-                                                    aria-hidden="true">
+                                                <i class="ph-bold ph-caret-down text-[10px]">
                                                 </i>
 
                                             </button>
 
 
-                                            <div class="ip-dropdown__panel absolute left-0 top-full z-50 hidden w-48 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg pt-1"
+                                            <div class="ip-dropdown__panel absolute left-0 top-full z-50 hidden w-48 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"
                                                 role="menu">
 
 
-                                                <!-- Company Profile -->
-
-                                                <a href="/company/profile" role="menuitem" data-nav-link
-                                                    data-nav-variant="desktop"
-                                                    data-nav-prefixes="<%= navPrefixAttribute('companyProfile') %>"
-                                                    class="block px-4 py-2.5 text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-indigo-600 <%= isActive('companyProfile') ? 'bg-indigo-50 font-bold text-indigo-700' : '' %>"
-                                                    <%- ariaCurrent(isActive('companyProfile')) %>>
+                                                <a href="/company/profile" role="menuitem"
+                                                    class="block px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:text-indigo-600">
 
                                                     Company Profile
 
@@ -377,27 +348,16 @@
 
                                                 <% if (currentUser.role==='company' ) { %>
 
-
-                                                    <!-- Manage Team -->
-
-                                                    <a href="/company/team" role="menuitem" data-nav-link
-                                                        data-nav-variant="desktop"
-                                                        data-nav-prefixes="<%= navPrefixAttribute('manageTeam') %>"
-                                                        class="block border-t border-slate-100 px-4 py-2.5 text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-indigo-600 <%= isActive('manageTeam') ? 'bg-indigo-50 font-bold text-indigo-700' : '' %>"
-                                                        <%- ariaCurrent(isActive('manageTeam')) %>>
+                                                    <a href="/company/team" role="menuitem"
+                                                        class="block border-t border-slate-100 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:text-indigo-600">
 
                                                         Manage Team
 
                                                     </a>
 
 
-                                                    <!-- Activity History -->
-
-                                                    <a href="/company/activity" role="menuitem" data-nav-link
-                                                        data-nav-variant="desktop"
-                                                        data-nav-prefixes="<%= navPrefixAttribute('activityHistory') %>"
-                                                        class="block border-t border-slate-100 px-4 py-2.5 text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-indigo-600 <%= isActive('activityHistory') ? 'bg-indigo-50 font-bold text-indigo-700' : '' %>"
-                                                        <%- ariaCurrent(isActive('activityHistory')) %>>
+                                                    <a href="/company/activity" role="menuitem"
+                                                        class="block border-t border-slate-100 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:text-indigo-600">
 
                                                         Activity History
 
@@ -413,11 +373,10 @@
 
 
                                             <!-- ================================================= -->
-                                            <!-- ADMIN -->
+                                            <!-- ADMIN                                             -->
                                             <!-- ================================================= -->
 
                                             <% } else if (currentUser.role==='admin' ) { %>
-
 
                                                 <a href="/admin/dashboard" data-nav-link data-nav-variant="desktop"
                                                     data-nav-prefixes="<%= navPrefixAttribute('adminDashboard') %>"
@@ -428,7 +387,6 @@
 
                                                 </a>
 
-
                                                 <% } %>
 
                                                     <% } %>
@@ -437,62 +395,35 @@
 
 
                     <!-- ================================================= -->
-                    <!-- DESKTOP DIVIDER                                   -->
+                    <!-- DIVIDER                                           -->
                     <!-- ================================================= -->
 
-                    <div class="hidden h-8 w-px bg-slate-200 xl:block">
-                    </div>
+                    <% if (currentUser) { %>
+
+                        <div class="hidden h-8 w-px bg-slate-200 xl:block">
+                        </div>
+
+                        <% } %>
 
 
-                    <!-- ================================================= -->
-                    <!-- MOBILE MENU BUTTON                                -->
-                    <!-- ================================================= -->
+                            <!-- ================================================= -->
+                            <!-- ACTION ICONS                                      -->
+                            <!-- ================================================= -->
 
-                    <button id="mobileNavToggle" type="button"
-                        class="inline-flex shrink-0 items-center justify-center rounded-lg p-2 text-slate-700 transition-colors hover:bg-slate-100 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 xl:hidden"
-                        aria-controls="mobileNavigation" aria-expanded="false">
+                            <% if (currentUser) { %>
 
-                        <i id="mobileNavIcon" class="ph-bold ph-list text-xl" aria-hidden="true">
-                        </i>
-
-                        <span id="mobileNavToggleLabel" class="sr-only">
-
-                            Open navigation menu
-
-                        </span>
-
-                    </button>
+                                <div class="flex shrink-0 items-center gap-0.5">
 
 
-                    <!-- ================================================= -->
-                    <!-- ACTION ICONS                                      -->
-                    <!-- ================================================= -->
-
-                    <% const hasActionIcons=currentUser && ( ['candidate', 'company' , 'recruiter' ]
-                        .includes(currentUser.role) || typeof messageUnreadCount !=='undefined' ); %>
-
-
-                        <% if (hasActionIcons) { %>
-
-
-                            <div class="flex shrink-0 items-center gap-0.5 sm:gap-1">
-
-
-                                <% if ( currentUser && ['candidate', 'company' , 'recruiter' ]
-                                    .includes(currentUser.role) ) { %>
-
+                                    <!-- ================================================= -->
+                                    <!-- SAVED INTERNSHIPS                               -->
+                                    <!-- ================================================= -->
 
                                     <% if (currentUser.role==='candidate' ) { %>
 
-
-                                        <!-- Saved Internships -->
-
                                         <a href="/candidate/saved-internships" aria-label="Saved Internships"
-                                            data-nav-link data-nav-variant="icon"
-                                            data-nav-prefixes="<%= navPrefixAttribute('savedInternships') %>"
-                                            class="relative inline-flex items-center justify-center rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 <%= isActive('savedInternships') ? 'bg-indigo-100 font-bold text-indigo-900 ring-1 ring-indigo-700' : '' %>"
-                                            <%- ariaCurrent(isActive('savedInternships')) %>
-                                            title="Saved Internships">
+                                            title="Saved Internships"
+                                            class="relative inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-slate-100 hover:text-indigo-700 <%= isActive('savedInternships') ? 'bg-indigo-100 text-indigo-900 ring-1 ring-indigo-700' : '' %>">
 
                                             <i class="ph-bold ph-bookmark-simple text-lg" aria-hidden="true">
                                             </i>
@@ -518,42 +449,39 @@
 
                                         <!-- Saved Searches -->
 
-                                        <a href="/candidate/saved-searches" aria-label="Saved Searches" data-nav-link
-                                            data-nav-variant="icon"
-                                            data-nav-prefixes="<%= navPrefixAttribute('savedSearches') %>"
-                                            class="relative inline-flex items-center justify-center rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 <%= isActive('savedSearches') ? 'bg-indigo-100 font-bold text-indigo-900 ring-1 ring-indigo-700' : '' %>"
-                                            <%- ariaCurrent(isActive('savedSearches')) %>
-                                            title="Saved Searches">
+                                        <a href="/candidate/saved-searches" aria-label="Saved Searches"
+                                            title="Saved Searches"
+                                            class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-slate-100 hover:text-indigo-700 <%= isActive('savedSearches') ? 'bg-indigo-100 text-indigo-900 ring-1 ring-indigo-700' : '' %>">
 
                                             <i class="ph-bold ph-funnel-simple text-lg" aria-hidden="true">
                                             </i>
 
                                         </a>
 
-
                                         <% } %>
 
 
-                                            <!-- Notifications -->
+                                            <!-- ================================================= -->
+                                            <!-- NOTIFICATIONS                                    -->
+                                            <!-- ================================================= -->
 
-                                            <% const notifLink=currentUser.role==='candidate' ? '/notifications'
+                                            <% const notificationUrl=currentUser.role==='candidate' ? '/notifications'
                                                 : '/company/notifications' ; const
-                                                notificationSection=currentUser.role==='candidate' ? 'notifications'
-                                                : 'companyNotifications' ; %>
+                                                notificationActive=currentUser.role==='candidate' ?
+                                                isActive('notifications') : isActive('companyNotifications'); %>
 
 
-                                                <a href="<%= notifLink %>" aria-label="Notifications" data-nav-link
-                                                    data-nav-variant="icon"
-                                                    data-nav-prefixes="<%= navPrefixAttribute(notificationSection) %>"
-                                                    class="relative inline-flex items-center justify-center rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 <%= isActive(notificationSection) ? 'bg-indigo-100 font-bold text-indigo-900 ring-1 ring-indigo-700' : '' %>"
-                                                    <%- ariaCurrent(isActive(notificationSection)) %>
-                                                    title="Notifications">
+                                                <a href="<%= notificationUrl %>" aria-label="Notifications"
+                                                    title="Notifications"
+                                                    class="relative inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-slate-100 hover:text-indigo-700 <%= notificationActive ? 'bg-indigo-100 text-indigo-900 ring-1 ring-indigo-700' : '' %>">
 
                                                     <i class="ph-bold ph-bell text-lg" aria-hidden="true">
                                                     </i>
 
 
-                                                    <% if (notificationUnreadCount> 0) { %>
+                                                    <% if ( typeof notificationUnreadCount !=='undefined' &&
+                                                        notificationUnreadCount> 0
+                                                        ) { %>
 
                                                         <span
                                                             class="absolute -right-0.5 -top-0.5 h-4 min-w-4 rounded-full bg-rose-600 px-1 text-center text-[9px] font-bold leading-4 text-white">
@@ -569,183 +497,196 @@
                                                 </a>
 
 
-                                                <% } %>
+                                                <!-- ================================================= -->
+                                                <!-- MESSAGES                                          -->
+                                                <!-- ================================================= -->
+
+                                                <% if ( typeof messageUnreadCount !=='undefined' ) { %>
+
+                                                    <%- include('messages-nav', { variant: 'icon' }) %>
+
+                                                        <% } %>
+
+                                </div>
+
+                                <% } %>
 
 
-                                                    <!-- Messages -->
+                                    <!-- ================================================= -->
+                                    <!-- ACCOUNT ACTIONS                                   -->
+                                    <!-- ================================================= -->
 
-                                                    <% if (typeof messageUnreadCount !=='undefined' ) { %>
-
-                                                        <%- include('messages-nav', { variant: 'icon' }) %>
-
-                                                            <% } %>
-
-                            </div>
+                                    <div class="flex shrink-0 items-center gap-1">
 
 
-                            <!-- Divider -->
-
-                            <div class="hidden h-8 w-px bg-slate-200 sm:block">
-                            </div>
+                                        <% if (!currentUser) { %>
 
 
-                            <% } %>
+                                            <!-- LOGIN -->
+
+                                            <a href="/auth/login"
+                                                class="rounded-lg px-2.5 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 hover:text-indigo-700 sm:px-3">
+
+                                                Log In
+
+                                            </a>
 
 
-                                <!-- ================================================= -->
-                                <!-- PROFILE                                           -->
-                                <!-- ================================================= -->
+                                            <!-- SIGN UP -->
 
-                                <div class="flex shrink-0 items-center">
+                                            <a href="/auth/register"
+                                                class="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 sm:px-4">
 
+                                                Sign Up
 
-                                    <% if (!currentUser) { %>
-
-
-                                        <!-- Login -->
-
-                                        <a href="/auth/login"
-                                            class="rounded-lg px-2.5 py-2 text-xs font-semibold text-slate-700 transition-colors hover:text-indigo-700 sm:px-3">
-
-                                            Log In
-
-                                        </a>
+                                            </a>
 
 
-                                        <!-- Sign Up -->
-
-                                        <a href="/auth/register"
-                                            class="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 sm:px-4">
-
-                                            Sign Up
-
-                                        </a>
+                                            <% } else { %>
 
 
-                                        <% } else { %>
+                                                <!-- ================================================= -->
+                                                <!-- SIGNED-IN DEVICES                                -->
+                                                <!-- ================================================= -->
+
+                                                <a href="/account/sessions" aria-label="Signed-in devices"
+                                                    title="Signed-in devices"
+                                                    class="group relative inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-slate-100 hover:text-indigo-700">
+
+                                                    <i class="ph-bold ph-devices text-lg" aria-hidden="true">
+                                                    </i>
 
 
-                                            <!-- Profile Dropdown -->
+                                                    <!-- Tooltip -->
 
-                                            <div class="ip-dropdown relative hidden sm:block">
+                                                    <span
+                                                        class="pointer-events-none absolute right-0 top-full z-50 mt-2 whitespace-nowrap rounded-md bg-slate-900 px-2.5 py-1.5 text-[11px] font-semibold text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100">
 
-                                                <button type="button"
-                                                    class="ip-dropdown__trigger flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-100 px-2.5 py-1.5 transition-colors hover:bg-slate-200 cursor-pointer"
-                                                    title="<%= currentUser.name %>" aria-expanded="false"
-                                                    aria-haspopup="true">
+                                                        Signed-in devices
+
+                                                    </span>
+
+                                                </a>
+
+
+                                                <!-- ================================================= -->
+                                                <!-- LOG OUT                                           -->
+                                                <!-- ================================================= -->
+
+                                                <a href="/auth/logout" aria-label="Log Out" title="Log Out"
+                                                    class="group relative inline-flex h-9 w-9 items-center justify-center rounded-lg text-red-600 transition-colors hover:bg-red-50 hover:text-red-700">
+
+                                                    <i class="ph-bold ph-sign-out text-lg" aria-hidden="true">
+                                                    </i>
+
+
+                                                    <!-- Tooltip -->
+
+                                                    <span
+                                                        class="pointer-events-none absolute right-0 top-full z-50 mt-2 whitespace-nowrap rounded-md bg-slate-900 px-2.5 py-1.5 text-[11px] font-semibold text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100">
+
+                                                        Log Out
+
+                                                    </span>
+
+                                                </a>
+
+
+                                                <!-- ================================================= -->
+                                                <!-- DIVIDER                                           -->
+                                                <!-- ================================================= -->
+
+                                                <div class="mx-1 hidden h-8 w-px bg-slate-200 sm:block">
+                                                </div>
+
+
+                                                <!-- ================================================= -->
+                                                <!-- PROFILE PICTURE                                   -->
+                                                <!-- ================================================= -->
+
+                                                <div class="group relative flex shrink-0 items-center justify-center">
 
 
                                                     <% if (currentUser.avatar) { %>
 
-
                                                         <img src="<%= currentUser.avatar %>"
                                                             alt="<%= currentUser.name %>"
-                                                            class="h-6 w-6 shrink-0 rounded-full border border-slate-300 object-cover">
-
+                                                            class="h-8 w-8 cursor-pointer rounded-full border border-slate-200 object-cover shadow-sm transition-all duration-150 group-hover:border-indigo-400 group-hover:ring-2 group-hover:ring-indigo-100">
 
                                                         <% } else { %>
 
-
                                                             <div
-                                                                class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-[10px] font-bold text-white">
+                                                                class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white shadow-sm transition-all duration-150 group-hover:ring-2 group-hover:ring-indigo-100">
 
                                                                 <%= currentUser.name ?
                                                                     currentUser.name.charAt(0).toUpperCase() : 'U' %>
 
                                                             </div>
 
-
                                                             <% } %>
 
 
-                                                                <span
-                                                                    class="max-w-[140px] truncate text-xs font-semibold text-slate-700 sm:max-w-[160px] lg:max-w-[180px]"
-                                                                    title="<%= currentUser.name %>">
+                                                                <!-- ================================================= -->
+                                                                <!-- USER NAME TOOLTIP                               -->
+                                                                <!-- ================================================= -->
 
-                                                                    <%= currentUser.name %>
+                                                                <div
+                                                                    class="pointer-events-none absolute right-0 top-full z-50 mt-2 whitespace-nowrap rounded-lg bg-slate-900 px-3 py-2 text-left shadow-lg opacity-0 transition-opacity duration-150 group-hover:opacity-100">
 
-                                                                </span>
+                                                                    <p class="text-xs font-bold text-white">
 
+                                                                        <%= currentUser.name %>
 
-                                                                <i
-                                                                    class="ph-bold ph-caret-down shrink-0 text-[10px] text-slate-500 transition-transform">
-                                                                </i>
-
-                                                </button>
+                                                                    </p>
 
 
-                                                <!-- Profile Panel -->
+                                                                    <p
+                                                                        class="mt-0.5 text-[10px] capitalize text-slate-300">
 
-                                                <div class="ip-dropdown__panel absolute right-0 top-full z-50 hidden w-48 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg pt-1"
-                                                    role="menu">
+                                                                        <%= currentUser.role %>
 
+                                                                    </p>
 
-                                                    <!-- User Info -->
-
-                                                    <div class="border-b border-slate-100 bg-slate-50/50 px-4 py-2.5">
-
-                                                        <p class="truncate text-xs font-bold text-slate-800"
-                                                            title="<%= currentUser.name %>">
-
-                                                            <%= currentUser.name %>
-
-                                                        </p>
-
-
-                                                        <p class="truncate text-[11px] capitalize text-slate-500">
-
-                                                            <%= currentUser.role %>
-
-                                                        </p>
-
-                                                    </div>
-
-
-                                                    <!-- Logout -->
-
-                                                    <a href="/auth/logout" role="menuitem"
-                                                        class="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50">
-
-                                                        <i class="ph-bold ph-sign-out">
-                                                        </i>
-
-                                                        Log Out
-
-                                                    </a>
-
-
-                                                    <!-- Signed-in Devices -->
-
-                                                    <a href="/account/sessions" role="menuitem"
-                                                        class="flex items-center gap-2 border-t border-slate-100 px-4 py-2.5 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50 hover:text-indigo-600">
-
-                                                        <i class="ph-bold ph-devices">
-                                                        </i>
-
-                                                        Signed-in devices
-
-                                                    </a>
+                                                                </div>
 
                                                 </div>
 
-                                            </div>
+
+                                                <% } %>
+
+                                    </div>
 
 
-                                            <% } %>
+                                    <!-- ================================================= -->
+                                    <!-- AZADI LOGO                                        -->
+                                    <!-- ================================================= -->
 
-                                </div>
+                                    <div class="hidden shrink-0 items-center justify-center pl-1 2xl:flex">
+
+                                        <img src="/images/azadi-logo.jpg" alt="Azadi Ka Amrit Mahotsav"
+                                            class="h-10 w-auto object-contain mix-blend-multiply contrast-125">
+
+                                    </div>
 
 
-                                <!-- ================================================= -->
-                                <!-- AZADI LOGO                                        -->
-                                <!-- ================================================= -->
+                                    <!-- ================================================= -->
+                                    <!-- MOBILE MENU                                       -->
+                                    <!-- ================================================= -->
 
-                                <div class="hidden shrink-0 items-center justify-center pl-1 2xl:flex">
+                                    <button id="mobileNavToggle" type="button"
+                                        class="inline-flex shrink-0 items-center justify-center rounded-lg p-2 text-slate-700 transition-colors hover:bg-slate-100 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 xl:hidden"
+                                        aria-controls="mobileNavigation" aria-expanded="false">
 
-                                    <img src="/images/azadi-logo.jpg" alt="Azadi Ka Amrit Mahotsav"
-                                        class="h-10 w-auto object-contain mix-blend-multiply contrast-125">
+                                        <i id="mobileNavIcon" class="ph-bold ph-list text-xl">
+                                        </i>
 
-                                </div>
+                                        <span id="mobileNavToggleLabel" class="sr-only">
+
+                                            Open navigation menu
+
+                                        </span>
+
+                                    </button>
 
                 </div>
 
@@ -761,23 +702,18 @@
                 <nav aria-label="Mobile navigation" class="grid gap-1">
 
 
-                    <!-- Home -->
+                    <!-- HOME -->
 
-                    <a href="/" data-nav-link data-nav-variant="mobile"
-                        data-nav-prefixes="<%= navPrefixAttribute('home') %>"
-                        class="<%= mobileLinkClass(isActive('home')) %>" <%- ariaCurrent(isActive('home')) %>>
+                    <a href="/" class="<%= mobileLinkClass(isActive('home')) %>">
 
                         Home
 
                     </a>
 
 
-                    <!-- Opportunities -->
+                    <!-- OPPORTUNITIES -->
 
-                    <a href="/internships" data-nav-link data-nav-variant="mobile"
-                        data-nav-prefixes="<%= navPrefixAttribute('opportunities') %>"
-                        class="<%= mobileLinkClass(isActive('opportunities')) %>" <%-
-                        ariaCurrent(isActive('opportunities')) %>>
+                    <a href="/internships" class="<%= mobileLinkClass(isActive('opportunities')) %>">
 
                         Opportunities
 
@@ -790,100 +726,71 @@
                         <% if (currentUser.role==='candidate' ) { %>
 
 
-                            <!-- Candidate Profile -->
-
-                            <a href="/candidate/profile" data-nav-link data-nav-variant="mobile"
-                                data-nav-prefixes="<%= navPrefixAttribute('candidateProfile') %>"
-                                class="<%= mobileLinkClass(isActive('candidateProfile')) %>" <%-
-                                ariaCurrent(isActive('candidateProfile')) %>>
+                            <a href="/candidate/profile" class="<%= mobileLinkClass(isActive('candidateProfile')) %>">
 
                                 Candidate Profile
 
                             </a>
 
 
-                            <!-- My Applications -->
-
-                            <a href="/candidate/applications" data-nav-link data-nav-variant="mobile"
-                                data-nav-prefixes="<%= navPrefixAttribute('applications') %>"
-                                class="<%= mobileLinkClass(isActive('applications')) %>" <%-
-                                ariaCurrent(isActive('applications')) %>>
+                            <a href="/candidate/applications" class="<%= mobileLinkClass(isActive('applications')) %>">
 
                                 My Applications
 
                             </a>
 
 
-                            <!-- Certificates -->
-
-                            <a href="/candidate/certificates" data-nav-link data-nav-variant="mobile"
-                                data-nav-prefixes="<%= navPrefixAttribute('certificates') %>"
-                                class="<%= mobileLinkClass(isActive('certificates')) %>" <%-
-                                ariaCurrent(isActive('certificates')) %>>
+                            <a href="/candidate/certificates" class="<%= mobileLinkClass(isActive('certificates')) %>">
 
                                 Certificates
 
                             </a>
 
 
-                            <!-- Saved Searches -->
+                            <a href="/candidate/saved-internships"
+                                class="<%= mobileLinkClass(isActive('savedInternships')) %>">
 
-                            <a href="/candidate/saved-searches" data-nav-link data-nav-variant="mobile"
-                                data-nav-prefixes="<%= navPrefixAttribute('savedSearches') %>"
-                                class="<%= mobileLinkClass(isActive('savedSearches')) %>" <%-
-                                ariaCurrent(isActive('savedSearches')) %>>
+                                Saved Internships
+
+                            </a>
+
+
+                            <a href="/candidate/saved-searches"
+                                class="<%= mobileLinkClass(isActive('savedSearches')) %>">
 
                                 Saved Searches
 
                             </a>
 
 
-                            <!-- Recommendations -->
-
-                            <a href="/recommendations/<%= currentUser._id %>" data-nav-link data-nav-variant="mobile"
-                                data-nav-prefixes="<%= navPrefixAttribute('recommendations') %>"
-                                class="<%= mobileLinkClass(isActive('recommendations')) %>" <%-
-                                ariaCurrent(isActive('recommendations')) %>>
+                            <a href="/recommendations/<%= currentUser._id %>"
+                                class="<%= mobileLinkClass(isActive('recommendations')) %>">
 
                                 Recommendations
 
                             </a>
 
 
-                            <!-- Mock Interviews -->
-
-                            <a href="/interview" data-nav-link data-nav-variant="mobile"
-                                data-nav-prefixes="<%= navPrefixAttribute('interview') %>"
-                                class="<%= mobileLinkClass(isActive('interview')) %>" <%-
-                                ariaCurrent(isActive('interview')) %>>
+                            <a href="/interview" class="<%= mobileLinkClass(isActive('interview')) %>">
 
                                 Mock Interviews
 
                             </a>
 
 
-                            <!-- Problem Generator -->
-
-                            <a href="/problems" data-nav-link data-nav-variant="mobile"
-                                data-nav-prefixes="<%= navPrefixAttribute('problems') %>"
-                                class="<%= mobileLinkClass(isActive('problems')) %>" <%-
-                                ariaCurrent(isActive('problems')) %>>
+                            <a href="/problems" class="<%= mobileLinkClass(isActive('problems')) %>">
 
                                 Problem Generator
 
                             </a>
 
 
-                            <!-- Notifications -->
-
-                            <a href="/notifications" data-nav-link data-nav-variant="mobile"
-                                data-nav-prefixes="<%= navPrefixAttribute('notifications') %>"
-                                class="<%= mobileLinkClass(isActive('notifications')) %>" <%-
-                                ariaCurrent(isActive('notifications')) %>>
+                            <a href="/notifications" class="<%= mobileLinkClass(isActive('notifications')) %>">
 
                                 Notifications
 
-                                <% if (notificationUnreadCount> 0) { %>
+                                <% if ( typeof notificationUnreadCount !=='undefined' && notificationUnreadCount> 0
+                                    ) { %>
 
                                     (<%= notificationUnreadCount> 99
                                         ? '99+'
@@ -898,59 +805,55 @@
                                 %>
 
 
-                                <!-- Company Dashboard -->
-
-                                <a href="/company/dashboard" data-nav-link data-nav-variant="mobile"
-                                    data-nav-prefixes="<%= navPrefixAttribute('companyDashboard') %>"
-                                    class="<%= mobileLinkClass(isActive('companyDashboard')) %>" <%-
-                                    ariaCurrent(isActive('companyDashboard')) %>>
+                                <a href="/company/dashboard"
+                                    class="<%= mobileLinkClass(isActive('companyDashboard')) %>">
 
                                     Company Dashboard
 
                                 </a>
 
 
-                                <% if ( ['company', 'recruiter' ] .includes(currentUser.role) ) { %>
+                                <a href="/company/profile" class="<%= mobileLinkClass(isActive('companyProfile')) %>">
+
+                                    Company Profile
+
+                                </a>
 
 
-                                    <!-- Company Profile -->
+                                <% if (currentUser.role==='company' ) { %>
 
-                                    <a href="/company/profile" data-nav-link data-nav-variant="mobile"
-                                        data-nav-prefixes="<%= navPrefixAttribute('companyProfile') %>"
-                                        class="<%= mobileLinkClass(isActive('companyProfile')) %>" <%-
-                                        ariaCurrent(isActive('companyProfile')) %>>
+                                    <a href="/company/team" class="<%= mobileLinkClass(isActive('manageTeam')) %>">
 
-                                        Company Profile
+                                        Manage Team
 
                                     </a>
 
 
+                                    <a href="/company/activity"
+                                        class="<%= mobileLinkClass(isActive('activityHistory')) %>">
+
+                                        Activity History
+
+                                    </a>
+
                                     <% } %>
 
 
-                                        <% if (currentUser.role==='company' ) { %>
+                                        <a href="/company/notifications"
+                                            class="<%= mobileLinkClass(isActive('companyNotifications')) %>">
+
+                                            Notifications
+
+                                        </a>
 
 
-                                            <!-- Manage Team -->
-
-                                            <a href="/company/team" data-nav-link data-nav-variant="mobile"
-                                                data-nav-prefixes="<%= navPrefixAttribute('manageTeam') %>"
-                                                class="<%= mobileLinkClass(isActive('manageTeam')) %>" <%-
-                                                ariaCurrent(isActive('manageTeam')) %>>
-
-                                                Manage Team
-
-                                            </a>
+                                        <% } else if (currentUser.role==='admin' ) { %>
 
 
-                                            <!-- Activity History -->
+                                            <a href="/admin/dashboard"
+                                                class="<%= mobileLinkClass(isActive('adminDashboard')) %>">
 
-                                            <a href="/company/activity" data-nav-link data-nav-variant="mobile"
-                                                data-nav-prefixes="<%= navPrefixAttribute('activityHistory') %>"
-                                                class="<%= mobileLinkClass(isActive('activityHistory')) %>" <%-
-                                                ariaCurrent(isActive('activityHistory')) %>>
-
-                                                Activity History
+                                                Admin Dashboard
 
                                             </a>
 
@@ -958,103 +861,37 @@
                                             <% } %>
 
 
-                                                <% if ( ['company', 'recruiter' ] .includes(currentUser.role) ) { %>
+                                                <!-- ================================================= -->
+                                                <!-- MOBILE ACCOUNT ACTIONS                           -->
+                                                <!-- ================================================= -->
+
+                                                <div class="my-2 border-t border-slate-200">
+                                                </div>
 
 
-                                                    <!-- Notifications -->
+                                                <a href="/account/sessions"
+                                                    class="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50 hover:text-indigo-700">
 
-                                                    <a href="/company/notifications" data-nav-link
-                                                        data-nav-variant="mobile"
-                                                        data-nav-prefixes="<%= navPrefixAttribute('companyNotifications') %>"
-                                                        class="<%= mobileLinkClass(isActive('companyNotifications')) %>"
-                                                        <%- ariaCurrent(isActive('companyNotifications')) %>>
+                                                    <i class="ph-bold ph-devices">
+                                                    </i>
 
-                                                        Notifications
+                                                    Signed-in devices
 
-                                                        <% if (notificationUnreadCount> 0) { %>
-
-                                                            (<%= notificationUnreadCount> 99
-                                                                ? '99+'
-                                                                : notificationUnreadCount %>)
-
-                                                                <% } %>
-
-                                                    </a>
+                                                </a>
 
 
-                                                    <% } %>
+                                                <a href="/auth/logout"
+                                                    class="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50">
+
+                                                    <i class="ph-bold ph-sign-out">
+                                                    </i>
+
+                                                    Log Out
+
+                                                </a>
 
 
-                                                        <% } else if (currentUser.role==='admin' ) { %>
-
-
-                                                            <!-- Admin Dashboard -->
-
-                                                            <a href="/admin/dashboard" data-nav-link
-                                                                data-nav-variant="mobile"
-                                                                data-nav-prefixes="<%= navPrefixAttribute('adminDashboard') %>"
-                                                                class="<%= mobileLinkClass(isActive('adminDashboard')) %>"
-                                                                <%- ariaCurrent(isActive('adminDashboard')) %>>
-
-                                                                Admin Dashboard
-
-                                                            </a>
-
-
-                                                            <% } %>
-
-
-                                                                <% } %>
-
-
-                                                                    <!-- Messages -->
-
-                                                                    <% if (typeof messageUnreadCount !=='undefined' ) {
-                                                                        %>
-
-                                                                        <%- include('messages-nav', { variant: 'mobile'
-                                                                            }) %>
-
-                                                                            <% } %>
-
-
-                                                                                <% if (currentUser) { %>
-
-
-                                                                                    <!-- Divider -->
-
-                                                                                    <div
-                                                                                        class="my-2 border-t border-slate-200">
-                                                                                    </div>
-
-
-                                                                                    <!-- Logout -->
-
-                                                                                    <a href="/auth/logout"
-                                                                                        class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50">
-
-                                                                                        <i class="ph-bold ph-sign-out">
-                                                                                        </i>
-
-                                                                                        Log Out
-
-                                                                                    </a>
-
-
-                                                                                    <!-- Signed-in Devices -->
-
-                                                                                    <a href="/account/sessions"
-                                                                                        class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50 hover:text-indigo-600">
-
-                                                                                        <i class="ph-bold ph-devices">
-                                                                                        </i>
-
-                                                                                        Signed-in devices
-
-                                                                                    </a>
-
-
-                                                                                    <% } %>
+                                                <% } %>
 
                 </nav>
 
@@ -1066,12 +903,16 @@
 
 
     <!-- ===================================================== -->
-    <!-- NAVIGATION JAVASCRIPT                                 -->
+    <!-- JAVASCRIPT                                            -->
     <!-- ===================================================== -->
 
     <script>
 
         (() => {
+
+            /* =====================================================
+               MOBILE NAVIGATION
+            ===================================================== */
 
             const toggle =
                 document.getElementById('mobileNavToggle');
@@ -1082,196 +923,11 @@
             const icon =
                 document.getElementById('mobileNavIcon');
 
-            const toggleLabel =
+            const label =
                 document.getElementById('mobileNavToggleLabel');
 
 
-            /* =====================================================
-               ACTIVE CLASS MAP
-            ===================================================== */
-
-            const activeClassMap = {
-
-                desktop: {
-
-                    active: [
-                        'border-indigo-700',
-                        'bg-indigo-50',
-                        'text-indigo-900',
-                        'font-bold'
-                    ],
-
-                    inactive: [
-                        'border-transparent',
-                        'text-slate-600',
-                        'font-semibold'
-                    ]
-
-                },
-
-
-                mobile: {
-
-                    active: [
-                        'border-indigo-700',
-                        'bg-indigo-50',
-                        'text-indigo-900',
-                        'font-bold'
-                    ],
-
-                    inactive: [
-                        'border-transparent',
-                        'text-slate-600',
-                        'font-semibold'
-                    ]
-
-                },
-
-
-                icon: {
-
-                    active: [
-                        'bg-indigo-100',
-                        'font-bold',
-                        'text-indigo-900',
-                        'ring-1',
-                        'ring-indigo-700'
-                    ],
-
-                    inactive: [
-                        'text-slate-600'
-                    ]
-
-                }
-
-            };
-
-
-            /* =====================================================
-               NORMALIZE PATH
-            ===================================================== */
-
-            const normalizePath = value => {
-
-                const path =
-                    String(value || '/')
-                        .split(/[?#]/, 1)[0] || '/';
-
-                const withLeadingSlash =
-                    path.startsWith('/')
-                        ? path
-                        : `/${path}`;
-
-                return withLeadingSlash === '/'
-                    ? '/'
-                    : withLeadingSlash.replace(/\/+$/, '');
-
-            };
-
-
-            /* =====================================================
-               MATCH PREFIX
-            ===================================================== */
-
-            const matchesPrefix =
-                (pathname, prefix) => {
-
-                    const normalizedPath =
-                        normalizePath(pathname);
-
-                    const normalizedPrefix =
-                        normalizePath(prefix);
-
-                    return normalizedPrefix === '/'
-                        ? normalizedPath === '/'
-                        : normalizedPath === normalizedPrefix ||
-                        normalizedPath.startsWith(
-                            `${normalizedPrefix}/`
-                        );
-
-                };
-
-
-            /* =====================================================
-               ACTIVE NAVIGATION
-            ===================================================== */
-
-            const syncActiveNavigation =
-                (pathname = window.location.pathname) => {
-
-                    document
-                        .querySelectorAll('[data-nav-link]')
-                        .forEach(link => {
-
-                            const prefixes =
-                                (link.dataset.navPrefixes || '')
-                                    .split('|')
-                                    .filter(Boolean);
-
-                            const active =
-                                prefixes.some(prefix =>
-                                    matchesPrefix(
-                                        pathname,
-                                        prefix
-                                    )
-                                );
-
-                            const classes =
-                                activeClassMap[
-                                link.dataset.navVariant
-                                ] ||
-                                activeClassMap.desktop;
-
-
-                            classes.active.forEach(
-                                className => {
-
-                                    link.classList.toggle(
-                                        className,
-                                        active
-                                    );
-
-                                }
-                            );
-
-
-                            classes.inactive.forEach(
-                                className => {
-
-                                    link.classList.toggle(
-                                        className,
-                                        !active
-                                    );
-
-                                }
-                            );
-
-
-                            if (active) {
-
-                                link.setAttribute(
-                                    'aria-current',
-                                    'page'
-                                );
-
-                            } else {
-
-                                link.removeAttribute(
-                                    'aria-current'
-                                );
-
-                            }
-
-                        });
-
-                };
-
-
-            /* =====================================================
-               CLOSE MOBILE NAVIGATION
-            ===================================================== */
-
-            const closeMobileNavigation = () => {
+            const closeMobileMenu = () => {
 
                 if (!toggle || !menu) return;
 
@@ -1291,9 +947,9 @@
                 }
 
 
-                if (toggleLabel) {
+                if (label) {
 
-                    toggleLabel.textContent =
+                    label.textContent =
                         'Open navigation menu';
 
                 }
@@ -1301,50 +957,45 @@
             };
 
 
-            /* =====================================================
-               MOBILE MENU
-            ===================================================== */
-
             if (toggle && menu) {
 
                 toggle.addEventListener(
                     'click',
                     () => {
 
-                        const isOpen =
-                            !menu.classList.contains(
-                                'hidden'
-                            );
+                        const currentlyOpen =
+                            !menu.classList.contains('hidden');
 
 
-                        menu.classList.toggle(
-                            'hidden',
-                            isOpen
-                        );
+                        if (currentlyOpen) {
 
+                            closeMobileMenu();
+
+                            return;
+
+                        }
+
+
+                        menu.classList.remove('hidden');
 
                         toggle.setAttribute(
                             'aria-expanded',
-                            String(!isOpen)
+                            'true'
                         );
 
 
                         if (icon) {
 
                             icon.className =
-                                isOpen
-                                    ? 'ph-bold ph-list text-xl'
-                                    : 'ph-bold ph-x text-xl';
+                                'ph-bold ph-x text-xl';
 
                         }
 
 
-                        if (toggleLabel) {
+                        if (label) {
 
-                            toggleLabel.textContent =
-                                isOpen
-                                    ? 'Open navigation menu'
-                                    : 'Close navigation menu';
+                            label.textContent =
+                                'Close navigation menu';
 
                         }
 
@@ -1358,7 +1009,7 @@
 
                         if (event.key === 'Escape') {
 
-                            closeMobileNavigation();
+                            closeMobileMenu();
 
                         }
 
@@ -1369,109 +1020,16 @@
 
 
             /* =====================================================
-               NAVIGATION CLICK
-            ===================================================== */
-
-            document.addEventListener(
-                'click',
-                event => {
-
-                    const link =
-                        event.target.closest(
-                            '[data-nav-link]'
-                        );
-
-
-                    if (
-                        !link ||
-                        event.defaultPrevented ||
-                        event.button !== 0 ||
-                        event.metaKey ||
-                        event.ctrlKey ||
-                        event.shiftKey ||
-                        event.altKey
-                    ) {
-
-                        return;
-
-                    }
-
-
-                    syncActiveNavigation(
-                        new URL(
-                            link.href,
-                            window.location.href
-                        ).pathname
-                    );
-
-
-                    closeMobileNavigation();
-
-                }
-            );
-
-
-            /* =====================================================
-               HISTORY API
-            ===================================================== */
-
-            ['pushState', 'replaceState']
-                .forEach(method => {
-
-                    const originalMethod =
-                        window.history[method];
-
-
-                    window.history[method] =
-                        function (...args) {
-
-                            const result =
-                                originalMethod.apply(
-                                    this,
-                                    args
-                                );
-
-
-                            window.dispatchEvent(
-                                new Event(
-                                    'internpilot:navigation'
-                                )
-                            );
-
-
-                            return result;
-
-                        };
-
-                });
-
-
-            window.addEventListener(
-                'popstate',
-                syncActiveNavigation
-            );
-
-
-            window.addEventListener(
-                'internpilot:navigation',
-                syncActiveNavigation
-            );
-
-
-            syncActiveNavigation();
-
-
-            /* =====================================================
-               DROPDOWNS
+               DROPDOWN HANDLING
+               Only Prepare / Manage dropdowns use this.
+               User profile has NO dropdown.
             ===================================================== */
 
             const closeAllDropdowns =
                 except => {
 
                     document
-                        .querySelectorAll(
-                            '.ip-dropdown'
-                        )
+                        .querySelectorAll('.ip-dropdown')
                         .forEach(dropdown => {
 
                             if (dropdown === except) return;
@@ -1481,7 +1039,6 @@
                                 dropdown.querySelector(
                                     '.ip-dropdown__trigger'
                                 );
-
 
                             const panel =
                                 dropdown.querySelector(
