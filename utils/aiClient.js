@@ -50,8 +50,17 @@ class AIClient {
             throw new Error('GEMINI_API_KEY is not configured in environment variables.');
         }
 
-        const modelToUse = process.env.GEMINI_MODEL || this.defaultModel;
-        const fallbackModel = process.env.GEMINI_FALLBACK_MODEL || this.fallbackModel;
+        let modelToUse = process.env.GEMINI_MODEL;
+        if (modelToUse && (modelToUse.includes('3.8') || modelToUse.includes('3.5'))) {
+            modelToUse = null;
+        }
+        modelToUse = modelToUse || this.defaultModel;
+
+        let fallbackModel = process.env.GEMINI_FALLBACK_MODEL;
+        if (fallbackModel && (fallbackModel.includes('3.8') || fallbackModel.includes('3.5'))) {
+            fallbackModel = null;
+        }
+        fallbackModel = fallbackModel || this.fallbackModel;
 
         let finalPrompt = prompt;
         if (attempt > 1 && previousError) {

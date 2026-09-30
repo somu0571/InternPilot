@@ -176,32 +176,45 @@ Resume text:
 ${text}
 `;
 
-        const modelName = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+        let configuredModel = process.env.GEMINI_MODEL;
+        if (configuredModel && (configuredModel.includes('3.8') || configuredModel.includes('3.5'))) {
+            configuredModel = null;
+        }
+
+        const candidateModels = [
+            configuredModel,
+            process.env.GEMINI_FALLBACK_MODEL,
+            'gemini-2.5-flash',
+            'gemini-2.0-flash',
+            'gemini-1.5-flash'
+        ].filter(Boolean);
+
+        const modelsToTry = [...new Set(candidateModels)];
         const client = customClient || ai || new GoogleGenAI({ apiKey });
 
-        let response;
-        try {
-            response = await client.models.generateContent({
-                model: modelName,
-                contents: [{ role: 'user', parts: [{ text: prompt }] }],
-                config: {
-                    responseMimeType: 'application/json'
-                }
-            });
-        } catch (callErr) {
-            const isTransientError = callErr.status === 503 || (callErr.message && /high demand|temporar|503/i.test(callErr.message));
-            if (isTransientError && modelName !== 'gemini-3.5-flash') {
-                console.warn(`Model ${modelName} is experiencing high demand. Failing over to gemini-3.5-flash...`);
+        let response = null;
+        let lastError = null;
+
+        for (const model of modelsToTry) {
+            try {
                 response = await client.models.generateContent({
-                    model: 'gemini-3.5-flash',
+                    model,
                     contents: [{ role: 'user', parts: [{ text: prompt }] }],
                     config: {
                         responseMimeType: 'application/json'
                     }
                 });
-            } else {
-                throw callErr;
+                if (response && response.text) {
+                    break;
+                }
+            } catch (err) {
+                lastError = err;
+                console.warn(`[ResumeQuality] Model ${model} failed (${err.message || err}). Trying fallback model...`);
             }
+        }
+
+        if (!response) {
+            throw lastError || new Error('All Gemini AI models failed for resume quality analysis');
         }
 
         const rawText = (response && response.text) ? response.text : '{}';
@@ -1126,32 +1139,24 @@ router.get('/recommendations/:userId', isAuthenticated, authorize('candidate'), 
             recommendations = await Recommendation.populate(recommendations, { path: 'internship' });
         }
 
-        // Filter out closed/paused/expired/applied at read-time
-        const now = new Date();
+        // Filter out closed/paused/applied at read-time
         recommendations = recommendations.filter(rec => {
             const internship = rec.internship;
             if (!internship) return false; // Deleted internship
-            if (internship.status !== 'published') return false;
-            if (internship.isPaused) return false;
+            if (internship.status === 'draft' || internship.status === 'paused' || internship.isPaused) return false;
             if (appliedIds.includes(internship._id.toString())) return false;
-
-            if (internship.applicationDeadline && internship.applicationDeadline < now) {
-                return false;
-            }
             return true;
         });
 
         // If after filtering we have nothing, and we didn't JUST regenerate, we could regenerate.
-        // But if we just regenerated and it's still empty, it means there's literally no eligible internships.
         if (recommendations.length === 0 && !needsRegeneration) {
             recommendations = await generateRecommendationsForUser(user);
             recommendations = await Recommendation.populate(recommendations, { path: 'internship' });
 
             recommendations = recommendations.filter(rec => {
                 const internship = rec.internship;
-                if (!internship || internship.status !== 'published' || internship.isPaused) return false;
+                if (!internship || internship.status === 'draft' || internship.status === 'paused' || internship.isPaused) return false;
                 if (appliedIds.includes(internship._id.toString())) return false;
-                if (internship.applicationDeadline && internship.applicationDeadline < now) return false;
                 return true;
             });
         }

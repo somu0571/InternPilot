@@ -1,5 +1,13 @@
 require("dotenv").config();
 
+// Ensure GEMINI_MODEL uses valid Google GenAI models and does not retain non-existent 3.8/3.5 models
+if (!process.env.GEMINI_MODEL || process.env.GEMINI_MODEL.includes('3.8') || process.env.GEMINI_MODEL.includes('3.5')) {
+    process.env.GEMINI_MODEL = 'gemini-2.5-flash';
+}
+if (!process.env.GEMINI_FALLBACK_MODEL || process.env.GEMINI_FALLBACK_MODEL.includes('3.8') || process.env.GEMINI_FALLBACK_MODEL.includes('3.5')) {
+    process.env.GEMINI_FALLBACK_MODEL = 'gemini-2.0-flash';
+}
+
 process.on('unhandledRejection', (reason, promise) => {
     console.error('Unhandled Rejection at:', promise, 'reason:', reason);
     // Do NOT exit — a single fire-and-forget promise failure (e.g. a

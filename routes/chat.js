@@ -173,11 +173,15 @@ const generateGeminiReply = async (systemPrompt, userMessage) => {
     }
 
     const ai = new GoogleGenAI({ apiKey });
-    const primaryModel = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+    let primaryModel = process.env.GEMINI_MODEL;
+    if (primaryModel && (primaryModel.includes('3.8') || primaryModel.includes('3.5'))) {
+        primaryModel = null;
+    }
+    primaryModel = primaryModel || 'gemini-2.5-flash';
+
     const fallbackModels = [
         process.env.GEMINI_FALLBACK_MODEL || 'gemini-2.0-flash',
-        'gemini-1.5-flash',
-        'gemini-3.8-flash'
+        'gemini-1.5-flash'
     ].filter(m => m && m !== primaryModel);
 
     const modelsToTry = [primaryModel, ...fallbackModels];

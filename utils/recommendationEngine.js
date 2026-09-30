@@ -5,7 +5,12 @@ const Recommendation = require('../models/Recommendation');
 const { calculatePreFilterScore } = require('./candidateMatcher');
 const { buildSkillProfiles } = require('./skillProfiles');
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+function getAiClient() {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) return null;
+    return new GoogleGenAI({ apiKey });
+}
+
 const POOL_SIZE = parseInt(process.env.RECOMMENDATION_AI_POOL_SIZE, 10) || 25;
 
 /**
@@ -17,7 +22,7 @@ async function generateRecommendationsForUser(user) {
         const apps = await Application.find({ candidate: user._id }).select('internship');
         const appliedIds = apps.map(a => a.internship ? a.internship.toString() : null).filter(Boolean);
 
-        // 2. Fetch all eligible active internships
+        // 2. Fetch all eligible active internships (exclude draft and paused)
         const activeDeadlineCondition = {
             $or: [
                 { applicationDeadline: { $exists: false } },
@@ -26,12 +31,21 @@ async function generateRecommendationsForUser(user) {
             ]
         };
 
-        const allEligible = await Internship.find({
-            status: 'published',
+        let allEligible = await Internship.find({
+            status: { $nin: ['draft', 'paused'] },
             isPaused: { $ne: true },
             _id: { $nin: appliedIds },
             ...activeDeadlineCondition
         }).lean();
+
+        // If deadline filter eliminated all listings, fall back without deadline restriction
+        if (allEligible.length === 0) {
+            allEligible = await Internship.find({
+                status: { $nin: ['draft', 'paused'] },
+                isPaused: { $ne: true },
+                _id: { $nin: appliedIds }
+            }).lean();
+        }
 
         if (allEligible.length === 0) {
             await Recommendation.deleteMany({ candidate: user._id });
@@ -68,7 +82,7 @@ async function generateRecommendationsForUser(user) {
         let aiResults = [];
         let isFallback = false;
 
-        // 5. Gemini Semantic Scoring
+        // 5. Gemini Semantic Scoring with multi-model fallback
         try {
             const prompt = `
 You are an expert AI recruiter. Evaluate this candidate against a list of internships.
@@ -81,34 +95,69 @@ Internships to Evaluate:
 ${JSON.stringify(internshipsPayload, null, 2)}
 `;
             
-            const response = await ai.models.generateContent({
-                model: process.env.GEMINI_MODEL || 'gemini-3.8-flash',
-                contents: [{ role: 'user', parts: [{ text: prompt }] }],
-                config: {
-                    responseMimeType: "application/json",
-                    responseSchema: {
-                        type: "ARRAY",
-                        items: {
-                            type: "OBJECT",
-                            properties: {
-                                id: { type: "STRING" },
-                                aiMatchScore: { type: "INTEGER" },
-                                matchReasoning: { type: "STRING" },
-                                skillGapAnalysis: { type: "STRING" }
-                            },
-                            required: ["id", "aiMatchScore", "matchReasoning", "skillGapAnalysis"]
+            const client = getAiClient();
+            if (!client) {
+                throw new Error('GEMINI_API_KEY is not configured in environment variables.');
+            }
+
+            let configuredModel = process.env.GEMINI_MODEL;
+            if (configuredModel && (configuredModel.includes('3.8') || configuredModel.includes('3.5'))) {
+                configuredModel = null;
+            }
+
+            const candidateModels = [
+                configuredModel,
+                process.env.GEMINI_FALLBACK_MODEL,
+                'gemini-2.5-flash',
+                'gemini-2.0-flash',
+                'gemini-1.5-flash'
+            ].filter(Boolean);
+
+            const modelsToTry = [...new Set(candidateModels)];
+            let lastAiErr = null;
+
+            for (const model of modelsToTry) {
+                try {
+                    const response = await client.models.generateContent({
+                        model,
+                        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                        config: {
+                            responseMimeType: "application/json",
+                            responseSchema: {
+                                type: "ARRAY",
+                                items: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        id: { type: "STRING" },
+                                        aiMatchScore: { type: "INTEGER" },
+                                        matchReasoning: { type: "STRING" },
+                                        skillGapAnalysis: { type: "STRING" }
+                                    },
+                                    required: ["id", "aiMatchScore", "matchReasoning", "skillGapAnalysis"]
+                                }
+                            }
+                        }
+                    });
+
+                    if (response && response.text) {
+                        const parsed = JSON.parse(response.text);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            aiResults = parsed;
+                            break;
                         }
                     }
+                } catch (err) {
+                    lastAiErr = err;
+                    console.warn(`[RecommendationEngine] Model ${model} failed (${err.message || err}). Trying fallback model...`);
                 }
-            });
+            }
 
-            aiResults = JSON.parse(response.text);
-            
-            // Validate results length matches prompt somewhat, but even if it drops some, we continue
-            if (!Array.isArray(aiResults)) throw new Error("AI did not return an array.");
+            if (!Array.isArray(aiResults) || aiResults.length === 0) {
+                throw lastAiErr || new Error("All Gemini models failed or returned empty results.");
+            }
         } catch (aiError) {
             // Log the underlying AI failure server-side for diagnosis
-            console.error('Gemini Recommendation Error:', aiError);
+            console.error('Gemini Recommendation Error:', aiError.message || aiError);
             isFallback = true;
             
             // Deterministic Fallback Data Contract

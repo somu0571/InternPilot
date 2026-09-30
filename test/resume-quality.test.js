@@ -83,7 +83,7 @@ test('analyzeResumeQuality uses process.env.GEMINI_MODEL when configured', async
     }
 });
 
-test('analyzeResumeQuality defaults to gemini-3.8-flash when GEMINI_MODEL is not set', async () => {
+test('analyzeResumeQuality defaults to gemini-2.5-flash when GEMINI_MODEL is not set', async () => {
     const originalEnvModel = process.env.GEMINI_MODEL;
     delete process.env.GEMINI_MODEL;
 
@@ -106,7 +106,7 @@ test('analyzeResumeQuality defaults to gemini-3.8-flash when GEMINI_MODEL is not
 
     try {
         const result = await analyzeResumeQuality('Candidate CV text', mockClient);
-        assert.equal(capturedOptions.model, 'gemini-3.8-flash');
+        assert.equal(capturedOptions.model, 'gemini-2.5-flash');
         assert.equal(capturedOptions.config?.responseMimeType, 'application/json');
         assert.equal(result.overallFeedback, 'Overall great profile.');
     } finally {
@@ -220,7 +220,7 @@ test('analyzeResumeQuality handles unconfigured GEMINI_API_KEY gracefully', asyn
     }
 });
 
-test('analyzeResumeQuality fails over to gemini-3.5-flash when primary model encounters 503 high demand', async () => {
+test('analyzeResumeQuality fails over to gemini-2.0-flash when primary model encounters 503 high demand', async () => {
     let callCount = 0;
     const requestedModels = [];
 
@@ -229,7 +229,7 @@ test('analyzeResumeQuality fails over to gemini-3.5-flash when primary model enc
             generateContent: async (options) => {
                 callCount++;
                 requestedModels.push(options.model);
-                if (options.model !== 'gemini-3.5-flash') {
+                if (options.model !== 'gemini-2.0-flash') {
                     const err = new Error('This model is currently experiencing high demand. Spikes in demand are usually temporary.');
                     err.status = 503;
                     throw err;
@@ -247,12 +247,12 @@ test('analyzeResumeQuality fails over to gemini-3.5-flash when primary model enc
     };
 
     const originalEnvModel = process.env.GEMINI_MODEL;
-    process.env.GEMINI_MODEL = 'gemini-3.8-flash';
+    delete process.env.GEMINI_MODEL;
 
     try {
         const result = await analyzeResumeQuality('Some resume text', mockClient);
         assert.equal(callCount, 2);
-        assert.deepEqual(requestedModels, ['gemini-3.8-flash', 'gemini-3.5-flash']);
+        assert.deepEqual(requestedModels, ['gemini-2.5-flash', 'gemini-2.0-flash']);
         assert.equal(result.overallFeedback, 'Failover successful.');
     } finally {
         if (originalEnvModel !== undefined) {
