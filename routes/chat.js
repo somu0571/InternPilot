@@ -22,13 +22,8 @@ const CHAT_STOP_WORDS = new Set([
 ]);
 
 const activeChatFilter = () => ({
-    status: 'published',
-    isPaused: { $ne: true },
-    $or: [
-        { applicationDeadline: { $exists: false } },
-        { applicationDeadline: null },
-        { applicationDeadline: { $gt: new Date() } }
-    ]
+    status: { $nin: ['draft', 'paused'] },
+    isPaused: { $ne: true }
 });
 
 const messageWords = message => message.toLowerCase().match(/[a-z0-9]+/g) || [];
