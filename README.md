@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  Connecting students, companies, and administrators through a secure and efficient internship ecosystem.
+  Connecting students, companies, and administrators through a secure, intelligent, and efficient internship ecosystem.
 </p>
 
 <p align="center">
@@ -14,6 +14,8 @@
 ![Express.js](https://img.shields.io/badge/Express.js-Backend-black?logo=express)
 ![MongoDB](https://img.shields.io/badge/MongoDB-Database-green?logo=mongodb)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-blue?logo=tailwindcss)
+![Google Gemini](https://img.shields.io/badge/Google%20Gemini-AI%20Powered-orange?logo=google)
+![Cloudinary](https://img.shields.io/badge/Cloudinary-Media%20Storage-blue?logo=cloudinary)
 
 </p>
 
@@ -21,15 +23,13 @@
 
 ## 📌 About The Project
 
-**InternPilot** is an AI - powered full-stack internship management web portal designed to connect **students/candidates** with **companies offering internship opportunities** while providing administrators with complete system control.
+**InternPilot** is a production-grade, AI-powered full-stack internship management web portal designed to connect **students/candidates** with **companies offering internship opportunities** while providing **administrators** with complete system governance and moderation.
 
 The platform provides a structured environment where:
 
-* 🎓 **Candidates** can register, discover internship opportunities, apply, and track application progress.
-* 🏢 **Companies** can create verified profiles, publish internship listings, and manage applicants.
-* 🛡️ **Administrators** can monitor and manage platform activities securely.
-
-InternPilot focuses on providing a secure authentication system, automated communication, and role-based access control to create a seamless internship experience.
+* 🎓 **Candidates** can discover internships, receive AI-powered resume feedback, practice AI mock technical interviews, verify PMIS eligibility, apply for listings, track offers, and manage device sessions.
+* 🏢 **Companies** can create verified profiles, publish listings with custom questionnaires, manage the entire ATS applicant pipeline (Shortlist, Interview, Offer, Hire), and track reviews.
+* 🛡️ **Administrators** can monitor platform metrics, moderate listings, handle grievance redressals, publish announcements, and review audit logs.
 
 This project was developed as part of **Project Based Learning - 1**.
 
@@ -37,166 +37,80 @@ This project was developed as part of **Project Based Learning - 1**.
 
 ## ✨ Features
 
-### 👥 Multi-Role Registration System
+### 🤖 AI-Powered Capabilities (Google Gemini)
 
-InternPilot supports three different user roles:
-
-#### 🎓 Candidates
-
-* Create candidate accounts.
-* Verify email through OTP.
-* Login securely.
-* Apply for internships.
-* Receive application status updates.
-* Set each listed skill to **Beginner**, **Intermediate**, or **Advanced** so matching reflects current proficiency.
-
-#### 🏢 Companies
-
-Companies can register by providing:
-
-* Company Name
-* CIN Number
-* Industry Details
-* Company Information
-
-Companies can:
-
-* Manage their profile.
-* Publish internship opportunities.
-* Review candidate applications.
-
-#### 🛡️ Administrators
-
-Admin registration is protected using a secure:
-
-```env
-ADMIN_SECRET
-```
-
-Administrators have access to system-level management features.
+* 📄 **AI Resume Quality Feedback & ATS Analyzer**: Evaluates resumes for quantifiable achievements, technical skills, project relevance, and delivers actionable, non-numeric improvement feedback.
+* 🎯 **AI Semantic Recommendation Engine**: Uses a multi-stage funnel (pre-filter scoring, privacy filter stripping PII, and semantic scoring with skill-gap analysis) with deterministic fallback scoring.
+* 💬 **AI Interactive Recruiter Chatbot**: An intelligent conversational assistant that helps candidates discover active listings and answer platform questions in real-time.
+* 🎙️ **AI Mock Interview & Problem Generator**: Generates customized technical interview questions and coding problems tailored to the candidate's resume and target role.
+* 🛡️ **Multi-Model AI Resilience**: Built-in fallback cascade (`gemini-2.5-flash` → `gemini-2.0-flash` → `gemini-1.5-flash`) ensuring zero downtime during high server load or temporary API spikes.
 
 ---
 
-## 🔐 Authentication & Security
+### 🎓 Candidate Portal
 
-### 📩 OTP Email Verification
-
-InternPilot implements secure email verification using dynamic OTP generation.
-
-**Features:**
-
-* 🔢 6-digit OTP generation.
-* ⏳ OTP expiration after 10 minutes.
-* 🔄 Resend OTP functionality.
-* 📧 Email delivery using Nodemailer and Gmail SMTP.
+* 👤 **Profile & Skill Proficiencies**: Set skills to **Beginner**, **Intermediate**, or **Advanced** for precision matching.
+* 🇮🇳 **PMIS Eligibility Checker**: Integrated eligibility engine assessing criteria under the Pradhan Mantri Internship Scheme.
+* 📥 **Resume Parsing & Conflict Detection**: Automated PDF/Doc text extraction with an interactive modal to review and resolve data conflicts.
+* 📜 **Resume Versioning**: Maintains historical uploaded resumes and metadata.
+* 💼 **Offers & Applications Dashboard**: Real-time status tracking (Submitted, Under Review, Shortlisted, Interview Scheduled, Offer Extended, Hired, Rejected).
+* 🏆 **Verified Certificates**: Secure issuance and online verification of internship completion certificates.
+* 🔐 **Active Sessions & Device Security**: View connected devices, IP locations (masked), and remotely revoke active sessions.
 
 ---
 
-### 🔵 Google OAuth 2.0
+### 🏢 Company & Recruiter Portal
 
-Users can authenticate using Google Single Sign-On.
-
-**Benefits:**
-
-* One-click registration.
-* Secure OAuth authentication.
-* Automatic email verification.
-* Passport.js integration.
+* 🏢 **Company Verification & CIN**: Verification workflows ensuring authentic enterprise listings.
+* 📋 **Job Lifecycle Management**: Create, edit, draft, publish, and pause internship listings.
+* 👥 **Applicant Tracking System (ATS)**: Review candidate applications, inspect resumes, schedule interviews, and extend offers.
+* 📝 **Custom Application Questions**: Attach required/optional questions with custom response character limits.
+* 🛑 **Atomic Capacity Management**: Advertised vacancy limits automatically track filled seats and prevent over-hiring.
+* ⭐ **Company Reviews & Ratings**: Collect and display feedback from verified candidates.
 
 ---
 
-### 🔑 Role-Based Authentication
+### 🛡️ Administrator & Governance Console
 
-InternPilot uses role-based routing to provide different experiences for each user.
-
-After successful authentication:
-
-| Role | Dashboard |
-| :--- | :--- |
-| **Admin** | `/admin/dashboard` |
-| **Company** | `/company/dashboard` |
-| **Candidate** | `/` |
-
-Users must complete email verification before accessing the platform.
+* 📊 **Platform Analytics Dashboard**: High-level statistics on candidates, companies, listings, and applications.
+* 🛡️ **Moderation Controls**: Review and moderate internship listings and company profiles.
+* 📑 **Grievance Redressal System**: Comprehensive ticketing system allowing candidates and companies to submit issues, track statuses, and receive admin resolutions.
+* 📢 **Announcements Broadcast**: Publish sitewide announcements for users.
+* 🔒 **Audit & Action Logs**: Immutable logging of administrative actions for security compliance.
 
 ---
 
-## 📧 Application Status Notification System
+### 🔐 Authentication & Security
 
-InternPilot includes an automated email notification service.
-
-Candidates receive emails whenever their application status changes:
-
-| Status | Description |
-| :--- | :--- |
-| 📤 **Submitted** | Application successfully submitted |
-| 🔍 **Under Review** | Company is reviewing application |
-| ⭐ **Shortlisted** | Candidate selected for next step |
-| ❌ **Rejected** | Application not selected |
-
-**Powered by:**
-
-* Nodemailer
-* Gmail SMTP
-
----
-
-## 🎨 Dynamic User Interface
-
-The frontend provides a responsive and interactive experience.
-
-**Implemented features:**
-
-* Server-side rendering using EJS.
-* Reusable layouts using `ejs-mate`.
-* Tailwind CSS styling.
-* Dynamic registration forms.
-* Role-based input field toggling using JavaScript.
+* 📩 **6-Digit OTP Verification**: Secure email verification with 10-minute expiry and resend cooldowns via Nodemailer and Gmail SMTP.
+* 🔵 **Google OAuth 2.0**: Seamless single sign-on with automatic email verification via Passport.js.
+* 🔑 **Role-Based Access Control (RBAC)**: Dedicated routing and permission barriers for Candidates, Companies, and Admins.
+* ☁️ **Cloudinary Storage**: Secure, signed cloud storage for uploaded candidate resumes.
 
 ---
 
 ## 🛠️ Tech Stack
 
-### Backend
+### Core & Backend
 
 | Technology | Purpose |
 | :--- | :--- |
-| **Node.js** | Runtime environment |
-| **Express.js** | Backend framework |
-| **MongoDB** | Database |
-| **Mongoose** | MongoDB ODM |
+| **Node.js** | JavaScript runtime environment |
+| **Express.js** | Web backend framework |
+| **MongoDB & Mongoose** | Document database & ODM |
+| **Google GenAI SDK** | Gemini AI LLM integrations (`@google/genai`) |
+| **Passport.js** | Local & Google OAuth 2.0 authentication |
+| **Cloudinary** | Secure cloud file and resume storage |
+| **Nodemailer** | Transactional emails & OTP verification |
 
----
-
-### Authentication
-
-| Technology | Purpose |
-| :--- | :--- |
-| **Passport.js** | Authentication middleware |
-| **Passport Local Strategy** | Email/password login |
-| **Passport Google OAuth 2.0** | Google authentication |
-| **Express Session** | Session management |
-| **Connect Flash** | Flash messages |
-
----
-
-### Frontend
+### Frontend & UI
 
 | Technology | Purpose |
 | :--- | :--- |
-| **EJS** | Server-side templates |
-| **ejs-mate** | Layout management |
-| **Tailwind CSS** | UI styling |
-| **JavaScript** | Client-side interactions |
-
----
-
-### Utilities
-
-| Technology | Purpose |
-| :--- | :--- |
-| **Nodemailer** | Email services |
-| **dotenv** | Environment variables |
+| **EJS & ejs-mate** | Server-side templating & reusable layouts |
+| **Tailwind CSS** | Modern responsive styling |
+| **Phosphor Icons** | Clean vector iconography |
+| **Vanilla JavaScript** | Interactive client-side dynamics |
 
 ---
 
@@ -204,230 +118,184 @@ The frontend provides a responsive and interactive experience.
 
 ```text
 InternPilot/
-│
-├── models/
-│   └── User.js
-│       └── User schema for Candidates, Companies & Admins
-│
-├── routes/
-│   │
-│   ├── auth.js
-│   │   └── Registration, Login, OTP, Google OAuth routes
-│   │
-│   ├── company.js
-│   │   └── Company dashboard and internship management
-│   │
-│   └── admin.js
-│       └── Admin dashboard routes
-│
-├── utils/
-│   │
-│   └── sendEmail.js
-│       └── Nodemailer email service
-│
-├── views/
-│   │
-│   ├── auth/
-│   │   ├── register.ejs
-│   │   └── login.ejs
-│   │
-│   ├── extras/
-│   │   └── verify-otp.ejs
-│   │
-│   └── layouts/
-│       └── ejs-mate layouts
-│
-├── public/
-│   └── Static assets
-│
-├── app.js
-│   └── Main Express server
-│
-├── .env
-├── package.json
-└── README.md
+├── config/             # Passport strategies & external service configs
+├── models/             # Mongoose schemas (User, Internship, Application, etc.)
+├── routes/             # Express routes
+│   ├── auth.js         # Authentication, OTP & Google OAuth
+│   ├── candidate.js    # Candidate actions, dashboard & verification
+│   ├── company.js      # Company portal, listing & ATS management
+│   ├── adminConsole.js # Admin dashboard, moderation & audit logs
+│   ├── chat.js         # AI Recruiter Chatbot
+│   ├── interview.js    # AI Mock Interview & Problem Generator
+│   ├── user.js         # User profile, AI resume quality & recommendations
+│   ├── grievances.js   # Grievance redressal ticketing
+│   ├── reviews.js      # Company reviews & ratings
+│   └── certificates.js # Certificate generation & verification
+├── utils/              # Helper utilities
+│   ├── aiClient.js     # Shared Gemini AI client with backoff
+│   ├── recommendationEngine.js # AI recommendation funnel
+│   ├── pmisEligibility.js      # PMIS eligibility checker
+│   ├── candidateMatcher.js     # Deterministic scoring algorithms
+│   └── sendEmail.js    # Nodemailer email dispatcher
+├── views/              # EJS templates
+│   ├── auth/           # Login, register & password reset
+│   ├── candidate/      # Candidate profile, dashboard & recommendations
+│   ├── company/        # Recruiter dashboard & applicant management
+│   ├── admin/          # Admin console & grievance management
+│   └── layouts/        # ejs-mate layout wrappers
+├── public/             # Static CSS, JS, and image assets
+├── test/               # Node.js native test suites
+├── app.js              # Application entry point
+├── .env                # Environment configuration
+├── package.json        # Dependencies and scripts
+└── README.md           # Documentation
 ```
 
 ---
 
 ## ⚙️ Environment Configuration
 
-Create a `.env` file in the root directory.
+Create a `.env` file in the root directory:
 
 ```env
 # Server Configuration
 PORT=8080
 
-# MongoDB Configuration
-# Transactions are required for company verification and listing moderation.
-# Use MongoDB Atlas, a replica set, or a sharded cluster (not standalone mongod).
+# MongoDB Configuration (Atlas or Replica Set required for transactions)
 ATLASDB_URL=mongodb+srv://username:password@cluster.mongodb.net/internpilot
 
-# Express Session
+# Session & Security Secrets
 SESSION_SECRET=your_session_secret
-
-# Admin Security
 ADMIN_SECRET=your_admin_secret_key
+ADMIN_CODE=your_admin_secret_key
 
 # Gmail SMTP Configuration
 EMAIL_USER=your_email@gmail.com
 EMAIL_PASS=your_gmail_app_password
 
-# Google OAuth Configuration
+# Google OAuth 2.0 Credentials
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
 GOOGLE_CALLBACK_URL=http://localhost:8080/auth/google/callback
+
+# Cloudinary Storage Configuration
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+
+# Google Gemini AI Configuration
+GEMINI_API_KEY=your_google_gemini_api_key
+GEMINI_MODEL=gemini-2.5-flash
+GEMINI_FALLBACK_MODEL=gemini-2.0-flash
+RECOMMENDATION_AI_POOL_SIZE=25
 ```
 
 ---
 
 ## 🚀 Getting Started
 
-### Skill-proficiency data migration
-
-Existing candidate skill tags remain supported and are treated as **Intermediate** until they are edited. After deploying this feature, backfill the structured proficiency field once with:
-
-```bash
-npm run migrate:skill-proficiencies
-```
-
-The script only updates candidate profiles and clears their cached recommendations so new proficiency-aware rankings can be generated.
-
 ### ✅ Prerequisites
 
-Make sure you have installed:
-
-* [Node.js](https://nodejs.org/)
+* [Node.js](https://nodejs.org/) (v18+ recommended)
 * `npm` package manager
-* MongoDB database (Local or MongoDB Atlas)
-* Git
-
-Check versions:
-
-```bash
-node -v
-npm -v
-```
+* MongoDB Atlas database (or local replica set)
+* Google Gemini API Key
 
 ---
 
-## 📥 Installation
+### 📥 Installation & Setup
 
-### 1. Clone Repository
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/somu0571/InternPilot.git
+   cd InternPilot
+   ```
 
-```bash
-git clone https://github.com/somu0571/InternPilot.git
-```
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-Navigate into project directory:
+3. **Configure Environment Variables:**
+   Copy the template above into a `.env` file and supply your credentials.
 
-```bash
-cd InternPilot
-```
+4. **Run Skill-Proficiency Migration (Optional / Recommended):**
+   ```bash
+   npm run migrate:skill-proficiencies
+   ```
 
-### 2. Install Dependencies
+5. **Start the application:**
+   * Development with auto-reload:
+     ```bash
+     npx nodemon app.js
+     ```
+   * Production mode:
+     ```bash
+     node app.js
+     ```
 
-```bash
-npm install
-```
+6. **Access the application:**
+   Open your browser at `http://localhost:8080`.
 
-### 3. Configure Environment Variables
+---
 
-Create `.env` file and add required credentials as shown in the Environment Configuration section.
+## 🔌 Key Application Routes Overview
 
-### 4. Start Application
+| Method | Endpoint | Description | Access |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/register` | Multi-role registration page | Public |
+| **POST** | `/verify-otp` | Verify 6-digit email OTP | Public |
+| **GET / POST**| `/login` | User login (local strategy) | Public |
+| **GET** | `/auth/google` | Google OAuth 2.0 Single Sign-On | Public |
+| **GET** | `/candidate/profile` | Candidate profile, resume & skills | Candidate |
+| **GET** | `/candidate/recommendations` | AI internship recommendations | Candidate |
+| **POST** | `/candidate/resume` | Upload resume with AI quality check | Candidate |
+| **POST** | `/chat` | AI recruiter interactive chatbot | Candidate |
+| **GET** | `/interview/mock` | AI technical mock interview & problems | Candidate |
+| **GET** | `/company/dashboard` | Recruiter dashboard & applicant review | Company |
+| **POST** | `/company/internship` | Publish or draft internship listings | Company |
+| **GET** | `/admin/dashboard` | Administrative analytics & moderation | Admin |
+| **GET** | `/grievances` | Grievance redressal management | Auth Users |
+| **GET** | `/certificates/verify/:id` | Public verification of certificate | Public |
 
-Development mode:
+---
 
-```bash
-npx nodemon app.js
-```
-
-or standard start:
-
-```bash
-node app.js
-```
-
-### 5. Access Application
-
-Open your browser and navigate to:
+## 🔄 Core Application Lifecycle Flow
 
 ```text
-http://localhost:8080
-```
-
----
-
-## 🔌 API & Authentication Routes Overview
-
-### Authentication Routes
-
-| Method | Route | Description |
-| :--- | :--- | :--- |
-| **GET** | `/register` | Registration page |
-| **POST** | `/register` | Create user account |
-| **POST** | `/verify-otp` | Verify email OTP |
-| **POST** | `/resend-otp` | Generate new OTP |
-| **GET** | `/login` | Login page |
-| **POST** | `/login` | Authenticate user |
-| **GET** | `/auth/google` | Google OAuth login |
-| **GET** | `/auth/google/callback` | OAuth callback |
-| **GET** | `/logout` | Logout user |
-
----
-
-### Company Routes
-
-| Method | Route | Description |
-| :--- | :--- | :--- |
-| **GET** | `/company/dashboard` | Company dashboard |
-| **POST** | `/company/internship` | Create internship listing |
-| **GET** | `/company/applications` | View applications |
-
----
-
-### Admin Routes
-
-| Method | Route | Description |
-| :--- | :--- | :--- |
-| **GET** | `/admin/dashboard` | Admin dashboard |
-| **GET** | `/admin/users` | Manage users |
-
----
-
-## 🔄 Application Flow
-
-```text
-User Registration
-        |
-        ↓
-Role Selection
-        |
-        ↓
-Email OTP Verification
-        |
-        ↓
-Account Activated
-        |
-        ↓
-Role-Based Dashboard
-        |
-        ↓
-Internship Management
-        |
-        ↓
-Application Updates + Email Notifications
+       Candidate Registration / Google OAuth
+                         |
+                         ↓
+               Email OTP Verification
+                         |
+                         ↓
+           Profile Completion & Resume Upload
+       (AI ATS Quality Feedback + Conflict Resolution)
+                         |
+                         ↓
+   ┌─────────────────────┴─────────────────────┐
+   ↓                                           ↓
+AI Recommendations & Search         AI Mock Interview & Chatbot
+   │                                           │
+   └─────────────────────┬─────────────────────┘
+                         ↓
+               Internship Application
+                         ↓
+      Company Reviews Application in ATS Pipeline
+  (Under Review → Shortlisted → Interview → Offer)
+                         ↓
+           Atomic Offer Acceptance & Hiring
+                         ↓
+           Verified Certificate Issuance
 ```
 
 ---
 
 ## 🔮 Future Enhancements
 
-Planned improvements:
-
-* 🤖 AI-based internship recommendation engine.
-* 🔔 Push notifications.
+* 🔔 Real-time WebSocket push notifications.
+* 📱 Mobile responsive PWA (Progressive Web App).
+* 📹 In-browser video interview integration.
 
 
 ## 🚀 START2CODE — Git, GitHub & Open Source Bootcamp
