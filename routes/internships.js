@@ -145,36 +145,67 @@ function notifyPublishedInternship(internship) {
     });
 }
 
+let sectorsAndSkillsCache = null;
+let sectorsAndSkillsCacheExpiry = 0;
+
+async function getCachedSectorsAndSkills() {
+    const now = Date.now();
+    if (sectorsAndSkillsCache && now < sectorsAndSkillsCacheExpiry) {
+        return sectorsAndSkillsCache;
+    }
+    const [availableSectors, availableSkills] = await Promise.all([
+        Internship.distinct('sector'),
+        Internship.distinct('requiredSkills', { status: { $ne: 'draft' } })
+    ]);
+    const sectors = availableSectors.filter(Boolean).sort();
+    const skillOptions = uniqueSortedOptions(availableSkills);
+    sectorsAndSkillsCache = [sectors, skillOptions];
+    sectorsAndSkillsCacheExpiry = now + 120000; // Cache for 2 minutes
+    return sectorsAndSkillsCache;
+}
+
+function invalidateSectorsAndSkillsCache() {
+    sectorsAndSkillsCache = null;
+    sectorsAndSkillsCacheExpiry = 0;
+}
+
 router.get('/', async (req, res) => {
     try {
         const parsed = parseInternshipQuery(req.query);
         const { sortObj, state, page, limit } = parsed;
         const filterObj = await applyDurationFilter(parsed.filterObj, state.duration, Internship);
 
-        const totalItems = await Internship.countDocuments(filterObj);
+        const candidate = req.user;
+        const currentUser = req.user;
+        const initialSkip = (page - 1) * limit;
+
+        // Run counting, listing search, candidate applications, and cached metadata concurrently
+        const [totalItems, rawInternships, candidateApps, [sectors, skillOptions]] = await Promise.all([
+            Internship.countDocuments(filterObj),
+            Internship.find(filterObj)
+                .sort(sortObj)
+                .skip(initialSkip)
+                .limit(limit),
+            candidate
+                ? Application.find({ candidate: candidate._id }).select('internship').lean()
+                : Promise.resolve([]),
+            getCachedSectorsAndSkills()
+        ]);
+
         const pagination = buildPaginationData(totalItems, page, limit);
         state.page = pagination.currentPage;
 
-        const internships = await Internship.find(filterObj)
-            .sort(sortObj)
-            .skip(pagination.skip)
-            .limit(pagination.limit);
-
-        const [availableSectors, availableSkills] = await Promise.all([
-            Internship.distinct('sector'),
-            Internship.distinct('requiredSkills', { status: { $ne: 'draft' } })
-        ]);
-        const sectors = availableSectors.filter(Boolean).sort();
-        const skillOptions = uniqueSortedOptions(availableSkills);
-
-        const candidate = req.user;
-        const currentUser = req.user;
-
-        let appliedIds = [];
-        if (candidate) {
-            const apps = await Application.find({ candidate: candidate._id }).select('internship');
-            appliedIds = apps.map(appDoc => appDoc.internship ? appDoc.internship.toString() : null).filter(Boolean);
+        let internships = rawInternships;
+        if (pagination.skip !== initialSkip) {
+            internships = await Internship.find(filterObj)
+                .sort(sortObj)
+                .skip(pagination.skip)
+                .limit(pagination.limit);
         }
+
+        const appliedIds = (candidateApps || [])
+            .map(appDoc => appDoc.internship ? appDoc.internship.toString() : null)
+            .filter(Boolean);
 
         res.render('extras/internships', {
             internships,
@@ -348,6 +379,7 @@ router.post('/new', isAuthenticated, requireCompanyPermission('internship:create
 
 
         await newInternship.save();
+        invalidateSectorsAndSkillsCache();
 
         if (status === 'published') notifyPublishedInternship(newInternship);
 
@@ -419,6 +451,7 @@ router.post('/:id/edit', isAuthenticated, requireCompanyPermission('internship:e
         internship.applicationQuestions = questionsFromListingRequest(req.body, internship.applicationQuestions || []);
 
         await internship.save();
+        invalidateSectorsAndSkillsCache();
 
         if (typeof chatRouter !== 'undefined' && typeof chatRouter.invalidateChatCache === 'function') {
             chatRouter.invalidateChatCache();
@@ -443,6 +476,7 @@ router.post('/:id/delete', isAuthenticated, requireCompanyPermission('internship
 
         // Clean up orphaned applications for this deleted internship
         await Application.deleteMany({ internship: req.params.id });
+        invalidateSectorsAndSkillsCache();
 
         if (typeof chatRouter !== 'undefined' && typeof chatRouter.invalidateChatCache === 'function') {
             chatRouter.invalidateChatCache();

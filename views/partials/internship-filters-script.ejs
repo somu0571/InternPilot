@@ -86,6 +86,8 @@
             region.setAttribute('aria-busy', busy ? 'true' : 'false');
             region.classList.toggle('opacity-50', busy);
             region.classList.toggle('pointer-events-none', busy);
+            const spinner = document.getElementById('listings-loading-indicator');
+            if (spinner) spinner.classList.toggle('hidden', !busy);
         };
 
         const load = async (url, { push = true, replace = false, scroll = false } = {}) => {
@@ -109,6 +111,17 @@
                     const next = doc.querySelector('[data-live-region="' + el.dataset.liveRegion + '"]');
                     if (next) el.replaceWith(next);
                 });
+
+                // Immediately ensure motion-pending is cleared so freshly swapped listing cards are never stuck at opacity: 0
+                document.documentElement.classList.remove('motion-pending');
+
+                // Re-trigger motion reveals and tilt handlers on the newly injected cards
+                if (window.InternPilotMotion && typeof window.InternPilotMotion.refresh === 'function') {
+                    window.InternPilotMotion.refresh(resultsRegion() || document);
+                }
+
+                // Notify page components (e.g. compare checkboxes) of the DOM swap
+                document.dispatchEvent(new CustomEvent('internpilot:content-updated'));
 
                 if (replace) history.replaceState({ internshipFilters: true }, '', url);
                 else if (push) history.pushState({ internshipFilters: true }, '', url);
@@ -205,6 +218,25 @@
             const url = new URL(link.getAttribute('href'), window.location.href);
             if (url.origin !== window.location.origin || url.pathname !== '/internships') return;
             e.preventDefault();
+
+            // Optimistic tab update for instant visual feedback on tab switch
+            const tabsRegion = link.closest('[data-live-region="tabs"]');
+            if (tabsRegion) {
+                tabsRegion.querySelectorAll('a').forEach(tab => {
+                    tab.classList.remove('bg-white', 'text-indigo-700', 'text-emerald-700', 'text-amber-700', 'shadow-xs');
+                    tab.classList.add('text-slate-600', 'hover:text-slate-900');
+                });
+                link.classList.remove('text-slate-600', 'hover:text-slate-900');
+                const targetStatus = url.searchParams.get('status') || 'all';
+                if (targetStatus === 'active') {
+                    link.classList.add('bg-white', 'text-emerald-700', 'shadow-xs');
+                } else if (targetStatus === 'paused') {
+                    link.classList.add('bg-white', 'text-amber-700', 'shadow-xs');
+                } else {
+                    link.classList.add('bg-white', 'text-indigo-700', 'shadow-xs');
+                }
+            }
+
             load(url.pathname + url.search, { scroll: true });
         });
 

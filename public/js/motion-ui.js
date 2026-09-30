@@ -321,9 +321,16 @@
 
     // --- tilt ---
 
-    function initTilt(win, doc, reduce) {
+    function initTilt(win, root, reduce) {
         if (reduce || !win.matchMedia || !win.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
-        doc.querySelectorAll('[data-tilt]').forEach(card => {
+        const target = root || doc;
+        const cards = (target.matches && target.matches('[data-tilt]'))
+            ? [target]
+            : Array.from(target.querySelectorAll('[data-tilt]'));
+
+        cards.forEach(card => {
+            if (card.__hasTilt) return;
+            card.__hasTilt = true;
             let frame = 0;
             card.addEventListener('pointerenter', () => { card.style.transition = 'transform 60ms linear, box-shadow 0.2s ease, border-color 0.2s ease'; });
             card.addEventListener('pointermove', event => {
@@ -343,10 +350,15 @@
 
     // --- reveals and counters ---
 
-    function runReveals(doc, Motion) {
+    function runReveals(root, Motion) {
         const { animate, inView, stagger } = Motion;
+        const target = root || doc;
 
-        doc.querySelectorAll('[data-animate-stagger]').forEach(container => {
+        const staggerContainers = (target.matches && target.matches('[data-animate-stagger]'))
+            ? [target]
+            : Array.from(target.querySelectorAll('[data-animate-stagger]'));
+
+        staggerContainers.forEach(container => {
             inView(container, () => {
                 const items = Array.from(container.children).filter(el => !el.hasAttribute('data-animated'));
                 if (!items.length) return;
@@ -357,7 +369,11 @@
             }, IN_VIEW);
         });
 
-        doc.querySelectorAll('[data-animate]').forEach(element => {
+        const animateElements = (target.matches && target.matches('[data-animate]'))
+            ? [target]
+            : Array.from(target.querySelectorAll('[data-animate]'));
+
+        animateElements.forEach(element => {
             inView(element, () => {
                 if (element.hasAttribute('data-animated')) return;
                 element.setAttribute('data-animated', '');
@@ -365,7 +381,11 @@
             }, IN_VIEW);
         });
 
-        doc.querySelectorAll('[data-count-up]').forEach(element => {
+        const countElements = (target.matches && target.matches('[data-count-up]'))
+            ? [target]
+            : Array.from(target.querySelectorAll('[data-count-up]'));
+
+        countElements.forEach(element => {
             const original = element.textContent;
             const parts = parseCount(original.trim());
             if (!parts || parts.target === 0) return;
@@ -393,6 +413,7 @@
                 if (!html.classList.contains('motion-pending')) return;
                 runReveals(doc, Motion);
                 win.__ipMotionReady = true;
+                reveal();
             })
             .catch(reveal);
     }
@@ -404,6 +425,12 @@
         api.confirm = (message, options = {}) => confirmDialog(win, doc, reduce, { ...options, message });
         api.loadMotion = () => loadMotion(win, doc);
         api.reducedMotion = reduce;
+        api.refresh = (root = doc) => {
+            initTilt(win, root, reduce);
+            if (win.Motion) {
+                runReveals(root, win.Motion);
+            }
+        };
         initConfirms(win, doc, reduce);
 
         const ready = () => {

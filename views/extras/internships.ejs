@@ -280,7 +280,18 @@
                 <%# Swapped in place by the filter script. data-state carries the filters the server actually applied.
                     %>
                     <div data-live-region="results" data-state="<%= JSON.stringify(query) %>" aria-live="polite"
-                        class="transition-opacity scroll-mt-24">
+                        class="relative transition-opacity scroll-mt-24">
+
+                        <!-- Loading overlay indicator during filter/tab switches -->
+                        <div id="listings-loading-indicator" class="hidden absolute inset-0 bg-white/70 backdrop-blur-[1px] z-30 flex items-center justify-center rounded-xl min-h-[220px]">
+                            <div class="flex items-center gap-2.5 px-4 py-2.5 bg-white rounded-xl shadow-lg border border-slate-200 text-xs font-bold text-indigo-700">
+                                <svg class="animate-spin h-4 w-4 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span>Updating opportunities...</span>
+                            </div>
+                        </div>
 
                         <%- include('../partials/internship-active-filters') %>
 
@@ -290,11 +301,13 @@
                                     <i class="ph-bold ph-magnifying-glass text-4xl text-slate-300 mb-2"></i>
                                     <h3 class="text-base font-bold text-slate-800">
                                         <%= filter==='paused' ? 'No paused internship listings found'
-                                            : 'No matching internships found' %>
+                                            : (filter==='active' ? 'No active internship openings found'
+                                            : 'No matching internships found') %>
                                     </h3>
                                     <p class="text-xs text-slate-500 mt-1 mb-4">
                                         <%= filter==='paused' ? 'There are currently no paused internship listings.'
-                                            : 'Try relaxing your search terms or clearing filters.' %>
+                                            : (filter==='active' ? 'There are currently no active openings accepting applications.'
+                                            : 'Try relaxing your search terms or clearing filters.') %>
                                     </p>
                                     <a href="/internships?status=all"
                                         class="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition-colors">
@@ -970,56 +983,55 @@
                                                 document.getElementById('editModal').classList.add('hidden');
                                             }
 
-                                            // Bookmark Toggle Logic
-                                            document.addEventListener('DOMContentLoaded', () => {
-                                                const bookmarkBtns = document.querySelectorAll('.bookmark-btn');
-                                                bookmarkBtns.forEach(btn => {
-                                                    btn.addEventListener('click', async (e) => {
-                                                        e.preventDefault();
-                                                        e.stopPropagation();
-                                                        const icon = btn.querySelector('i');
-                                                        const internshipId = btn.getAttribute('data-id');
+                                            // Bookmark Toggle Logic (Delegated)
+                                            document.addEventListener('click', async (e) => {
+                                                const btn = e.target.closest('.bookmark-btn');
+                                                if (!btn) return;
 
-                                                        // Optimistic UI update for sleek feel
-                                                        const isCurrentlySaved = icon.classList.contains('ph-fill');
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                const icon = btn.querySelector('i');
+                                                const internshipId = btn.getAttribute('data-id');
+                                                if (!icon || !internshipId) return;
+
+                                                // Optimistic UI update for sleek feel
+                                                const isCurrentlySaved = icon.classList.contains('ph-fill');
+                                                if (isCurrentlySaved) {
+                                                    icon.classList.remove('ph-fill', 'text-indigo-600');
+                                                    icon.classList.add('ph-bold');
+                                                } else {
+                                                    icon.classList.remove('ph-bold');
+                                                    icon.classList.add('ph-fill', 'text-indigo-600');
+                                                }
+
+                                                try {
+                                                    const response = await fetch(`/candidate/saved-internships/${internshipId}/toggle`, {
+                                                        method: 'POST',
+                                                        headers: { 'Content-Type': 'application/json' }
+                                                    });
+                                                    const data = await response.json();
+                                                    if (!data.success) {
+                                                        // Revert on failure
                                                         if (isCurrentlySaved) {
-                                                            icon.classList.remove('ph-fill', 'text-indigo-600');
-                                                            icon.classList.add('ph-bold');
-                                                        } else {
                                                             icon.classList.remove('ph-bold');
                                                             icon.classList.add('ph-fill', 'text-indigo-600');
+                                                        } else {
+                                                            icon.classList.remove('ph-fill', 'text-indigo-600');
+                                                            icon.classList.add('ph-bold');
                                                         }
-
-                                                        try {
-                                                            const response = await fetch(`/candidate/saved-internships/${internshipId}/toggle`, {
-                                                                method: 'POST',
-                                                                headers: { 'Content-Type': 'application/json' }
-                                                            });
-                                                            const data = await response.json();
-                                                            if (!data.success) {
-                                                                // Revert on failure
-                                                                if (isCurrentlySaved) {
-                                                                    icon.classList.remove('ph-bold');
-                                                                    icon.classList.add('ph-fill', 'text-indigo-600');
-                                                                } else {
-                                                                    icon.classList.remove('ph-fill', 'text-indigo-600');
-                                                                    icon.classList.add('ph-bold');
-                                                                }
-                                                                alert('Failed to save internship. Please try again.');
-                                                            }
-                                                        } catch (err) {
-                                                            console.error(err);
-                                                            // Revert on error
-                                                            if (isCurrentlySaved) {
-                                                                icon.classList.remove('ph-bold');
-                                                                icon.classList.add('ph-fill', 'text-indigo-600');
-                                                            } else {
-                                                                icon.classList.remove('ph-fill', 'text-indigo-600');
-                                                                icon.classList.add('ph-bold');
-                                                            }
-                                                        }
-                                                    });
-                                                });
+                                                        alert('Failed to save internship. Please try again.');
+                                                    }
+                                                } catch (err) {
+                                                    console.error(err);
+                                                    // Revert on error
+                                                    if (isCurrentlySaved) {
+                                                        icon.classList.remove('ph-bold');
+                                                        icon.classList.add('ph-fill', 'text-indigo-600');
+                                                    } else {
+                                                        icon.classList.remove('ph-fill', 'text-indigo-600');
+                                                        icon.classList.add('ph-bold');
+                                                    }
+                                                }
                                             });
                                         </script>
 
@@ -1047,16 +1059,23 @@
 
                                         <script>
                                             document.addEventListener('DOMContentLoaded', () => {
-                                                const checkboxes = document.querySelectorAll('.compare-checkbox');
                                                 const compareBar = document.getElementById('compareBar');
                                                 const compareCount = document.getElementById('compareCount');
                                                 const clearCompareBtn = document.getElementById('clearCompareBtn');
                                                 const compareSubmitBtn = document.getElementById('compareSubmitBtn');
 
+                                                if (!compareBar) return;
+
                                                 let selectedIds = new Set();
 
+                                                function syncCheckboxes() {
+                                                    document.querySelectorAll('.compare-checkbox').forEach(cb => {
+                                                        cb.checked = selectedIds.has(cb.value);
+                                                    });
+                                                }
+
                                                 function updateUI() {
-                                                    compareCount.textContent = selectedIds.size;
+                                                    if (compareCount) compareCount.textContent = selectedIds.size;
 
                                                     if (selectedIds.size > 0) {
                                                         compareBar.classList.remove('translate-y-full');
@@ -1064,40 +1083,48 @@
                                                         compareBar.classList.add('translate-y-full');
                                                     }
 
-                                                    if (selectedIds.size >= 2) {
-                                                        compareSubmitBtn.disabled = false;
-                                                    } else {
-                                                        compareSubmitBtn.disabled = true;
+                                                    if (compareSubmitBtn) {
+                                                        compareSubmitBtn.disabled = selectedIds.size < 2;
                                                     }
                                                 }
 
-                                                checkboxes.forEach(cb => {
-                                                    cb.addEventListener('change', (e) => {
-                                                        if (e.target.checked) {
-                                                            if (selectedIds.size >= 3) {
-                                                                alert("You can only compare up to 3 internships at a time.");
-                                                                e.target.checked = false;
-                                                                return;
-                                                            }
-                                                            selectedIds.add(e.target.value);
-                                                        } else {
-                                                            selectedIds.delete(e.target.value);
-                                                        }
-                                                        updateUI();
-                                                    });
-                                                });
+                                                document.addEventListener('change', (e) => {
+                                                    const cb = e.target.closest('.compare-checkbox');
+                                                    if (!cb) return;
 
-                                                clearCompareBtn.addEventListener('click', () => {
-                                                    selectedIds.clear();
-                                                    checkboxes.forEach(cb => cb.checked = false);
+                                                    if (cb.checked) {
+                                                        if (selectedIds.size >= 3) {
+                                                            alert("You can only compare up to 3 internships at a time.");
+                                                            cb.checked = false;
+                                                            return;
+                                                        }
+                                                        selectedIds.add(cb.value);
+                                                    } else {
+                                                        selectedIds.delete(cb.value);
+                                                    }
                                                     updateUI();
                                                 });
 
-                                                compareSubmitBtn.addEventListener('click', () => {
-                                                    if (selectedIds.size >= 2 && selectedIds.size <= 3) {
-                                                        const ids = Array.from(selectedIds).join(',');
-                                                        window.location.href = `/internships/compare?ids=${ids}`;
-                                                    }
+                                                if (clearCompareBtn) {
+                                                    clearCompareBtn.addEventListener('click', () => {
+                                                        selectedIds.clear();
+                                                        syncCheckboxes();
+                                                        updateUI();
+                                                    });
+                                                }
+
+                                                if (compareSubmitBtn) {
+                                                    compareSubmitBtn.addEventListener('click', () => {
+                                                        if (selectedIds.size >= 2 && selectedIds.size <= 3) {
+                                                            const ids = Array.from(selectedIds).join(',');
+                                                            window.location.href = `/internships/compare?ids=${ids}`;
+                                                        }
+                                                    });
+                                                }
+
+                                                // Re-sync checkboxes when content is dynamically swapped (e.g., tab switch or filter)
+                                                document.addEventListener('internpilot:content-updated', () => {
+                                                    syncCheckboxes();
                                                 });
                                             });
                                         </script>
