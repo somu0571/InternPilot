@@ -168,16 +168,20 @@
             </section>
 
             <!-- ===== STATS SECTION ===== -->
+            <%
+                const initCandidates = typeof totalCandidates === 'number' ? totalCandidates : 0;
+                const initCompanies = typeof totalCompanies === 'number' ? totalCompanies : 0;
+                const initInternships = typeof totalInternships === 'number' ? totalInternships : 0;
+            %>
             <section id="stats-section" class="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-5xl mx-auto"
                 data-aos="fade-up" data-aos-delay="300">
                 <!-- Card 1: Candidates -->
                 <div
                     class="bg-white/90 backdrop-blur-md border border-slate-200/80 hover:border-indigo-200 rounded-2xl p-6 text-center shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 min-h-[140px] flex flex-col items-center justify-center group">
-                    <div id="skeleton-candidates" class="w-24 h-10 rounded-lg skeleton-pulse mb-1"></div>
                     <span id="stat-candidates"
-                        class="hidden text-4xl sm:text-5xl font-extrabold bg-gradient-to-r from-indigo-600 to-indigo-800 bg-clip-text text-transparent mb-1 counter"
-                        data-target="0">
-                        0
+                        class="text-4xl sm:text-5xl font-extrabold bg-gradient-to-r from-indigo-600 to-indigo-800 bg-clip-text text-transparent mb-1 counter"
+                        data-target="<%= initCandidates %>">
+                        <%= initCandidates > 0 ? initCandidates.toLocaleString() + '+' : '0' %>
                     </span>
                     <span
                         class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center gap-1.5 mt-1">
@@ -190,11 +194,10 @@
                 <!-- Card 2: Companies -->
                 <div
                     class="bg-white/90 backdrop-blur-md border border-slate-200/80 hover:border-emerald-200 rounded-2xl p-6 text-center shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 min-h-[140px] flex flex-col items-center justify-center group">
-                    <div id="skeleton-companies" class="w-24 h-10 rounded-lg skeleton-pulse mb-1"></div>
                     <span id="stat-companies"
-                        class="hidden text-4xl sm:text-5xl font-extrabold bg-gradient-to-r from-emerald-600 to-teal-700 bg-clip-text text-transparent mb-1 counter"
-                        data-target="0">
-                        0
+                        class="text-4xl sm:text-5xl font-extrabold bg-gradient-to-r from-emerald-600 to-teal-700 bg-clip-text text-transparent mb-1 counter"
+                        data-target="<%= initCompanies %>">
+                        <%= initCompanies > 0 ? initCompanies.toLocaleString() + '+' : '0' %>
                     </span>
                     <span
                         class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center gap-1.5 mt-1">
@@ -207,11 +210,10 @@
                 <!-- Card 3: Published Internships -->
                 <div
                     class="bg-white/90 backdrop-blur-md border border-slate-200/80 hover:border-purple-200 rounded-2xl p-6 text-center shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 min-h-[140px] flex flex-col items-center justify-center group">
-                    <div id="skeleton-internships" class="w-24 h-10 rounded-lg skeleton-pulse mb-1"></div>
                     <span id="stat-internships"
-                        class="hidden text-4xl sm:text-5xl font-extrabold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent mb-1 counter"
-                        data-target="0">
-                        0
+                        class="text-4xl sm:text-5xl font-extrabold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent mb-1 counter"
+                        data-target="<%= initInternships %>">
+                        <%= initInternships > 0 ? initInternships.toLocaleString() + '+' : '0' %>
                     </span>
                     <span
                         class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center gap-1.5 mt-1">

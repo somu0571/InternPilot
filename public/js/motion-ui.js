@@ -321,9 +321,10 @@
 
     // --- tilt ---
 
-    function initTilt(win, root, reduce) {
+    function initTilt(win, root, reduce, doc) {
         if (reduce || !win.matchMedia || !win.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
-        const target = root || doc;
+        const target = root || doc || (win && win.document) || (typeof document !== 'undefined' ? document : null);
+        if (!target) return;
         const cards = (target.matches && target.matches('[data-tilt]'))
             ? [target]
             : Array.from(target.querySelectorAll('[data-tilt]'));
@@ -350,9 +351,10 @@
 
     // --- reveals and counters ---
 
-    function runReveals(root, Motion) {
+    function runReveals(root, Motion, doc) {
         const { animate, inView, stagger } = Motion;
-        const target = root || doc;
+        const target = root || doc || (typeof document !== 'undefined' ? document : null);
+        if (!target) return;
 
         const staggerContainers = (target.matches && target.matches('[data-animate-stagger]'))
             ? [target]
@@ -411,7 +413,7 @@
             .then(Motion => {
                 // If the head script already gave up waiting, content is showing: leave it be.
                 if (!html.classList.contains('motion-pending')) return;
-                runReveals(doc, Motion);
+                runReveals(doc, Motion, doc);
                 win.__ipMotionReady = true;
                 reveal();
             })
@@ -426,9 +428,9 @@
         api.loadMotion = () => loadMotion(win, doc);
         api.reducedMotion = reduce;
         api.refresh = (root = doc) => {
-            initTilt(win, root, reduce);
+            initTilt(win, root, reduce, doc);
             if (win.Motion) {
-                runReveals(root, win.Motion);
+                runReveals(root, win.Motion, doc);
             }
         };
         initConfirms(win, doc, reduce);
@@ -436,7 +438,7 @@
         const ready = () => {
             toastifyFlash(win, doc, reduce);
             initApplyJump(win, doc, reduce);
-            initTilt(win, doc, reduce);
+            initTilt(win, doc, reduce, doc);
             initAnimations(win, doc, reduce);
         };
         if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', ready);

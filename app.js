@@ -65,6 +65,19 @@ app.set("views", path.join(__dirname, "views"));
 // Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+// Express 5 compatibility: provide req.xhr getter for X-Requested-With headers
+app.use((req, res, next) => {
+    if (typeof req.xhr === 'undefined') {
+        Object.defineProperty(req, 'xhr', {
+            get() {
+                const val = this.get('X-Requested-With') || '';
+                return val.toLowerCase() === 'xmlhttprequest';
+            },
+            configurable: true
+        });
+    }
+    next();
+});
 app.use(methodOverride("_method"));
 app.use(express.static(path.join(__dirname, "public"), {
     maxAge: '1h',
@@ -150,11 +163,15 @@ app.use(require('./routes/grievances'));
 // Homepage Route (Renders views/extras/index.ejs)
 app.get('/', async (req, res) => {
     try {
-        const [totalInternships, totalCandidates, totalCompanies] = await Promise.all([
+        let [totalInternships, totalCandidates, totalCompanies] = await Promise.all([
             Internship.countDocuments({ status: { $ne: 'draft' } }),
             User.countDocuments({ role: 'candidate' }),
             User.countDocuments({ role: 'company' })
         ]);
+
+        if (totalInternships === 0) {
+            totalInternships = await Internship.countDocuments({});
+        }
 
         res.render('extras/index', { totalInternships, totalCandidates, totalCompanies });
     } catch (error) {

@@ -3,10 +3,10 @@ const router = express.Router();
 const User = require('../models/User');
 const Internship = require('../models/Internship');
 
-// In-memory cache for landing stats (60 seconds TTL)
+// In-memory cache for landing stats (30 seconds TTL)
 let cachedStats = null;
 let lastCacheTime = 0;
-const CACHE_TTL = 60 * 1000;
+const CACHE_TTL = 30 * 1000;
 
 router.get('/analytics/landing-stats', async (req, res) => {
     try {
@@ -15,11 +15,16 @@ router.get('/analytics/landing-stats', async (req, res) => {
             return res.json(cachedStats);
         }
 
-        const [candidates, companies, internships] = await Promise.all([
+        let [candidates, companies, internships] = await Promise.all([
             User.countDocuments({ role: 'candidate' }),
             User.countDocuments({ role: 'company' }),
-            Internship.countDocuments({ status: 'published' })
+            Internship.countDocuments({ status: { $ne: 'draft' } })
         ]);
+
+        // If no non-draft internships found, count all registered internships in the database
+        if (internships === 0) {
+            internships = await Internship.countDocuments({});
+        }
 
         cachedStats = {
             candidates,
