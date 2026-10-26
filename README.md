@@ -356,6 +356,27 @@ InternPilot was proudly showcased as part of **START2CODE — Git, GitHub & Open
                 </a>
             </td>
             <td align="center">
+                <a href="https://github.com/archlight20">
+                    <img src="https://avatars.githubusercontent.com/u/120593356?v=4" width="100;" alt="archlight20"/>
+                    <br />
+                    <sub><b>archlight20</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/rajeevsahani">
+                    <img src="https://avatars.githubusercontent.com/u/10737960?v=4" width="100;" alt="rajeevsahani"/>
+                    <br />
+                    <sub><b>Rajeev Kumar</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/Dushyant-web">
+                    <img src="https://avatars.githubusercontent.com/u/76154071?v=4" width="100;" alt="Dushyant-web"/>
+                    <br />
+                    <sub><b>Dushyant Prajapati</b></sub>
+                </a>
+            </td>
+            <td align="center">
                 <a href="https://github.com/Tanmoysahacodes">
                     <img src="https://avatars.githubusercontent.com/u/132278570?v=4" width="100;" alt="Tanmoysahacodes"/>
                     <br />
@@ -367,27 +388,6 @@ InternPilot was proudly showcased as part of **START2CODE — Git, GitHub & Open
                     <img src="https://avatars.githubusercontent.com/u/223731712?v=4" width="100;" alt="huzaifa069HUZ"/>
                     <br />
                     <sub><b>Huzaifa Tabish</b></sub>
-                </a>
-            </td>
-            <td align="center">
-                <a href="https://github.com/rajeevsahani">
-                    <img src="https://avatars.githubusercontent.com/u/10737960?v=4" width="100;" alt="rajeevsahani"/>
-                    <br />
-                    <sub><b>Rajeev Kumar</b></sub>
-                </a>
-            </td>
-            <td align="center">
-                <a href="https://github.com/archlight20">
-                    <img src="https://avatars.githubusercontent.com/u/120593356?v=4" width="100;" alt="archlight20"/>
-                    <br />
-                    <sub><b>archlight20</b></sub>
-                </a>
-            </td>
-            <td align="center">
-                <a href="https://github.com/Dushyant-web">
-                    <img src="https://avatars.githubusercontent.com/u/76154071?v=4" width="100;" alt="Dushyant-web"/>
-                    <br />
-                    <sub><b>Dushyant Prajapati</b></sub>
                 </a>
             </td>
 		</tr>
@@ -435,7 +435,37 @@ InternPilot was proudly showcased as part of **START2CODE — Git, GitHub & Open
                 </a>
             </td>
 		</tr>
-	</tbody>
+		<tr>
+            <td align="center">
+                <a href="https://github.com/YaKoT77">
+                    <img src="https://avatars.githubusercontent.com/u/210996344?v=4" width="100;" alt="YaKoT77"/>
+                    <br />
+                    <sub><b>Yash Kotnala</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/bhandarijiya28-sketch">
+                    <img src="https://avatars.githubusercontent.com/u/331283845?v=4" width="100;" alt="bhandarijiya28-sketch"/>
+                    <br />
+                    <sub><b>bhandarijiya28-sketch</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/vaishnaviverma16112008-byte">
+                    <img src="https://avatars.githubusercontent.com/u/324442031?v=4" width="100;" alt="vaishnaviverma16112008-byte"/>
+                    <br />
+                    <sub><b>vaishnaviverma16112008-byte</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/zaidindia1max">
+                    <img src="https://avatars.githubusercontent.com/u/244500526?v=4" width="100;" alt="zaidindia1max"/>
+                    <br />
+                    <sub><b>zaidindia1max</b></sub>
+                </a>
+            </td>
+		</tr>
+	<tbody>
 </table>
 <!-- readme: contributors-end -->
 
