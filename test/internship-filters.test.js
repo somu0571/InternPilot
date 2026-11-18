@@ -13,7 +13,7 @@ const {
     uniqueSortedOptions
 } = require('../utils/queryHelper');
 
-// Finds the condition for one field inside the $and parseInternshipQuery builds.
+
 const conditionFor = (filterObj, field) =>
     (filterObj.$and || [filterObj]).find(c => Object.prototype.hasOwnProperty.call(c, field));
 

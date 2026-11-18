@@ -10,9 +10,7 @@ const { isAuthenticated } = require('../middleware/auth');
 const { companyName } = require('../middleware/companyAccess');
 const { calculateCompanyReviewStats, checkReviewEligibility } = require('../utils/reviews');
 
-/**
- * Resolves a company ID to the primary company account.
- */
+
 async function resolveCompany(id) {
     if (!id || !mongoose.Types.ObjectId.isValid(id)) return null;
     let company = await User.findById(id);
@@ -26,14 +24,11 @@ async function resolveCompany(id) {
     return company;
 }
 
-// ---------------------------------------------------------
-// Public Reviews Listing & Workplace Insights
-// ---------------------------------------------------------
 
-/**
- * GET /companies/:id/reviews
- * Public view for verified company reviews and rating analytics.
- */
+
+
+
+
 router.get(['/companies/:id/reviews', '/company/:id/reviews'], async (req, res) => {
     try {
         const company = await resolveCompany(req.params.id);
@@ -44,7 +39,7 @@ router.get(['/companies/:id/reviews', '/company/:id/reviews'], async (req, res) 
 
         const stats = await calculateCompanyReviewStats(company._id);
 
-        // Filter and sort parameters
+        
         const ratingFilter = req.query.rating ? parseInt(req.query.rating, 10) : null;
         const sortFilter = req.query.sort || 'newest';
 
@@ -67,7 +62,7 @@ router.get(['/companies/:id/reviews', '/company/:id/reviews'], async (req, res) 
             .populate('internship', 'title sector')
             .sort(sortQuery);
 
-        // Check if current user is eligible to write a review
+        
         let eligibility = { isEligible: false, existingReview: null };
         if (req.user && req.user.role === 'candidate') {
             eligibility = await checkReviewEligibility(req.user._id, company._id);
@@ -100,14 +95,11 @@ router.get(['/companies/:id/reviews', '/company/:id/reviews'], async (req, res) 
     }
 });
 
-// ---------------------------------------------------------
-// Review Submission Routes
-// ---------------------------------------------------------
 
-/**
- * GET /companies/:id/reviews/new
- * Review submission form (accessible only to verified interns/candidates).
- */
+
+
+
+
 router.get('/companies/:id/reviews/new', isAuthenticated, async (req, res) => {
     try {
         if (req.user.role !== 'candidate') {
@@ -153,10 +145,7 @@ router.get('/companies/:id/reviews/new', isAuthenticated, async (req, res) => {
     }
 });
 
-/**
- * POST /companies/:id/reviews
- * Creates a verified review for a company.
- */
+
 router.post('/companies/:id/reviews', isAuthenticated, async (req, res) => {
     try {
         if (req.user.role !== 'candidate') {
@@ -181,7 +170,7 @@ router.post('/companies/:id/reviews', isAuthenticated, async (req, res) => {
             return res.redirect(`/companies/${company._id}/reviews`);
         }
 
-        // Parse ratings
+        
         const rating = Math.min(5, Math.max(1, parseInt(req.body.rating, 10) || 5));
         const mentorshipRating = Math.min(5, Math.max(1, parseInt(req.body.mentorshipRating, 10) || 5));
         const learningRating = Math.min(5, Math.max(1, parseInt(req.body.learningRating, 10) || 5));
@@ -224,7 +213,7 @@ router.post('/companies/:id/reviews', isAuthenticated, async (req, res) => {
 
         await review.save();
 
-        // Dispatch in-app notification to company
+        
         try {
             await Notification.create({
                 companyId: company._id,
@@ -246,14 +235,11 @@ router.post('/companies/:id/reviews', isAuthenticated, async (req, res) => {
     }
 });
 
-// ---------------------------------------------------------
-// Employer Response Channel
-// ---------------------------------------------------------
 
-/**
- * POST /company/reviews/:reviewId/response
- * Official response from employer to a candidate's review.
- */
+
+
+
+
 router.post('/company/reviews/:reviewId/response', isAuthenticated, async (req, res) => {
     try {
         const { reviewId } = req.params;
@@ -270,7 +256,7 @@ router.post('/company/reviews/:reviewId/response', isAuthenticated, async (req, 
             return res.redirect('back');
         }
 
-        // Verify that the user represents this company
+        
         const companyId = req.user.companyId || (req.user.role === 'company' ? req.user._id : null);
         const isAuthorized = req.user.role === 'admin' || (
             companyId && companyId.toString() === review.company.toString() &&
@@ -299,14 +285,11 @@ router.post('/company/reviews/:reviewId/response', isAuthenticated, async (req, 
     }
 });
 
-// ---------------------------------------------------------
-// Helpful Votes & JSON Stats
-// ---------------------------------------------------------
 
-/**
- * POST /reviews/:reviewId/helpful
- * Toggles a helpful vote on a review.
- */
+
+
+
+
 router.post('/reviews/:reviewId/helpful', isAuthenticated, async (req, res) => {
     try {
         const review = await Review.findById(req.params.reviewId);
@@ -343,10 +326,7 @@ router.post('/reviews/:reviewId/helpful', isAuthenticated, async (req, res) => {
     }
 });
 
-/**
- * GET /api/companies/:id/reviews/stats
- * Returns company review stats in JSON format.
- */
+
 router.get('/api/companies/:id/reviews/stats', async (req, res) => {
     try {
         const stats = await calculateCompanyReviewStats(req.params.id);

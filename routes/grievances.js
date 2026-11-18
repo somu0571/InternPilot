@@ -7,8 +7,8 @@ const grievances = require('../utils/grievances');
 
 const { CATEGORIES, STATUS, TIERS, LIMITS, TICKET_PATTERN } = grievances;
 
-// Card on the admin dashboard. routes/admin.js renders that page; this only
-// adds the counts and hands over with next().
+
+
 router.get('/admin/dashboard', async (req, res, next) => {
     if (req.user && req.user.role === 'admin') {
         try {
@@ -20,7 +20,7 @@ router.get('/admin/dashboard', async (req, res, next) => {
     next();
 });
 
-// Candidates and company teams raise grievances; admins handle them.
+
 function canRaise(req, res, next) {
     if (grievances.raiserRoleFor(req.user)) return next();
     if (req.user && req.user.role === 'admin') return res.redirect('/admin/grievances');
@@ -28,10 +28,7 @@ function canRaise(req, res, next) {
     return res.redirect('/grievance');
 }
 
-/**
- * Loads a grievance the current user may see and brings it up to date.
- * Anyone else gets the same 404 as a ticket that doesn't exist.
- */
+
 async function loadGrievance(req, res, next) {
     try {
         const ticket = String(req.params.ticket || '').toUpperCase();
@@ -114,8 +111,8 @@ router.get('/grievances/:ticket', isAuthenticated, loadGrievance, async (req, re
     }
 });
 
-// Replies and reopening are for the raiser (loadGrievance already checked
-// access); admins use the desk actions below.
+
+
 const raiserOnly = (req, res, next) => (req.user.role === 'admin' ? next('route') : next());
 
 router.post('/grievances/:ticket/reply', isAuthenticated, loadGrievance, raiserOnly, async (req, res, next) => {

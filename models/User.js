@@ -27,9 +27,9 @@ const userSchema = new mongoose.Schema({
     qualification: { type: String, trim: true, default: '' },
     enrollmentStatus: { type: String, trim: true, default: '' },
     employmentStatus: { type: String, trim: true, default: '' },
-    // Keep this legacy string list as a compatibility mirror while callers
-    // gradually move to `skillProfiles`. Existing users are read as
-    // Intermediate through utils/skillProfiles when no structured entry exists.
+    
+    
+    
     skills: [{ type: String, trim: true }],
     skillProfiles: [{
         _id: false,
@@ -41,9 +41,9 @@ const userSchema = new mongoose.Schema({
             required: true
         }
     }],
-    // `resume` remains the legacy/current-resume field so existing profile
-    // pages and integrations continue to work. Each upload is also retained
-    // below as a selectable application-kit resume version.
+    
+    
+    
     resume: { type: String, default: '' },
     resumeOriginalName: { type: String, default: '', trim: true },
     resumeUploadedAt: { type: Date },
@@ -118,8 +118,8 @@ const userSchema = new mongoose.Schema({
         contactPhone: { type: String, default: '', trim: true },
         contactInformation: { type: String, default: '', trim: true },
         companySize: { type: String, default: '', trim: true },
-        // isVerified remains for legacy views and records. New verification
-        // checks use verificationStatus, which records the full review state.
+        
+        
         isVerified: { type: Boolean, default: false },
         verificationStatus: {
             type: String,
@@ -158,12 +158,12 @@ const userSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 }, { toJSON: { virtuals: true }, toObject: { virtuals: true } });
 
-// Virtual to synchronize institution with education.institutionName
+
 userSchema.virtual('institutionName').get(function () {
     return this.education?.institutionName || this.institution || '';
 });
 
-// Hash password before saving
+
 userSchema.pre('save', async function () {
     if (!this.isModified('password') || !this.password) return;
 
@@ -171,7 +171,7 @@ userSchema.pre('save', async function () {
     this.password = await bcrypt.hash(this.password, salt);
 });
 
-// Compare Password Helper Method
+
 userSchema.methods.comparePassword = async function (candidatePassword) {
     if (!this.password) return false;
     return await bcrypt.compare(candidatePassword, this.password);

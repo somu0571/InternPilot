@@ -98,8 +98,8 @@
 
 <script>
     (function () {
-        // Keeps the numbers current without a full reload. Polls only while the
-        // tab is visible, and silently keeps the last good values on failure.
+        
+        
         const ENDPOINT = '/company/dashboard/overview';
         const INTERVAL_MS = 60 * 1000;
         const STAGE_COLORS = <%- JSON.stringify(stageColors) %>;
@@ -188,7 +188,7 @@
                 lastUpdated = Date.now();
                 setUpdatedLabel();
             } catch (err) {
-                // Network hiccup: keep showing the last values.
+                
             }
         };
 

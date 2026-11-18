@@ -3,8 +3,8 @@ const CandidateVerification = require('../models/CandidateVerification');
 const VERIFICATION_STATUSES = ['pending', 'approved', 'rejected', 'suspended'];
 const REVIEW_STATUSES = ['approved', 'rejected', 'suspended'];
 
-// A candidate may submit fresh documents after a rejection. Approved and
-// suspended records can only be changed through an accountable admin review.
+
+
 const REVIEW_TRANSITIONS = {
     pending: new Set(['approved', 'rejected', 'suspended']),
     approved: new Set(['suspended']),

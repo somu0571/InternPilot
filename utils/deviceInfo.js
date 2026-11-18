@@ -1,17 +1,17 @@
 const crypto = require('crypto');
 
-// Just enough user-agent reading to label a signed-in session for its owner,
-// for example "Chrome on Android". No version numbers are kept, so a browser
-// update doesn't make a device look new.
+
+
+
 
 const BROWSERS = [
-    [/EdgA?\/|Edg\//, 'Edge'],
-    [/SamsungBrowser\//, 'Samsung Internet'],
+    [/EdgA?\/|Edg\
+    [/SamsungBrowser\
     [/OPR\/|Opera/, 'Opera'],
-    [/Firefox\/|FxiOS\//, 'Firefox'],
-    [/CriOS\//, 'Chrome'],
-    [/Chrome\/|Chromium\//, 'Chrome'],
-    [/Version\/[\d.]+.*Safari\//, 'Safari']
+    [/Firefox\/|FxiOS\
+    [/CriOS\
+    [/Chrome\/|Chromium\
+    [/Version\/[\d.]+.*Safari\
 ];
 
 const OPERATING_SYSTEMS = [
@@ -29,7 +29,7 @@ function firstMatch(list, value, fallback) {
     return found ? found[1] : fallback;
 }
 
-/** { browser, os, deviceType } from a User-Agent header. */
+
 function parseUserAgent(userAgent) {
     const ua = String(userAgent || '');
     const os = firstMatch(OPERATING_SYSTEMS, ua, 'Unknown OS');
@@ -39,7 +39,7 @@ function parseUserAgent(userAgent) {
     return { browser: firstMatch(BROWSERS, ua, 'Unknown browser'), os, deviceType };
 }
 
-/** Only the network part of the address is kept: 103.87.59.x, or the first three IPv6 groups. */
+
 function maskIp(ip) {
     const value = String(ip || '').trim().replace(/^::ffff:/i, '');
     if (!value) return 'unknown';
@@ -52,7 +52,7 @@ function maskIp(ip) {
     return 'unknown';
 }
 
-/** What we store about a sign-in: browser, OS, device type, masked IP and when. */
+
 function describeDevice(userAgent, ip, signedInAt = new Date()) {
     return { ...parseUserAgent(userAgent), ip: maskIp(ip), signedInAt: new Date(signedInAt).toISOString() };
 }
@@ -62,16 +62,12 @@ function deviceLabel(device) {
     return `${device.browser || 'Unknown browser'} on ${device.os || 'Unknown OS'}`;
 }
 
-/** Same browser, OS and device type count as the same device. */
+
 function deviceFingerprint(device) {
     return [device && device.browser, device && device.os, device && device.deviceType].join('|');
 }
 
-/**
- * A short fingerprint of the stored password hash. Kept in the session at
- * sign-in; if it no longer matches, the password was changed since, and the
- * session is signed out. Accounts without a password (Google sign-in) get null.
- */
+
 function passwordStamp(user) {
     if (!user || !user.password) return null;
     return crypto.createHash('sha256').update(String(user.password)).digest('hex').slice(0, 16);

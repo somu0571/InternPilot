@@ -9,7 +9,7 @@ async function runMigration() {
         await mongoose.connect(process.env.ATLASDB_URL);
         console.log('Connected.');
 
-        // 1. Migrate Users
+        
         console.log('\n--- Migrating Users ---');
         const companyUsers = await User.find({ role: 'company' });
         let updatedUsers = 0;
@@ -30,7 +30,7 @@ async function runMigration() {
         }
         console.log(`Updated ${updatedUsers} company users.`);
 
-        // 2. Migrate Internships
+        
         console.log('\n--- Migrating Internships ---');
         const internships = await Internship.find({ companyId: { $exists: false } });
         let migratedInternships = 0;
@@ -46,7 +46,7 @@ async function runMigration() {
                 }
             }
 
-            // Fallback to companyName heuristic if not resolved
+            
             if (!assignedCompanyId && internship.companyName) {
                 const matchedUsers = await User.find({
                     'companyDetails.companyName': internship.companyName,

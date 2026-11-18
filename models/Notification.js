@@ -59,11 +59,11 @@ const notificationSchema = new mongoose.Schema({
     isRead: { type: Boolean, default: false, index: true }
 }, { timestamps: true });
 
-// Read state indices
+
 notificationSchema.index({ recipient: 1, isRead: 1, createdAt: -1 });
 notificationSchema.index({ companyId: 1, isRead: 1, createdAt: -1 });
 
-// Idempotency indices
+
 notificationSchema.index(
     { recipient: 1, internship: 1, type: 1 },
     {

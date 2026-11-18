@@ -19,7 +19,7 @@ const partialPath = path.join(__dirname, '..', 'views', 'partials', 'resume-pars
 const partial = fs.readFileSync(partialPath, 'utf8');
 const renderPartial = (parse, profile) => ejs.render(partial, { parse, profile }, { filename: partialPath });
 
-// Swaps a model method for the length of one test.
+
 async function withStub(target, method, fake, fn) {
     const original = target[method];
     target[method] = fake;
@@ -161,7 +161,7 @@ test('the summary shows each found skill and where the profile skills came from'
     const html = renderPartial(sampleParse, sampleProfile);
     assert.match(html, /What we read from your resume/);
     assert.match(html, /data-parse-status="ok"/);
-    // Node.js was added by this upload, React was already there, SQL isn't in the profile any more.
+    
     assert.match(html, /data-parse-skill="added"[^>]*>\s*Node\.js/);
     assert.match(html, /data-parse-skill="had"[^>]*>\s*React/);
     assert.match(html, /data-parse-skill="missing"[^>]*>\s*SQL/);
@@ -178,7 +178,7 @@ test('a different degree in the profile is pointed out', () => {
 test('problems are explained instead of leaving the section blank', () => {
     const unreadable = renderPartial({ ...sampleParse, status: 'unreadable', skills: [], newSkills: [], qualification: '' }, sampleProfile);
     assert.match(unreadable, /data-parse-status="unreadable"/);
-    // EJS escapes the apostrophe; the browser shows it as normal text.
+    
     assert.match(unreadable, /couldn&#39;t read any text from this file/);
     assert.match(unreadable, /No skills from our list were found/);
     assert.match(unreadable, /Not found in your resume/);
@@ -223,7 +223,7 @@ test('the candidate profile page includes the summary when a parse is loaded', (
 
     const withParse = ejs.render(template, { ...locals, resumeParse: sampleParse }, { filename: templatePath });
     assert.match(withParse, /id="resumeParseSummary"/);
-    // It sits in the resume card, after the upload form.
+    
     assert.ok(withParse.indexOf('id="resumeParseSummary"') > withParse.indexOf('id="resumeUploadForm"'));
 
     const withoutParse = ejs.render(template, locals, { filename: templatePath });

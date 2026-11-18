@@ -35,10 +35,7 @@ function canonicalStatus(value) {
     return aliases[normalized] || '';
 }
 
-/**
- * Parses only the supported controls on My Applications. This keeps query
- * values predictable for links, browser history, and both application routes.
- */
+
 function parseApplicationSearch(query = {}) {
     const search = firstText(query.search);
     const requestedStatus = firstText(query.status, 32);
@@ -92,12 +89,7 @@ function compareApplications(sort) {
     };
 }
 
-/**
- * Filters populated candidate applications by internship title/company and
- * application status, then applies the selected order. Filtering after
- * populate deliberately keeps applications with deleted listings visible when
- * no search is active.
- */
+
 function filterAndSortApplications(applications, query = {}) {
     const state = parseApplicationSearch(query);
     const input = Array.isArray(applications) ? applications : [];

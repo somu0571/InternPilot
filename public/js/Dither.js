@@ -25,7 +25,7 @@ precision highp float;
 
 uniform sampler2D tMap;
 uniform vec2 uResolution;
-uniform vec2 uMouse; // Normalized mouse
+uniform vec2 uMouse; 
 uniform float uRadius;
 uniform float uSoftness;
 uniform float uPixelSize;
@@ -51,48 +51,48 @@ float bayer8(vec2 a) {
 }
 
 void main() {
-    // Dynamic noise/displacement on UV based on time and mouse
+    
     vec2 displacedUv = vUv;
     displacedUv.x += sin(vUv.y * 10.0 + uTime) * 0.002;
     displacedUv.y += cos(vUv.x * 10.0 + uTime) * 0.002;
 
     vec4 tex = texture(tMap, displacedUv);
     
-    // Use PNG alpha channel for transparency to ensure no rectangular box
+    
     float alpha = tex.a;
     
-    // Convert to luma for dither
+    
     float luma = dot(tex.rgb, vec3(0.299, 0.587, 0.114));
     
-    // Dynamic pixel size for alive feeling
+    
     float pSize = uPixelSize + sin(uTime * 2.0) * 0.5;
     vec2 px = gl_FragCoord.xy / pSize;
     float bayer = bayer8(px);
     
     vec3 dithered = mix(uInkColor, uPaperColor, step(bayer, luma));
     
-    // Cursor reveal logic
+    
     vec2 screenUV = gl_FragCoord.xy / uResolution;
-    vec2 mouseScreen = uMouse * 0.5 + 0.5; // -1..1 to 0..1
+    vec2 mouseScreen = uMouse * 0.5 + 0.5; 
     float aspect = uResolution.x / uResolution.y;
     
     vec2 diff = screenUV - mouseScreen;
     diff.x *= aspect;
-    float dist = length(diff) * uResolution.y; // distance in pixels
+    float dist = length(diff) * uResolution.y; 
     
     float reveal = smoothstep(uRadius, uRadius * (1.0 - uSoftness), dist - uBurst * 50.0);
     
-    // Rim glow around reveal
+    
     float rim = smoothstep(uRadius + 30.0, uRadius - 10.0, dist) * (1.0 - reveal);
     
     vec3 mixedColor = mix(dithered, tex.rgb, reveal);
     mixedColor += uRimColor * rim * 0.8;
     
-    // Premultiply alpha for WebGL transparent canvas
+    
     FragColor = vec4(mixedColor * alpha, alpha);
 }`;
 
-// Simple particle shader
+
 const pVertex = `#version 300 es
 in vec3 position;
 uniform mat4 modelViewMatrix;
@@ -131,9 +131,9 @@ export default class Dither {
         this.container.appendChild(this.gl.canvas);
         this.gl.canvas.classList.add('dither-canvas');
 
-        this.mouse = new Vec2(-1000, -1000); // Screen pixels
+        this.mouse = new Vec2(-1000, -1000); 
         this.targetMouse = new Vec2(-1000, -1000);
-        this.normalizedMouse = new Vec2(0, 0); // -1 to 1
+        this.normalizedMouse = new Vec2(0, 0); 
         this.burst = 0;
         this.time = 0;
 
@@ -143,10 +143,10 @@ export default class Dither {
     async init() {
         this.scene = new Transform();
         this.camera = new Camera(this.gl, { fov: 35 });
-        this.camera.position.set(0, 0, 7.5); // Move camera back to prevent frustum clipping
+        this.camera.position.set(0, 0, 7.5); 
 
-        // Main artwork plane
-        const geometry = new Plane(this.gl, { width: 4.2, height: 4.2 }); // Safe scale
+        
+        const geometry = new Plane(this.gl, { width: 4.2, height: 4.2 }); 
         const texture = new Texture(this.gl, { generateMipmaps: true });
 
         const img = new Image();
@@ -155,7 +155,7 @@ export default class Dither {
         await new Promise(resolve => {
             img.onload = () => {
                 texture.image = img;
-                // Adjust plane aspect ratio to match image precisely without clipping
+                
                 const aspect = img.width / img.height;
                 if (aspect > 1) {
                     geometry.width = 4.2;
@@ -174,7 +174,7 @@ export default class Dither {
             uniforms: {
                 tMap: { value: texture },
                 uResolution: { value: new Vec2(this.gl.canvas.width, this.gl.canvas.height) },
-                uMouse: { value: new Vec2(0, 0) }, // Normalized
+                uMouse: { value: new Vec2(0, 0) }, 
                 uRadius: { value: this.options.revealRadius },
                 uSoftness: { value: this.options.softness },
                 uPixelSize: { value: this.options.pixelSize },
@@ -191,7 +191,7 @@ export default class Dither {
         this.artworkMesh = new Mesh(this.gl, { geometry, program: this.program });
         this.artworkMesh.setParent(this.scene);
 
-        // Decorative floating particles (background & foreground)
+        
         this.particles = [];
         const pGeo = new Sphere(this.gl, { radius: 0.05, widthSegments: 16 });
         const pColors = ['#a855f7', '#4f46e5', '#818cf8', '#d8b4fe'];
@@ -205,10 +205,10 @@ export default class Dither {
             });
             const p = new Mesh(this.gl, { geometry: pGeo, program: pProg });
             
-            // Random positions in 3D space around the artwork
+            
             const x = (Math.random() - 0.5) * 6;
             const y = (Math.random() - 0.5) * 6;
-            const z = (Math.random() - 0.5) * 3; // Depth
+            const z = (Math.random() - 0.5) * 3; 
             p.position.set(x, y, z);
             
             const scale = 0.5 + Math.random();
@@ -242,10 +242,10 @@ export default class Dither {
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
         
-        // Screen pixels for distance calculation
+        
         this.targetMouse.set(x * this.renderer.dpr, (rect.height - y) * this.renderer.dpr);
         
-        // Normalized -1 to 1 for parallax
+        
         this.normalizedMouse.set(
             (x / rect.width) * 2 - 1,
             -(y / rect.height) * 2 + 1
@@ -285,21 +285,21 @@ export default class Dither {
         if (this.autoAnimate) {
             this.time += dt;
             
-            // Subtle hover effect on main artwork
+            
             this.artworkMesh.position.y = Math.sin(this.time * 1.5) * 0.05;
             
-            // Subtle 3D tilt parallax
+            
             this.artworkMesh.rotation.y += (this.normalizedMouse.x * 0.15 - this.artworkMesh.rotation.y) * 0.05;
             this.artworkMesh.rotation.x += (-this.normalizedMouse.y * 0.1 - this.artworkMesh.rotation.x) * 0.05;
             
-            // Move background/foreground particles for depth parallax
+            
             this.particles.forEach(p => {
-                // Natural drift
+                
                 p.baseX += p.speedX * dt * 0.5;
                 p.baseY += p.speedY * dt * 0.5;
-                if(p.baseY > 3) p.baseY = -3; // wrap
+                if(p.baseY > 3) p.baseY = -3; 
                 
-                // Mouse parallax based on depth
+                
                 const parallaxX = this.normalizedMouse.x * (p.depth * 0.2);
                 const parallaxY = this.normalizedMouse.y * (p.depth * 0.2);
                 
@@ -312,7 +312,7 @@ export default class Dither {
         }
 
         if (this.program) {
-            // Pass normalized mouse 0..1 to shader for reveal logic
+            
             const normX = this.mouse.x / (this.gl.canvas.width || 1);
             const normY = this.mouse.y / (this.gl.canvas.height || 1);
             this.program.uniforms.uMouse.value.set(normX * 2 - 1, normY * 2 - 1);

@@ -27,7 +27,7 @@ const UA = {
     androidTablet: 'Mozilla/5.0 (Linux; Android 13; SM-X700) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36'
 };
 
-// --- reading devices ---
+
 
 test('user agents are turned into a short device label, without versions', () => {
     assert.deepEqual(parseUserAgent(UA.androidChrome), { browser: 'Chrome', os: 'Android', deviceType: 'phone' });
@@ -64,7 +64,7 @@ test('the same browser on the same kind of device is one device, and passwords a
     assert.doesNotMatch(passwordStamp({ password: '$2a$10$abc' }), /abc/);
 });
 
-// --- session store (a MongoDB collection double) ---
+
 
 function fakeCollection() {
     const docs = new Map();
@@ -169,7 +169,7 @@ test('a signed-out session stays signed out, even if its device saves it late', 
     assert.equal(await store.revoke('u1', 'phone'), true);
     assert.equal(await call(store, 'get', 'phone'), null);
 
-    // A request that was already running on the phone finishes and saves.
+    
     await call(store, 'set', 'phone', signedIn('u1'));
     assert.equal(await call(store, 'get', 'phone'), null, 'still signed out');
     assert.equal((await store.listForUser('u1')).length, 0);
@@ -185,7 +185,7 @@ test('signing out the other devices keeps this one', async () => {
     assert.ok(await call(store, 'get', 'someone-else'), 'other accounts are untouched');
 });
 
-// --- new-device alerts ---
+
 
 function deviceModels() {
     const devices = [];
@@ -258,7 +258,7 @@ test('two first requests at once do not break the sign-in', async () => {
         { isNew: false, notified: false });
 });
 
-// --- the middleware ---
+
 
 function reqFor(user, sessionData = {}) {
     return {
@@ -291,7 +291,7 @@ test('the first signed-in request notes the device and the password fingerprint'
     assert.equal(recorded[0].sid, 'sid-1');
     assert.equal(recorded[0].store.name, 'store');
 
-    // Later requests don't record again.
+    
     track(req, resDouble(), () => {});
     await new Promise(r => setImmediate(r));
     assert.equal(recorded.length, 1);
@@ -333,7 +333,7 @@ test('requests without a signed-in user are left alone', () => {
     assert.equal(req.session.device, undefined);
 });
 
-// --- the page, end to end over HTTP ---
+
 
 test('end to end: list devices, sign one out, sign out the rest, and a password change signs sessions out', async () => {
     const collection = fakeCollection();
@@ -349,7 +349,7 @@ test('end to end: list devices, sign one out, sign out the rest, and a password 
     app.use(express.urlencoded({ extended: false }));
     app.use(session({ secret: 'test', resave: false, saveUninitialized: false, rolling: true, store, cookie: { httpOnly: true, sameSite: 'lax', maxAge: SESSION_TTL_MS } }));
     app.use(flash());
-    app.use((req, res, next) => { // stands in for passport
+    app.use((req, res, next) => { 
         const id = req.session && req.session.passport && req.session.passport.user;
         req.user = id ? users[id] : undefined;
         req.isAuthenticated = () => Boolean(req.user);
@@ -384,7 +384,7 @@ test('end to end: list devices, sign one out, sign out the rest, and a password 
         await go(phone, '/test/login/u1');
         await go(laptop, '/test/login/u1');
         await go(stranger, '/test/login/u2');
-        await page(laptop); // the laptop's device is noted on its first page
+        await page(laptop); 
         await page(stranger);
 
         let html = await page(phone);
@@ -394,7 +394,7 @@ test('end to end: list devices, sign one out, sign out the rest, and a password 
         assert.match(html, /Firefox on Windows/);
         assert.match(html, /data-sign-out-others/);
 
-        // Sign the laptop out from the phone.
+        
         const laptopHandle = handleOf(html, 'Firefox on Windows');
         assert.ok(laptopHandle);
         const signOut = await go(phone, `/account/sessions/${laptopHandle}/sign-out`, 'POST');
@@ -404,12 +404,12 @@ test('end to end: list devices, sign one out, sign out the rest, and a password 
         assert.equal(laptopNext.headers.get('location'), '/auth/login');
         assert.equal((await go(phone, '/account/sessions')).status, 200, 'the phone is still signed in');
 
-        // Ravi's session can't be signed out from Asha's account.
+        
         const raviHandle = handleOf(await page(stranger), 'Chrome on macOS') || handleFor([...collection.docs.values()].find(d => d.userId === 'u2')._id);
         await go(phone, `/account/sessions/${raviHandle}/sign-out`, 'POST');
         assert.equal((await go(stranger, '/account/sessions')).status, 200, 'Ravi is still signed in');
 
-        // Sign out every other device.
+        
         const tablet = device(UA.androidTablet);
         await go(tablet, '/test/login/u1');
         await page(tablet);
@@ -418,7 +418,7 @@ test('end to end: list devices, sign one out, sign out the rest, and a password 
         html = await page(phone);
         assert.match(html, /data-only-this-device/);
 
-        // A password reset elsewhere signs this session out on its next request.
+        
         users.u1.password = 'hash-after-reset';
         const afterReset = await go(phone, '/account/sessions');
         assert.equal(afterReset.status, 302);
@@ -428,7 +428,7 @@ test('end to end: list devices, sign one out, sign out the rest, and a password 
     }
 });
 
-// --- wiring ---
+
 
 test('the app records sessions and serves the page before the other routes', () => {
     const app = read('app.js');

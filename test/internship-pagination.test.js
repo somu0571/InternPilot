@@ -25,7 +25,7 @@ test('Issue #9: default page size is in the sensible range of 12-20 items', () =
 });
 
 test('Issue #9: buildPaginationData calculates page bounds, items and navigation indicators', () => {
-    // 25 items with limit 12 -> 3 pages: 12 on page 1, 12 on page 2, 1 on page 3
+    
     const p1 = buildPaginationData(25, 1, 12);
     assert.equal(p1.totalItems, 25);
     assert.equal(p1.totalPages, 3);
@@ -59,7 +59,7 @@ test('Issue #9: buildPaginationData calculates page bounds, items and navigation
 });
 
 test('Issue #9: buildPaginationData handles empty results and clamps out-of-bounds pages', () => {
-    // Zero items
+    
     const empty = buildPaginationData(0, 1, 12);
     assert.equal(empty.totalItems, 0);
     assert.equal(empty.totalPages, 1);
@@ -69,7 +69,7 @@ test('Issue #9: buildPaginationData handles empty results and clamps out-of-boun
     assert.equal(empty.hasNextPage, false);
     assert.equal(empty.hasPrevPage, false);
 
-    // Negative or 0 page clamps to 1
+    
     const neg = buildPaginationData(25, -5, 12);
     assert.equal(neg.currentPage, 1);
     assert.equal(neg.skip, 0);
@@ -78,29 +78,29 @@ test('Issue #9: buildPaginationData handles empty results and clamps out-of-boun
     assert.equal(zero.currentPage, 1);
     assert.equal(zero.skip, 0);
 
-    // Beyond last page clamps to totalPages
+    
     const overflow = buildPaginationData(25, 999, 12);
     assert.equal(overflow.currentPage, 3);
     assert.equal(overflow.skip, 24);
 });
 
 test('Issue #9: getPaginationRange produces clean numbered pages and symmetric ellipses', () => {
-    // 5 total pages: all pages shown
+    
     assert.deepEqual(getPaginationRange(1, 5), [1, 2, 3, 4, 5]);
     assert.deepEqual(getPaginationRange(3, 5), [1, 2, 3, 4, 5]);
 
-    // 7 total pages: all pages shown
+    
     assert.deepEqual(getPaginationRange(4, 7), [1, 2, 3, 4, 5, 6, 7]);
 
-    // 10 total pages, beginning of range (currentPage <= 4)
+    
     assert.deepEqual(getPaginationRange(1, 10), [1, 2, 3, 4, 5, '...', 10]);
     assert.deepEqual(getPaginationRange(4, 10), [1, 2, 3, 4, 5, '...', 10]);
 
-    // 10 total pages, end of range (currentPage >= 7)
+    
     assert.deepEqual(getPaginationRange(7, 10), [1, '...', 6, 7, 8, 9, 10]);
     assert.deepEqual(getPaginationRange(10, 10), [1, '...', 6, 7, 8, 9, 10]);
 
-    // 10 total pages, middle of range
+    
     assert.deepEqual(getPaginationRange(5, 10), [1, '...', 4, 5, 6, '...', 10]);
     assert.deepEqual(getPaginationRange(6, 10), [1, '...', 5, 6, 7, '...', 10]);
 });
@@ -120,7 +120,7 @@ test('Issue #9: pagination state preserves search, filters, and sort options acr
         limit: 12
     };
 
-    // Navigating to page 2 preserves all active criteria
+    
     const page2Url = buildQueryString(activeState, { page: 2 });
     assert.ok(page2Url.includes('page=2'), 'must include page=2');
     assert.ok(page2Url.includes('search=full+stack+developer'), 'must preserve search');
@@ -134,12 +134,12 @@ test('Issue #9: pagination state preserves search, filters, and sort options acr
     assert.ok(page2Url.includes('duration=3to6'), 'must preserve duration');
     assert.ok(!page2Url.includes('limit=12'), 'default limit 12 is omitted from URL');
 
-    // Navigating back to page 1 gives clean canonical URL without page=1 parameter
+    
     const page1Url = buildQueryString(activeState, { page: 1 });
     assert.ok(!page1Url.includes('page='), 'page=1 should be omitted from URL');
     assert.ok(page1Url.includes('search=full+stack+developer'));
 
-    // Non-default page size is preserved
+    
     const customLimitUrl = buildQueryString(activeState, { limit: 24, page: 2 });
     assert.ok(customLimitUrl.includes('limit=24'), 'non-default limit 24 must be preserved');
     assert.ok(customLimitUrl.includes('page=2'));
@@ -181,20 +181,20 @@ test('Issue #9: internships.ejs renders pagination controls, indicators and acce
         buildQueryString
     }, { filename: internshipsViewPath });
 
-    // Top indicator
+    
     assert.ok(html.includes('Showing 13–24 of 30 Opportunities'), 'top count indicator must show current item range and total');
 
-    // Bottom pagination container and accessibility
+    
     assert.ok(html.includes('aria-label="Internship listings pagination"'), 'must include semantic accessible nav');
     assert.ok(html.includes('Showing <strong class="font-bold text-slate-900">13</strong> to <strong class="font-bold text-slate-900">24</strong> of <strong class="font-bold text-slate-900">30</strong> opportunities'), 'must show item range summary');
     assert.ok(html.includes('Page <strong class="font-bold text-slate-900">2</strong> of <strong class="font-bold text-slate-900">3</strong>'), 'must show page indicators');
 
-    // Navigation controls
+    
     assert.ok(html.includes('Previous'), 'must have previous control');
     assert.ok(html.includes('Next'), 'must have next control');
     assert.ok(html.includes('aria-current="page"'), 'active page 2 must have aria-current="page"');
 
-    // Check query parameters in pagination links
+    
     assert.ok(html.includes('search=software'), 'page link must preserve search filter');
     assert.ok(html.includes('sector=Technology'), 'page link must preserve sector filter');
 });

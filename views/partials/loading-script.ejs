@@ -4,15 +4,15 @@
       var form = e.target;
       if (!form || form.tagName !== 'FORM') return;
 
-      // Skip forms explicitly opting out
+      
       if (form.hasAttribute('data-no-loading')) return;
 
-      // Respect HTML5 form validation
+      
       if (typeof form.checkValidity === 'function' && !form.checkValidity()) {
         return;
       }
 
-      // Prevent double submit if already processing
+      
       if (form.getAttribute('aria-busy') === 'true') {
         e.preventDefault();
         return;
@@ -45,14 +45,14 @@
         }
       }
 
-      // Mark form as busy
+      
       form.setAttribute('aria-busy', 'true');
 
-      // Lock submit button immediately via pointer events and opacity
+      
       submitBtn.classList.add('pointer-events-none', 'opacity-80');
       submitBtn.setAttribute('aria-disabled', 'true');
 
-      // Preserve element min-width to avoid layout shifts
+      
       var rect = submitBtn.getBoundingClientRect();
       if (rect.width > 0) {
         submitBtn.style.minWidth = rect.width + 'px';
@@ -71,7 +71,7 @@
         submitBtn.appendChild(loadingLabel);
       }
 
-      // Disable button after tick so form submission fires natively
+      
       setTimeout(function () {
         submitBtn.disabled = true;
       }, 0);

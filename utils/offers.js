@@ -199,8 +199,8 @@ async function acceptOffer({
     InternshipModel = Internship,
     CandidateVerificationModel = CandidateVerification
 }) {
-    // This runs before the offer is moved into its short-lived `accepting`
-    // state, so an unverified candidate cannot reserve a vacancy.
+    
+    
     await assertCandidateVerified(candidateId, CandidateVerificationModel);
 
     const offer = await OfferModel.findOneAndUpdate(

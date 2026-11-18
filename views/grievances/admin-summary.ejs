@@ -1,5 +1,5 @@
 <%
-    // Admin dashboard card (#161). The counts come from routes/grievances.js.
+    
     const s = typeof summary !== 'undefined' && summary ? summary : { active: 0, overdue: 0 };
 %>
 <a href="/admin/grievances" id="grievanceDeskCard" aria-label="Open grievance desk, <%= s.active %> open grievances<%= s.overdue ? `, ${s.overdue} overdue` : '' %>"

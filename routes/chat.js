@@ -7,12 +7,10 @@ const Internship = require('../models/Internship');
 const { isAuthenticated, authorize } = require('../middleware/auth');
 const { buildSkillProfiles } = require('../utils/skillProfiles');
 
-/**
- * In-memory cache for active internships list to avoid MongoDB cloud network delay on every message.
- */
+
 let cachedInternships = null;
 let lastInternshipsFetchTime = 0;
-const CACHE_TTL_MS = 60 * 1000; // 60 seconds
+const CACHE_TTL_MS = 60 * 1000; 
 const CHAT_SEARCH_FIELDS = ['title', 'companyName', 'sector', 'requiredSkills', 'description', 'responsibilities'];
 const CHAT_STOP_WORDS = new Set([
     'a', 'an', 'and', 'any', 'are', 'at', 'based', 'company', 'companies', 'does', 'find', 'for',
@@ -105,13 +103,7 @@ const getCachedInternships = async () => {
     return cachedInternships || [];
 };
 
-/**
- * Generates an AI response using the NVIDIA NIM API (OpenAI-compatible).
- * 
- * @param {string} systemPrompt 
- * @param {string} userMessage 
- * @returns {Promise<string>}
- */
+
 const generateNvidiaReply = async (systemPrompt, userMessage) => {
     const apiKey = process.env.NVIDIA_API_KEY;
     if (!apiKey) {
@@ -120,7 +112,7 @@ const generateNvidiaReply = async (systemPrompt, userMessage) => {
 
     const model = process.env.NVIDIA_MODEL || 'meta/llama-3.2-11b-vision-instruct';
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
+    const timeoutId = setTimeout(() => controller.abort(), 15000); 
 
     try {
         const response = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
@@ -136,7 +128,7 @@ const generateNvidiaReply = async (systemPrompt, userMessage) => {
                     { role: 'user', content: userMessage }
                 ],
                 temperature: 0.6,
-                max_tokens: 300 // Reduced for low-latency generation
+                max_tokens: 300 
             }),
             signal: controller.signal
         });
@@ -158,14 +150,7 @@ const generateNvidiaReply = async (systemPrompt, userMessage) => {
     }
 };
 
-/**
- * Generates an AI response using the Google Gemini API (fallback).
- * Employs primary and fallback models with automatic retry for transient / 503 errors.
- * 
- * @param {string} systemPrompt 
- * @param {string} userMessage 
- * @returns {Promise<string>}
- */
+
 const generateGeminiReply = async (systemPrompt, userMessage) => {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
@@ -204,7 +189,7 @@ const generateGeminiReply = async (systemPrompt, userMessage) => {
         } catch (err) {
             console.warn(`[Chat] Gemini model ${model} attempt ${i + 1} failed: ${err.message || err}`);
             lastError = err;
-            // Short delay before next model attempt on transient capacity issues
+            
             if (i < modelsToTry.length - 1) {
                 await new Promise(resolve => setTimeout(resolve, 300));
             }
@@ -214,10 +199,7 @@ const generateGeminiReply = async (systemPrompt, userMessage) => {
     throw lastError || new Error('All configured Gemini models failed to generate a response.');
 };
 
-/**
- * Unified AI reply generator with provider fallback support.
- * Prioritizes NVIDIA NIM API if configured, with automatic fallback to Gemini.
- */
+
 const generateAIReply = async (systemPrompt, userMessage) => {
     if (process.env.NVIDIA_API_KEY) {
         try {

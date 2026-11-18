@@ -20,7 +20,7 @@
     : ''; %>
 <% const safeStoredFileUrl = value => {
     const raw = typeof value === 'string' ? value.trim() : '';
-    return /^\/uploads\/(?:resumes|documents)\//.test(raw) ? raw : sanitizeHttpUrl(raw).url;
+    return /^\/uploads\/(?:resumes|documents)\
 }; %>
 <% const submittedResumeUrl = application && application.applicationKit && application.applicationKit.resume
     ? safeStoredFileUrl(application.applicationKit.resume.fileUrl)

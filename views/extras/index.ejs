@@ -5,7 +5,7 @@
     <link href="/css/TechText.css" rel="stylesheet">
 
     <style>
-        /* Continuous background glow shift for AI gradient text */
+        
         @keyframes gradientShift {
             0% {
                 background-position: 0% 50%;
@@ -25,7 +25,7 @@
             animation: gradientShift 5s ease infinite;
         }
 
-        /* Ambient background glow behind hero */
+        
         .hero-glow {
             position: absolute;
             top: -10%;
@@ -40,7 +40,7 @@
             z-index: 0;
         }
 
-        /* Shimmer effect for skeleton loading state */
+        
         @keyframes shimmer {
             0% {
                 background-position: -200% 0;
@@ -57,7 +57,7 @@
             animation: shimmer 1.5s infinite;
         }
 
-        /* Hero Graphic Floating Animation */
+        
         @keyframes heroFloat {
             0% {
                 transform: translateY(0px);
@@ -442,7 +442,7 @@
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // 1. Initialize Animate On Scroll
+            
             if (typeof AOS !== 'undefined') {
                 AOS.init({
                     duration: 600,
@@ -451,7 +451,7 @@
                 });
             }
 
-            // 2. Dynamic Landing Stats Fetch & Counter Animation
+            
             const fetchLandingStats = async () => {
                 const candidateCounter = document.getElementById('stat-candidates');
                 const companyCounter = document.getElementById('stat-companies');
@@ -466,23 +466,23 @@
                     if (!response.ok) throw new Error('Failed to fetch landing stats');
                     const data = await response.json();
 
-                    // Assign target values
+                    
                     if (candidateCounter) candidateCounter.setAttribute('data-target', data.candidates ?? 0);
                     if (companyCounter) companyCounter.setAttribute('data-target', data.companies ?? 0);
                     if (internshipCounter) internshipCounter.setAttribute('data-target', data.internships ?? 0);
 
                 } catch (err) {
                     console.error('Error fetching landing stats:', err);
-                    // Fallback to 0 if API request fails
+                    
                     if (candidateCounter) candidateCounter.setAttribute('data-target', '0');
                     if (companyCounter) companyCounter.setAttribute('data-target', '0');
                     if (internshipCounter) internshipCounter.setAttribute('data-target', '0');
                 } finally {
-                    // Hide skeleton placeholders and show metric counters smoothly
+                    
                     [candidateSkeleton, companySkeleton, internshipSkeleton].forEach(sk => sk && sk.classList.add('hidden'));
                     [candidateCounter, companyCounter, internshipCounter].forEach(cnt => cnt && cnt.classList.remove('hidden'));
 
-                    // Initialize counter intersection observer
+                    
                     setupCounterObserver();
                 }
             };
@@ -503,8 +503,8 @@
                     }
 
                     let current = 0;
-                    const duration = 1500; // Total animation duration in ms
-                    const stepTime = 25;   // Frame step time in ms
+                    const duration = 1500; 
+                    const stepTime = 25;   
                     const steps = duration / stepTime;
                     const increment = Math.max(1, Math.ceil(target / steps));
 
@@ -597,7 +597,7 @@
             });
         }
 
-        // Subtle Mouse Parallax for Hero Graphic with 60fps rAF Smoothing
+        
         const parallaxWrapper = document.getElementById('hero-parallax-wrapper');
         if (parallaxWrapper && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
             let rafId = null;
@@ -619,8 +619,8 @@
             };
 
             document.addEventListener('mousemove', (e) => {
-                if (window.innerWidth < 768) return; // Disable on mobile
-                targetX = (e.clientX / window.innerWidth - 0.5) * 20; // max 10px move
+                if (window.innerWidth < 768) return; 
+                targetX = (e.clientX / window.innerWidth - 0.5) * 20; 
                 targetY = (e.clientY / window.innerHeight - 0.5) * 20;
                 if (!rafId) {
                     rafId = requestAnimationFrame(updateParallax);

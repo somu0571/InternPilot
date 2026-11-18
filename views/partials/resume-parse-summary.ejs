@@ -1,7 +1,7 @@
 <%
-    // What the resume parser found on the latest upload, next to what the
-    // profile holds now. Hidden when the resume on file isn't the parsed one,
-    // e.g. a replacement that was never confirmed in the conflict step.
+    
+    
+    
     const rp = typeof parse !== 'undefined' && parse ? parse : null;
     const me = typeof profile !== 'undefined' && profile ? profile : null;
     const fileOnRecord = me ? (me.resume || me.resumeUrl || '') : '';
@@ -53,7 +53,7 @@
         note: ''
     };
 
-    // How each skill found in the resume stands in the profile today.
+    
     const skillState = skill => {
         const key = norm(skill);
         if (!inProfile.has(key)) return 'missing';

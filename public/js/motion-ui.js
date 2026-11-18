@@ -1,23 +1,4 @@
-/*
- * InternPilot motion layer (#211).
- *
- * Progressive enhancement only: every page works the same without it.
- *
- * - Flash messages become toasts in the corner. They slide in, close on their
- *   own after a few seconds (paused while hovered or focused), and can be
- *   closed early. Other scripts can raise one with InternPilotMotion.toast().
- * - Elements marked data-animate ("fade-up", "fade-in", "scale-in") and the
- *   children of data-animate-stagger containers are revealed as they scroll
- *   into view, and data-count-up numbers count up to their value. These use
- *   Motion, the plain JavaScript version of Framer Motion, loaded from a CDN
- *   only on pages that have something to animate.
- * - data-tilt cards lean slightly toward the pointer on devices with a mouse.
- * - Forms with data-confirm="Question?" ask in an accessible dialog (native
- *   <dialog>: focus stays inside, Escape cancels) instead of the browser's
- *   confirm() box. Scripts can use InternPilotMotion.confirm() the same way.
- *
- * With prefers-reduced-motion everything is shown straight away and nothing moves.
- */
+
 (function (factory) {
     const api = factory();
     if (typeof module !== 'undefined' && module.exports) module.exports = api;
@@ -25,7 +6,7 @@
 })(function () {
     'use strict';
 
-    // Pinned, with Subresource Integrity, so a changed CDN file is refused.
+    
     const MOTION_SRC = 'https://cdn.jsdelivr.net/npm/motion@12.43.0/dist/motion.js';
     const MOTION_SRI = 'sha384-hgVFh5YKDMdpcWEjpRqk2kPXOKBH7I9NBCKe3uR6dHKgy/BWPe8kyL01kiYuRn1u';
 
@@ -35,20 +16,20 @@
         'fade-in': { opacity: [0, 1] },
         'scale-in': { opacity: [0, 1], scale: [0.98, 1] }
     };
-    // Reveals stay quick, and long lists only animate their first few items,
-    // so nothing ever waits on an animation to be readable.
+    
+    
     const REVEAL_SECONDS = 0.3;
     const MAX_STAGGERED = 12;
     const STAGGER_TOTAL_SECONDS = 0.36;
-    // Errors stay up longer: they usually need reading and acting on.
+    
     const TOAST_MS = { success: 5000, error: 9000 };
-    // Start as soon as anything is on screen, so nothing visible sits blank.
+    
     const IN_VIEW = { margin: '0px 0px -2% 0px' };
     const ANIMATED_SELECTOR = '[data-animate], [data-animate-stagger], [data-count-up]';
 
-    // --- pure helpers (unit tested) ---
+    
 
-    /** Splits "₹12,500/month" into the number and the text around it. */
+    
     function parseCount(text) {
         const value = String(text == null ? '' : text);
         const match = value.match(/-?\d[\d,]*(?:\.(\d+))?/);
@@ -71,7 +52,7 @@
         return `${parts.prefix}${number}${parts.suffix}`;
     }
 
-    /** x and y: pointer position across the card, -0.5 to 0.5. */
+    
     function tiltTransform(x, y, maxDeg = 6) {
         const clamp = v => Math.max(-0.5, Math.min(0.5, Number(v) || 0));
         const rotateX = (-clamp(y) * maxDeg * 2).toFixed(2);
@@ -83,12 +64,12 @@
         return /rose|red|error|warning/i.test(String((element && element.className) || '')) ? 'error' : 'success';
     }
 
-    /** "Sign In to Apply", "Quick Apply", "Tailor Application", "Prepare Application Kit": yes. "My Applications": no. */
+    
     function isApplyAction(text) {
         return /\bapply\b|tailor application|application kit/i.test(String(text || ''));
     }
 
-    // --- Motion loading ---
+    
 
     let motionPromise = null;
     function loadMotion(win, doc) {
@@ -108,7 +89,7 @@
         return motionPromise;
     }
 
-    // --- toasts ---
+    
 
     function toastRegion(doc) {
         let region = doc.getElementById('ip-toasts');
@@ -121,7 +102,7 @@
         return region;
     }
 
-    // A pausable countdown, with the shrinking bar when motion is allowed.
+    
     function countdown(win, bar, duration, reduce, onDone) {
         if (!reduce && bar && typeof bar.animate === 'function') {
             const animation = bar.animate([{ transform: 'scaleX(1)' }, { transform: 'scaleX(0)' }], { duration, easing: 'linear', fill: 'forwards' });
@@ -182,7 +163,7 @@
         return { close };
     }
 
-    // Same look as the flash partial, for toasts raised from scripts.
+    
     function buildToast(doc, message, type) {
         const error = type === 'error';
         const toast = doc.createElement('div');
@@ -201,9 +182,9 @@
         return toast;
     }
 
-    // Flash messages rendered by the server become toasts. Each is moved as a
-    // copy, so the flash partial's own six-second timer (which holds the
-    // original) finds it detached and does nothing.
+    
+    
+    
     function toastifyFlash(win, doc, reduce) {
         doc.querySelectorAll('[data-flash-alert]').forEach(original => {
             const wrapper = original.parentElement;
@@ -216,13 +197,9 @@
         });
     }
 
-    // --- confirmation dialogs ---
+    
 
-    /**
-     * Resolves true when confirmed. Uses a native <dialog> (focus trapped,
-     * Escape cancels, focus returns afterwards) and falls back to confirm()
-     * in browsers without it.
-     */
+    
     function confirmDialog(win, doc, reduce, { message, action = 'Confirm', tone = 'danger' } = {}) {
         if (typeof win.HTMLDialogElement !== 'function') return Promise.resolve(Boolean(win.confirm(message)));
         return new Promise(resolve => {
@@ -243,7 +220,7 @@
             cancel.value = 'cancel';
             cancel.className = 'ip-dialog__cancel';
             cancel.textContent = 'Cancel';
-            cancel.autofocus = true; // the safe choice gets focus
+            cancel.autofocus = true; 
             const ok = doc.createElement('button');
             ok.type = 'submit';
             ok.value = 'confirm';
@@ -267,7 +244,7 @@
         });
     }
 
-    // Any form with data-confirm asks first; the answer lets it submit as normal.
+    
     function initConfirms(win, doc, reduce) {
         doc.addEventListener('submit', event => {
             const form = event.target;
@@ -288,12 +265,12 @@
         }, true);
     }
 
-    // --- floating Apply button on phones ---
+    
 
-    // On a phone the apply section sits far down a long page. A floating
-    // button, labelled like the page's own apply action, jumps to it and hides
-    // while the section is on screen. Nothing changes on larger screens, and
-    // nothing appears when there is no apply action (applied, paused, owner).
+    
+    
+    
+    
     function initApplyJump(win, doc, reduce) {
         const section = doc.querySelector('[data-apply-card]');
         if (!section || !win.matchMedia || !win.matchMedia('(max-width: 767px)').matches) return;
@@ -319,7 +296,7 @@
         }
     }
 
-    // --- tilt ---
+    
 
     function initTilt(win, root, reduce, doc) {
         if (reduce || !win.matchMedia || !win.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
@@ -349,7 +326,7 @@
         });
     }
 
-    // --- reveals and counters ---
+    
 
     function runReveals(root, Motion, doc) {
         const { animate, inView, stagger } = Motion;
@@ -398,7 +375,7 @@
                     duration: 0.8,
                     ease: 'easeOut',
                     onUpdate: value => { element.textContent = formatCount(parts, value); },
-                    // Always end on exactly what the server rendered.
+                    
                     onComplete: () => { element.textContent = original; }
                 });
             });
@@ -411,7 +388,7 @@
         if (reduce || !doc.querySelector(ANIMATED_SELECTOR)) return reveal();
         return loadMotion(win, doc)
             .then(Motion => {
-                // If the head script already gave up waiting, content is showing: leave it be.
+                
                 if (!html.classList.contains('motion-pending')) return;
                 runReveals(doc, Motion, doc);
                 win.__ipMotionReady = true;

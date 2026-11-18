@@ -1,9 +1,9 @@
 <%
-    // Opens the conversation for one application, creating it the first time.
-    // The server checks the viewer is the candidate or on the hiring team.
+    
+    
     const startApplication = typeof application !== 'undefined' && application ? application : null;
     const startLabel = typeof label !== 'undefined' && label ? label : 'Message';
-    // Compact is icon-only (label kept as tooltip) for tight rows like the applicant cards.
+    
     const startCompact = typeof compact !== 'undefined' && Boolean(compact);
 %>
 <% if (startApplication && startApplication._id) { %>

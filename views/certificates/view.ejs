@@ -16,7 +16,7 @@
     const issueMonth = completionDateObj.getMonth() + 1;
     const certUrl = typeof verifyUrl !== 'undefined' ? verifyUrl : ('/verify/certificate/' + certificate.certificateId);
 
-    // LinkedIn certification URL params
+    
     const linkedInCertUrl = 'https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME'
         + '&name=' + encodeURIComponent(certificate.internshipTitle + ' Internship')
         + '&organizationName=' + encodeURIComponent(certificate.companyName)

@@ -19,11 +19,7 @@ function isDuplicateKeyError(error) {
     return error?.code === 11000 || error?.codeName === 'DuplicateKey';
 }
 
-/**
- * Runs asynchronous work with a small, explicit concurrency bound. SMTP
- * providers throttle bursts aggressively; unbounded Promise.all can turn one
- * popular listing into hundreds of simultaneous connection attempts.
- */
+
 async function mapWithConcurrency(items, limit, worker) {
     const input = Array.isArray(items) ? items : [];
     if (!input.length) return [];
@@ -44,11 +40,7 @@ async function mapWithConcurrency(items, limit, worker) {
     return results;
 }
 
-/**
- * Atomically claims one candidate/listing e-mail. A sent record is permanent;
- * a short lease lets a later job recover if the process dies while SMTP work
- * is in flight. A duplicate-key result simply means another worker owns it.
- */
+
 async function claimInstantEmailDelivery(candidateId, internshipId, now = new Date()) {
     if (!candidateId || !internshipId) return null;
 
@@ -105,7 +97,7 @@ async function releaseInstantEmailClaim(claim) {
             claimToken: claim.claimToken
         });
     } catch (error) {
-        // The lease still makes this recoverable if deletion itself fails.
+        
         console.error('Failed to release saved-search e-mail delivery claim:', error.message);
     }
 }
@@ -120,8 +112,8 @@ function hasLocationMatch(candidate, internship) {
     const internshipDistrict = normalise(internship.location?.district);
     const internshipState = normalise(internship.location?.state);
 
-    // Do not exclude candidates with incomplete profiles. When both sides
-    // contain a location, a district match is preferred, then a state match.
+    
+    
     if ((!candidateDistrict && !candidateState) || (!internshipDistrict && !internshipState)) {
         return true;
     }
@@ -176,7 +168,7 @@ function addSavedSearchMatch(groups, candidate, savedSearch) {
 
 async function notifyRelevantCandidates(internship) {
     const now = new Date();
-    // A draft, closed, paused, or expired listing must never produce an alert.
+    
     if (!isOpenPublishedInternship(internship, now)) return 0;
 
     const [candidates, savedSearches] = await Promise.all([
@@ -198,8 +190,8 @@ async function notifyRelevantCandidates(internship) {
         addSavedSearchMatch(savedMatchesByCandidate, candidate, savedSearch);
     });
 
-    // Group by candidate so profile matching and multiple saved searches never
-    // produce duplicate in-app notifications for one published listing.
+    
+    
     const immediateRecipients = new Map();
     profileMatches.forEach(candidateId => {
         const candidate = candidatesById.get(candidateId);
@@ -256,9 +248,9 @@ async function notifyRelevantCandidates(internship) {
         await Notification.bulkWrite(operations, { ordered: false });
     }
 
-    // Email-only and "both" instant alerts are sent once per candidate/listing
-    // even when more than one saved search matches. The durable claim both
-    // prevents duplicates after a resume/retry and bounds SMTP pressure.
+    
+    
+    
     const emailResults = await mapWithConcurrency(
         [...savedMatchesByCandidate.values()],
         INSTANT_EMAIL_CONCURRENCY,
@@ -292,8 +284,8 @@ async function notifyRelevantCandidates(internship) {
                     delivered: true
                 };
             } catch (error) {
-                // E-mail delivery must not make publishing an internship fail;
-                // deleting this token allows a later publish/job to retry it.
+                
+                
                 await releaseInstantEmailClaim(claim);
                 console.error('Failed to send saved-search instant alert:', error.message);
                 return { candidateId: identifier(group.candidate), searchIds: [], delivered: false };
@@ -323,9 +315,9 @@ function publicationTimestampFromInternship(internship) {
         if (!Number.isNaN(value.getTime())) return value;
     }
 
-    // Legacy listings predate publishedAt. Their original creation time is
-    // the best available fallback; all new publish/resume transitions write
-    // a real publication timestamp in the Internship model.
+    
+    
+    
     if (internship?.createdAt) {
         const value = new Date(internship.createdAt);
         if (!Number.isNaN(value.getTime())) return value;
@@ -347,10 +339,10 @@ function digestPayload(entries) {
     return { searchNames, internships };
 }
 
-// A digest can contain matches from more than one saved search. Use the first
-// matching search as its destination instead of sending candidates to the
-// generic saved-search management page. This keeps the alert actionable: the
-// result page opens with the same filters that produced the match.
+
+
+
+
 function digestResultsPath(entries) {
     const entry = (Array.isArray(entries) ? entries : []).find(item => item?.savedSearch?.criteria);
     return entry
@@ -366,14 +358,7 @@ function shouldAdvanceDigestCheckpoint(savedSearch, { hasMatches, inAppDelivered
     return (wantsInApp && inAppDelivered) || (wantsEmail && emailDelivered);
 }
 
-/**
- * Delivers a candidate-level digest for daily or weekly saved searches. It is
- * exported so scheduler behavior can be exercised without waiting for cron.
- *
- * @param {'daily'|'weekly'} frequency
- * @param {Date} [now]
- * @returns {Promise<number>} number of candidate digests created
- */
+
 async function runSavedSearchDigests(frequency, now = new Date()) {
     if (!['daily', 'weekly'].includes(frequency)) return 0;
 
@@ -429,7 +414,7 @@ async function runSavedSearchDigests(frequency, now = new Date()) {
                 && matchesInternshipCriteria(internship, savedSearch.criteria, now);
         });
         if (!matches.length) {
-            // A digest window with no matching listing is safe to advance.
+            
             checkpointIds.add(identifier(savedSearch._id));
             return;
         }
@@ -479,8 +464,8 @@ async function runSavedSearchDigests(frequency, now = new Date()) {
                 );
                 inAppDelivered = true;
             } catch (error) {
-                // Another scheduler may have inserted the same daily/weekly
-                // notification. In that case the candidate already has it.
+                
+                
                 if (isDuplicateKeyError(error)) {
                     inAppDelivered = true;
                 } else {
@@ -519,9 +504,9 @@ async function runSavedSearchDigests(frequency, now = new Date()) {
         });
     }
 
-    // Do not discard an e-mail-only search's window after an SMTP failure. A
-    // no-match window, or one delivered through at least one chosen channel,
-    // can advance safely. $max also protects overlapping scheduler runs.
+    
+    
+    
     if (checkpointIds.size) {
         await SavedSearch.updateMany(
             { _id: { $in: [...checkpointIds] } },
@@ -628,8 +613,8 @@ module.exports = {
     isRelevantInternship,
     notifyRelevantCandidates,
     runSavedSearchDigests,
-    // Exported small pure helpers keep scheduling and SMTP safeguards covered
-    // without requiring a database or a real mail provider in tests.
+    
+    
     mapWithConcurrency,
     publicationTimestampFromInternship,
     shouldAdvanceDigestCheckpoint,

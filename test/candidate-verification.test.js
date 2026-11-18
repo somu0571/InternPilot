@@ -142,7 +142,7 @@ test('candidate verification documents fall back to local storage only outside p
     });
     const storedFile = stored.public_id.replace('local/candidate_verification/', '');
 
-    assert.match(stored.public_id, /^local\/candidate_verification\//);
+    assert.match(stored.public_id, /^local\/candidate_verification\
     assert.equal(stored.secure_url, `/uploads/candidate-verification/${storedFile}`);
     assert.deepEqual(fs.readFileSync(path.join(uploadDir, storedFile)), file.buffer);
     await assert.rejects(

@@ -39,9 +39,9 @@ const offerSchema = new mongoose.Schema({
         default: 'issued',
         index: true
     },
-    // This is kept separate from status so the partial unique index can
-    // prevent two actionable offers for one application, while still allowing
-    // a company to make a new offer after an earlier one expires or is declined.
+    
+    
+    
     isActive: { type: Boolean, default: true, index: true },
     expiresAt: { type: Date, required: true, index: true },
     terms: {
@@ -56,8 +56,8 @@ const offerSchema = new mongoose.Schema({
     expiredAt: { type: Date },
     revokedAt: { type: Date },
     declineReason: { type: String, trim: true, maxlength: 500, default: '' },
-    // A seat is reserved only once the candidate accepts. It exists so a
-    // failure-recovery path can safely return a reserved seat exactly once.
+    
+    
     seatReserved: { type: Boolean, default: false },
     seatReservedAt: { type: Date },
     events: [{

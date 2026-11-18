@@ -36,10 +36,10 @@ const recommendationSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-// Prevent duplicate recommendations for the same candidate/internship pair
+
 recommendationSchema.index({ candidate: 1, internship: 1 }, { unique: true });
 
-// TTL Index: automatically delete stale recommendations after 7 days
+
 recommendationSchema.index({ updatedAt: 1 }, { expireAfterSeconds: 604800 }); 
 
 module.exports = mongoose.model('Recommendation', recommendationSchema);

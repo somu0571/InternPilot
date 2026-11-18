@@ -513,14 +513,14 @@ router.post('/candidate/profile/confirm-update', isAuthenticated, authorize('can
         let autoMerged = {};
         try {
             autoMerged = JSON.parse(req.body.autoMerged || '{}');
-        } catch (_) { /* ignore malformed JSON */ }
+        } catch (_) {  }
 
         let resumeQuality = null;
         try {
             if (req.body.resumeQuality) {
                 resumeQuality = JSON.parse(req.body.resumeQuality);
             }
-        } catch (_) { /* ignore */ }
+        } catch (_) {  }
 
         const resumeUrl = req.body.resumeUrl || '';
         const resumeOriginalName = req.body.resumeOriginalName || '';

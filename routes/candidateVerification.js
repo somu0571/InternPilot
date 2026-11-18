@@ -31,10 +31,10 @@ function handleVerificationDocumentsUpload(req, res, next) {
     });
 }
 
-// Cloudinary is the production store for verification evidence. A local
-// fallback keeps the UI testable when credentials are absent in development;
-// it is intentionally disabled in production so that verification documents
-// are never silently stored on the application server there.
+
+
+
+
 async function storeVerificationDocument(file, {
     upload = uploadBufferToCloudinary,
     environment = process.env.NODE_ENV,
@@ -84,9 +84,9 @@ router.post('/candidate/verification/documents', isAuthenticated, authorize('can
             throw new CandidateVerificationError('Upload at least one verification document.', 'VERIFICATION_DOCUMENT_REQUIRED');
         }
 
-        // The form accepts only the last four digits. Even a full identifier
-        // accidentally sent by a client is reduced to this safe display value
-        // before any database write.
+        
+        
+        
         const maskedIdentifier = maskIdentifier(req.body?.identifierLastFour);
         const documentType = ['identity', 'education', 'income', 'other'].includes(req.body?.documentType)
             ? req.body.documentType

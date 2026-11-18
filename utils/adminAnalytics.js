@@ -14,7 +14,7 @@ const ELIGIBILITY_SCAN = 5000;
 
 const parseRange = value => (RANGES[value] ? Number(value) : 30);
 
-/** "2026-09-27" for the India-time calendar day of `date`. */
+
 const istDayKey = date => new Date(new Date(date).getTime() + IST_OFFSET_MS).toISOString().slice(0, 10);
 
 function startOfIstDay(date) {
@@ -23,16 +23,13 @@ function startOfIstDay(date) {
     return new Date(shifted.getTime() - IST_OFFSET_MS);
 }
 
-/**
- * The selected range covers today and the days before it, in India time.
- * The previous period is the same number of days just before it.
- */
+
 function periodBounds(days, now = new Date()) {
     const start = new Date(startOfIstDay(now).getTime() - (days - 1) * DAY_MS);
     return { start, end: now, prevStart: new Date(start.getTime() - days * DAY_MS), prevEnd: start };
 }
 
-/** Whole-number % change, or null when there was nothing before to compare with. */
+
 function percentChange(current, previous) {
     if (!previous) return current ? null : 0;
     return Math.round(((current - previous) / previous) * 100);
@@ -44,17 +41,12 @@ function istDays(start, end) {
     return [...new Set(keys)];
 }
 
-/** An ObjectId for a moment in time, for date ranges on models without createdAt. */
+
 const oidAt = date => mongoose.Types.ObjectId.createFromTime(Math.floor(new Date(date).getTime() / 1000));
 
 const normalizeStatus = status => (status === 'pending' ? 'Submitted' : status);
 
-/**
- * Funnel from each application's status history, so a candidate rejected
- * after the interview still counts as having reached the interview.
- *
- * @param {Array<{status: string, history?: string[]}>} apps
- */
+
 function buildFunnel(apps = []) {
     const reached = PIPELINE.map(() => 0);
     const exits = { Rejected: 0, Withdrawn: 0 };
@@ -72,14 +64,14 @@ function buildFunnel(apps = []) {
     return { steps, exits, total: apps.length };
 }
 
-/** A spreadsheet-safe CSV cell: quoted when needed, formulas neutralised. */
+
 function csvCell(value) {
     let text = value === null || value === undefined ? '' : String(value);
     if (/^[=+\-@\t\r]/.test(text)) text = `'${text}`;
     return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 }
 
-/** @param {Array<{label: string, value: Function|string}>} columns */
+
 function toCsv(columns, rows) {
     const read = (row, col) => (typeof col.value === 'function' ? col.value(row) : row[col.value]);
     const lines = [columns.map(c => csvCell(c.label)).join(',')];
@@ -214,7 +206,7 @@ async function skillsGap() {
             skill: String(d.label || d._id).trim(),
             listings: d.listings,
             candidates,
-            // Candidates per listing asking for it: below 1 means demand is ahead of supply.
+            
             perListing: d.listings ? Math.round((candidates / d.listings) * 10) / 10 : 0
         };
     });
@@ -247,7 +239,7 @@ async function overview(days, now = new Date()) {
     return { range, rangeLabel: RANGES[range], summary, series, funnel: funnelData, states, listings, skills, pmis };
 }
 
-/** One CSV with every overview table, marked by section. */
+
 function overviewCsv(data) {
     const rows = [];
     data.summary.cards.forEach(c => rows.push({ section: 'Summary', item: c.label, value: c.value, extra: `previous period: ${c.previous}` }));

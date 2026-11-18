@@ -2,7 +2,7 @@
 <%
     const kit = applicationKit || {};
     const previewResumeRaw = kit.resume && typeof kit.resume.fileUrl === 'string' ? kit.resume.fileUrl.trim() : '';
-    const previewResumeUrl = /^\/uploads\/(?:resumes|documents)\//.test(previewResumeRaw)
+    const previewResumeUrl = /^\/uploads\/(?:resumes|documents)\
         ? previewResumeRaw
         : sanitizeHttpUrl(previewResumeRaw).url;
     const previewProjects = Array.isArray(kit.projects) ? kit.projects : [];

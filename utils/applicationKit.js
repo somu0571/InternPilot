@@ -28,13 +28,13 @@ function cleanText(value, maxLength) {
     return typeof value === 'string' ? value.trim().slice(0, maxLength) : '';
 }
 
-// Uploaded profile documents can be stored locally during development, while
-// externally hosted documents must still pass the normal safe-URL allowlist.
-// Never accept arbitrary relative paths from profile fields.
+
+
+
 function safeStoredFileUrl(value) {
     const raw = cleanText(value, 2000);
     if (!raw) return '';
-    if (/^\/uploads\/(?:resumes|documents)\//.test(raw)) return raw;
+    if (/^\/uploads\/(?:resumes|documents)\
     return sanitizeHttpUrl(raw).url;
 }
 
@@ -73,11 +73,7 @@ function parseJsonArray(value) {
     }
 }
 
-/**
- * Normalizes question fields received from the listing forms. The returned
- * records receive stable Mongoose subdocument IDs when the Internship is
- * saved, so historical application answers never depend on an array index.
- */
+
 function parseApplicationQuestions(body = {}) {
     const rawQuestions = body.applicationQuestions !== undefined
         ? body.applicationQuestions
@@ -288,11 +284,7 @@ function chooseDefaultResume(resumeVersions) {
     return resumeVersions.find(version => version.isDefault) || resumeVersions[0] || null;
 }
 
-/**
- * Creates a data-only snapshot from server-loaded records. Never use client
- * supplied objects/URLs for this operation; the body only contains selection
- * identifiers and answer text.
- */
+
 function buildApplicationKit({ candidate, internship, body = {}, useDefaults = false, submittedAt = new Date() }) {
     const questions = getApplicationQuestions(internship);
     const resumeVersions = getResumeVersions(candidate);

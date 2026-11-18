@@ -21,14 +21,14 @@ const reviewSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Application'
     },
-    // Overall star rating (1 to 5)
+    
     rating: {
         type: Number,
         required: true,
         min: 1,
         max: 5
     },
-    // Specific culture & workplace ratings
+    
     mentorshipRating: {
         type: Number,
         required: true,
@@ -62,7 +62,7 @@ const reviewSchema = new mongoose.Schema({
         max: 5,
         default: 5
     },
-    // Written feedback
+    
     title: {
         type: String,
         required: true,
@@ -87,7 +87,7 @@ const reviewSchema = new mongoose.Schema({
         default: '',
         maxlength: 2000
     },
-    // Anonymous posting toggle
+    
     isAnonymous: {
         type: Boolean,
         default: false
@@ -102,14 +102,14 @@ const reviewSchema = new mongoose.Schema({
         enum: ['Current Intern', 'Former Intern'],
         default: 'Former Intern'
     },
-    // Official Employer Response
+    
     employerResponse: {
         response: { type: String, trim: true, default: '' },
         comment: { type: String, trim: true, default: '' },
         respondedAt: { type: Date },
         respondedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
     },
-    // Helpful votes
+    
     helpfulVotes: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
@@ -122,7 +122,7 @@ const reviewSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-// Sync aliases before validation
+
 reviewSchema.pre('validate', function() {
     if (this.employerResponse) {
         if (this.employerResponse.comment && !this.employerResponse.response) {
@@ -138,7 +138,7 @@ reviewSchema.pre('validate', function() {
     }
 });
 
-// Prevent duplicate reviews from the same candidate for the same company
+
 reviewSchema.index({ company: 1, candidate: 1 }, { unique: true });
 reviewSchema.index({ company: 1, status: 1, createdAt: -1 });
 

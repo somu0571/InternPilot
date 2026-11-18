@@ -12,7 +12,7 @@ const Application = require('../models/Application');
 const savedInternshipsViewPath = path.join(__dirname, '..', 'views', 'candidate', 'saved-internships.ejs');
 const savedInternshipsTemplate = fs.readFileSync(savedInternshipsViewPath, 'utf8');
 
-// Helper to look up express route layers
+
 function routeLayer(router, routePath, method) {
     return router.stack.find(layer =>
         layer.route && layer.route.path === routePath && layer.route.methods[method]
@@ -24,9 +24,9 @@ function routeHandler(router, routePath, method) {
     return layer.route.stack[layer.route.stack.length - 1].handle;
 }
 
-// -------------------------------------------------------------
-// 1. formatDeadlineUrgency Unit Tests
-// -------------------------------------------------------------
+
+
+
 
 test('formatDeadlineUrgency returns null for null, undefined, or invalid dates', () => {
     assert.equal(formatDeadlineUrgency(null), null);
@@ -110,9 +110,9 @@ test('formatDeadlineUrgency marks deadline beyond 7 days as normal', () => {
     assert.equal(result.icon, 'ph-bold ph-calendar-check');
 });
 
-// -------------------------------------------------------------
-// 2. View Rendering Tests
-// -------------------------------------------------------------
+
+
+
 
 test('saved-internships view renders an empty state when candidate has no bookmarks', () => {
     const html = ejs.render(savedInternshipsTemplate, {
@@ -170,7 +170,7 @@ test('saved-internships view renders search, sector filters, deadline badges, an
         formatDeadlineUrgency
     }, { filename: savedInternshipsViewPath });
 
-    // Search bar and toolbar
+    
     assert.match(html, /id="savedSearchInput"/);
     assert.match(html, /placeholder="Search by role title or company\.\.\."/);
     assert.match(html, /id="sectorFilter"/);
@@ -178,37 +178,37 @@ test('saved-internships view renders search, sector filters, deadline badges, an
     assert.match(html, /<option value="Technology">/);
     assert.match(html, /<option value="Finance">/);
 
-    // Cards data attributes for client filtering
+    
     assert.match(html, /data-id="internship-101"/);
     assert.match(html, /data-title="full stack engineer intern"/);
     assert.match(html, /data-company="tech innovators"/);
     assert.match(html, /data-sector="Technology"/);
     assert.match(html, /data-applied="false"/);
 
-    // Deadline badge: Closing in 2 days
+    
     assert.match(html, /Closing in 2 days/);
     assert.match(html, /ph-hourglass-medium/);
 
-    // Second card: Applied badge and Application Closed
+    
     assert.match(html, /data-id="internship-102"/);
     assert.match(html, /data-applied="true"/);
     assert.match(html, /applied-badge/);
     assert.match(html, /Applied/);
     assert.match(html, /Application Closed/);
 
-    // Single-click remove button
+    
     assert.match(html, /class="[^"]*bookmark-btn/);
     assert.match(html, /title="Remove from saved"/);
     assert.match(html, /aria-label="Remove from saved"/);
 
-    // Filter empty state exists
+    
     assert.match(html, /id="filterEmptyState"/);
     assert.match(html, /No matching saved internships/);
 });
 
-// -------------------------------------------------------------
-// 3. Route Tests
-// -------------------------------------------------------------
+
+
+
 
 test('candidate route GET /candidate/saved-internships is registered with auth and role middleware', () => {
     const layer = routeLayer(candidateRouter, '/candidate/saved-internships', 'get');
@@ -283,7 +283,7 @@ test('candidate route GET /candidate/saved-internships enriches internships with
         assert.ok(renderedData);
         assert.equal(renderedData.internships.length, 2);
 
-        // Check internship-aaa enrichment
+        
         const itemA = renderedData.internships.find(i => i._id === 'internship-aaa');
         assert.ok(itemA);
         assert.equal(itemA.hasApplied, true);
@@ -291,7 +291,7 @@ test('candidate route GET /candidate/saved-internships enriches internships with
         assert.ok(itemA.deadlineInfo);
         assert.equal(itemA.deadlineInfo.urgency, 'warning');
 
-        // Check internship-bbb enrichment
+        
         const itemB = renderedData.internships.find(i => i._id === 'internship-bbb');
         assert.ok(itemB);
         assert.equal(itemB.hasApplied, false);
@@ -299,7 +299,7 @@ test('candidate route GET /candidate/saved-internships enriches internships with
         assert.ok(itemB.deadlineInfo);
         assert.equal(itemB.deadlineInfo.isClosed, true);
 
-        // Check sectors extraction
+        
         assert.deepEqual(renderedData.sectors, ['Marketing', 'Technology']);
     } finally {
         User.findById = originalFindById;

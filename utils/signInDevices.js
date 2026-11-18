@@ -3,40 +3,30 @@ const Notification = require('../models/Notification');
 const { deviceLabel, deviceFingerprint } = require('./deviceInfo');
 
 const NEW_SIGN_IN_TYPE = 'security_new_sign_in';
-// A fresh sign-in is one whose session was created in the last few minutes.
+
 const FRESH_SIGN_IN_MS = 15 * 60 * 1000;
 
-// Register the notification type on the shared model without editing it.
+
 const typePath = Notification.schema.path('type');
 if (typePath && Array.isArray(typePath.enumValues) && !typePath.enumValues.includes(NEW_SIGN_IN_TYPE)) {
     typePath.enum(NEW_SIGN_IN_TYPE);
 }
 
-/**
- * Records the device behind a sign-in and, when it's one the account hasn't
- * used before, tells the account holder (#196).
- *
- * No alert is sent for:
- * - the first device an account is seen on,
- * - sessions that were already open before this feature shipped (their
- *   session document has no createdAt), so the deploy doesn't flood people,
- * - company-side accounts and admins: company notifications are one shared
- *   team feed, and one person's sign-ins don't belong there.
- */
+
 async function recordSignIn({ user, device, sid, store, now = new Date(), models = { KnownDevice, Notification } }) {
     const fingerprint = deviceFingerprint(device);
     const label = deviceLabel(device);
 
     let before;
     try {
-        // The document as it was before this update: null means a new device.
+        
         before = await models.KnownDevice.findOneAndUpdate(
             { user: user._id, fingerprint },
             { $set: { lastSeenAt: now, label }, $setOnInsert: { firstSeenAt: now } },
             { upsert: true, new: false }
         );
     } catch (err) {
-        if (err && err.code === 11000) return { isNew: false, notified: false }; // two first requests at once
+        if (err && err.code === 11000) return { isNew: false, notified: false }; 
         throw err;
     }
     if (before) return { isNew: false, notified: false };

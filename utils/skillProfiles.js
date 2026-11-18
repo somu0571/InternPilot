@@ -1,8 +1,8 @@
 const PROFICIENCY_LEVELS = Object.freeze(['Beginner', 'Intermediate', 'Advanced']);
 const DEFAULT_PROFICIENCY = 'Intermediate';
 
-// These weights keep an exact skill-name match useful at every level while
-// giving the matching system a meaningful way to distinguish proficiency.
+
+
 const PROFICIENCY_WEIGHTS = Object.freeze({
     Beginner: 0.6,
     Intermediate: 0.8,
@@ -45,11 +45,7 @@ function splitLegacySkills(values) {
     });
 }
 
-/**
- * Produces one canonical profile for every skill, accepting both the new
- * `skillProfiles` field and the legacy string `skills` array. Missing legacy
- * levels intentionally become Intermediate so existing profiles keep working.
- */
+
 function buildSkillProfiles(userOrSkills = [], suppliedProfiles) {
     const isUserLike = userOrSkills && typeof userOrSkills === 'object' && !Array.isArray(userOrSkills);
     const legacySkills = isUserLike ? userOrSkills.skills : userOrSkills;
@@ -75,8 +71,8 @@ function buildSkillProfiles(userOrSkills = [], suppliedProfiles) {
             detailsByKey.set(key, candidate);
             detailOrder.push(key);
         } else if (proficiencyRank(candidate.proficiency) > proficiencyRank(existing.proficiency)) {
-            // A duplicate entry should never lower a candidate's declared
-            // proficiency. Keep the original display name for consistency.
+            
+            
             detailsByKey.set(key, { ...existing, proficiency: candidate.proficiency });
         }
     }
@@ -114,11 +110,7 @@ function findSkillProfile(userOrSkills, skill, suppliedProfiles) {
         .find(profile => skillKey(profile.name) === wanted) || null;
 }
 
-/**
- * Parses the repeated form fields used by the profile editor. The legacy
- * comma-separated `skills` input remains supported for clients that have not
- * yet loaded the new UI.
- */
+
 function parseSkillProfiles(body = {}) {
     const names = asArray(body.skillName || body.skillNames);
     const levels = asArray(body.skillProficiency || body.skillProficiencies);
@@ -128,9 +120,9 @@ function parseSkillProfiles(body = {}) {
             name,
             proficiency: levels[index] || DEFAULT_PROFICIENCY
         }));
-        // Treat repeated form fields as structured input, not as a legacy
-        // comma-separated text field. This preserves a literal comma in a
-        // submitted skill name and still deduplicates by highest proficiency.
+        
+        
+        
         return buildSkillProfiles(supplied, supplied);
     }
 

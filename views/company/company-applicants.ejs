@@ -261,8 +261,8 @@
                                                         );
                                                     }
                                                 }
-                                                // When no skills match what the recruiter entered, matchingCandidateSkills is empty ([]),
-                                                // ensuring candidate skills are removed from the card unless they match the recruiter's requirements.
+                                                
+                                                
                                             %>
 
                                             <!-- Matching Skills Only -->
@@ -598,7 +598,7 @@
                 let skillProfiles = [];
                 try {
                     skillProfiles = JSON.parse(card.getAttribute('data-skill-profiles') || '[]');
-                } catch (_) { /* ignore malformed legacy data */ }
+                } catch (_) {  }
 
                 const hasMinimumLevel = !minimumLevel || skillProfiles.some(profile =>
                     (proficiencyRank[profile.proficiency] ?? -1) >= proficiencyRank[minimumLevel]

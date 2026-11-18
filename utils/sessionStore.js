@@ -3,17 +3,17 @@ const session = require('express-session');
 const mongoose = require('mongoose');
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-// A session lasts 7 days from the last visit.
+
 const SESSION_TTL_MS = 7 * DAY_MS;
-// Unchanged sessions have their expiry renewed at most once an hour, so
-// page views don't each cost a database write.
+
+
 const TOUCH_AFTER_MS = 60 * 60 * 1000;
-// The previous built-in default, still used for local development.
+
 const DEV_SECRET = 'supersecretkey';
 const TOUCH_MEMORY_LIMIT = 10000;
 
-// Top-level copies of whose session this is and which device it's on, so the
-// signed-in devices page (#196) can list an account's sessions with one query.
+
+
 function ownerFields(sess) {
     const fields = {};
     const userId = sess && sess.passport && sess.passport.user;
@@ -23,16 +23,12 @@ function ownerFields(sess) {
     return fields;
 }
 
-/** An id for a session that is safe to put in a page: a hash, never the session id itself. */
+
 function handleFor(sid) {
     return crypto.createHash('sha256').update(String(sid)).digest('hex').slice(0, 24);
 }
 
-/**
- * An express-session store that keeps sessions in MongoDB through the app's
- * existing Mongoose connection, so restarts and deploys don't sign everyone
- * out. A TTL index on `expires` lets MongoDB delete expired sessions.
- */
+
 class MongoSessionStore extends session.Store {
     constructor({
         connection = mongoose.connection,
@@ -59,7 +55,7 @@ class MongoSessionStore extends session.Store {
         if (!this.indexReady) {
             this.indexReady = Promise.all([
                 this.collection().createIndex({ expires: 1 }, { expireAfterSeconds: 0 }),
-                // Lets the signed-in devices page (#196) find a user's sessions quickly.
+                
                 this.collection().createIndex({ userId: 1 })
             ])
                 .catch(err => {
@@ -84,12 +80,12 @@ class MongoSessionStore extends session.Store {
         Promise.resolve(this.collection().findOne({ _id: sid }))
             .then(doc => {
                 if (!doc) return callback(null, null);
-                // A session signed out from another device (#196). The marked
-                // document is kept until it expires, so a late save from that
-                // device can't bring the session back.
+                
+                
+                
                 if (doc.revokedAt) return callback(null, null);
-                // MongoDB's TTL monitor runs about once a minute, so don't hand
-                // back a session that has already expired.
+                
+                
                 if (doc.expires && new Date(doc.expires).getTime() <= this.now()) {
                     return this.destroy(sid, () => callback(null, null));
                 }
@@ -116,14 +112,14 @@ class MongoSessionStore extends session.Store {
             .catch(err => callback(err));
     }
 
-    /** Renews the expiry of a session that wasn't changed by the request, at most once per touchAfterMs. */
+    
     touch(sid, sess, callback = () => {}) {
         const now = this.now();
         const last = this.lastTouched.get(sid);
         if (last && now - last < this.touchAfterMs) return callback(null);
         Promise.resolve(this.collection().updateOne(
             { _id: sid, lastModified: { $lt: new Date(now - this.touchAfterMs) } },
-            // ownerFields also fills in sessions saved before #196 added them.
+            
             { $set: { expires: this.expiryFor(sess), lastModified: new Date(now), ...ownerFields(sess) } }
         ))
             .then(() => {
@@ -140,9 +136,9 @@ class MongoSessionStore extends session.Store {
             .catch(err => callback(err));
     }
 
-    // --- Signed-in devices (#196) ---
+    
 
-    /** This account's live sessions: not expired and not signed out. */
+    
     async listForUser(userId) {
         const docs = await this.collection()
             .find({ userId: String(userId), expires: { $gt: new Date(this.now()) }, revokedAt: { $exists: false } })
@@ -158,17 +154,13 @@ class MongoSessionStore extends session.Store {
         }));
     }
 
-    /** When the session document was first saved, or null for sessions saved before #196. */
+    
     async createdAt(sid) {
         const doc = await this.collection().findOne({ _id: sid }, { projection: { createdAt: 1 } });
         return doc && doc.createdAt ? new Date(doc.createdAt) : null;
     }
 
-    /**
-     * Signs one of this user's sessions out. The document is marked rather than
-     * deleted, so a request already in flight on that device can't save the
-     * session back to life; get() treats a marked session as gone.
-     */
+    
     async revoke(userId, sid) {
         this.lastTouched.delete(sid);
         const result = await this.collection().updateOne(
@@ -178,7 +170,7 @@ class MongoSessionStore extends session.Store {
         return Boolean(result && result.matchedCount);
     }
 
-    /** Signs out every other session of this user; returns how many. */
+    
     async revokeOthers(userId, keepSid) {
         const result = await this.collection().updateMany(
             { userId: String(userId), _id: { $ne: keepSid }, revokedAt: { $exists: false } },
@@ -188,12 +180,7 @@ class MongoSessionStore extends session.Store {
     }
 }
 
-/**
- * Options for express-session: sessions in MongoDB, 7 days from the last
- * visit, and hardened cookies in production. A missing SESSION_SECRET in
- * production is logged loudly instead of stopping the app, so a missing
- * variable can't take the site down on deploy.
- */
+
 function buildSessionOptions({ env = process.env, connection = mongoose.connection, logger = console } = {}) {
     const production = env.NODE_ENV === 'production';
     let secret = env.SESSION_SECRET;
@@ -207,7 +194,7 @@ function buildSessionOptions({ env = process.env, connection = mongoose.connecti
         secret,
         resave: false,
         saveUninitialized: false,
-        // Every visit pushes the expiry 7 days out again.
+        
         rolling: true,
         store: new MongoSessionStore({ connection }),
         cookie: {

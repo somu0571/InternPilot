@@ -47,8 +47,8 @@ test('saved-search routes expose the full candidate-owned CRUD flow', () => {
     expected.forEach(([method, path]) => {
         const layer = routeLayer(path, method);
         assert.ok(layer, `${method.toUpperCase()} ${path} is registered`);
-        // Every route starts with isAuthenticated and role authorization;
-        // the handler itself additionally scopes data by candidate ID.
+        
+        
         assert.ok(layer.route.stack.length >= 3, `${path} includes auth middleware and a handler`);
         assert.equal(layer.route.stack[0].handle.name, 'isAuthenticated');
     });

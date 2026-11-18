@@ -14,8 +14,8 @@ const AccountSuspension = require('../models/AccountSuspension');
 const { logAdminAction } = require('./adminAudit');
 const { clearSuspensionCache, validateReason } = require('./suspensions');
 
-// Company owners are left to employer verification: their listings and
-// applicants depend on the account. Admins can't delete each other here.
+
+
 const DELETABLE_ROLES = ['candidate', 'recruiter', 'hiring_manager'];
 
 function deletionBlocker(admin, target) {
@@ -27,12 +27,7 @@ function deletionBlocker(admin, target) {
     return null;
 }
 
-/**
- * Everything that belongs to the account and goes with it. A candidate's
- * applications, chats, alerts and practice sessions only make sense with the
- * candidate. For company team members, the company's own records (listings,
- * chats, activity) stay with the company.
- */
+
 function steps(target) {
     const id = target._id;
     const common = [
@@ -54,18 +49,14 @@ function steps(target) {
     ];
 }
 
-/** What deleting would remove, for the confirmation panel. */
+
 async function deletionPreview(target) {
     const plan = steps(target);
     const counts = await Promise.all(plan.map(s => s.model.countDocuments(s.filter)));
     return plan.map((s, i) => ({ key: s.key, label: s.label, count: counts[i] })).filter(s => s.count > 0);
 }
 
-/**
- * Permanently deletes an account and what belongs to it. The admin has to
- * type the account's email and give a reason. The account itself goes last,
- * so if anything fails part way the admin can simply try again.
- */
+
 async function deleteAccount(admin, target, { confirmEmail, reason: text } = {}) {
     const blocker = deletionBlocker(admin, target);
     if (blocker) return { error: blocker };

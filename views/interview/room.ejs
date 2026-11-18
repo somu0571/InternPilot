@@ -99,10 +99,10 @@ function toggleTTS() {
 
 function speakText(text) {
     if (!ttsEnabled || !('speechSynthesis' in window)) return;
-    speechSynthesis.cancel(); // Stop current speech
+    speechSynthesis.cancel(); 
     const utterance = new SpeechSynthesisUtterance(text.replace(/<[^>]*>?/gm, ''));
     
-    // Try to find a good English voice
+    
     const voices = speechSynthesis.getVoices();
     const goodVoice = voices.find(v => v.lang.includes('en-') && (v.name.includes('Google') || v.name.includes('Premium') || v.name.includes('Natural')));
     if (goodVoice) utterance.voice = goodVoice;
@@ -111,7 +111,7 @@ function speakText(text) {
     speechSynthesis.speak(utterance);
 }
 
-// Make sure voices load properly in Chrome
+
 if ('speechSynthesis' in window) {
     speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
 }
@@ -121,7 +121,7 @@ const sessionId = '<%= session._id %>';
 let isInitial = <%= session.transcript.length === 0 %>;
 const isTimed = '<%= session.mode %>' === 'Timed';
 let turnTimer;
-const TIME_PER_TURN = 120; // 2 minutes per question
+const TIME_PER_TURN = 120; 
 
 function startTimer() {
     if (!isTimed) return;
@@ -136,7 +136,7 @@ function startTimer() {
         updateTimerUI(timeLeft, timerDisplay);
         if (timeLeft <= 0) {
             clearInterval(turnTimer);
-            submitAnswer(true); // Force submit
+            submitAnswer(true); 
         }
     }, 1000);
 }
@@ -157,7 +157,7 @@ function updateTimerUI(seconds, element) {
     else element.classList.replace('text-red-600', 'text-blue-600');
 }
 
-// Video logic
+
 async function toggleVideo() {
     const video = document.getElementById('userVideo');
     const placeholder = document.getElementById('videoPlaceholder');
@@ -178,7 +178,7 @@ async function toggleVideo() {
     }
 }
 
-// Speech to text logic
+
 let recognition = null;
 if ('webkitSpeechRecognition' in window) {
     recognition = new window.webkitSpeechRecognition();
@@ -277,12 +277,12 @@ async function submitAnswer(forced = false) {
             speakText(data.question);
         }
         
-        // Update Turn Counter in UI
+        
         if (data.turns !== undefined) {
             document.getElementById('turnCounter').innerText = `Turn: ${data.turns}/10`;
         }
         
-        // Reset timer
+        
         startTime = Date.now();
         isInitial = false;
         startTimer();
@@ -330,7 +330,7 @@ async function completeInterview() {
     }
 }
 
-// Auto-start if empty
+
 if (isInitial) {
     submitAnswer();
 } else {

@@ -18,7 +18,7 @@ const NOTIFY_CAP = 5000;
 const CACHE_MS = 60 * 1000;
 const IST = '+05:30';
 
-// Every page render asks for the live banners, so the list is kept for a minute.
+
 let cache = { at: 0, items: [] };
 const clearAnnouncementCache = () => { cache = { at: 0, items: [] }; };
 
@@ -38,7 +38,7 @@ const visibleTo = (items, user, now = new Date()) => items.filter(a => isLive(a,
 
 async function liveAnnouncements(now = Date.now()) {
     if (now - cache.at < CACHE_MS) return cache.items;
-    // Also fetch anything starting within the cache window so it shows on time.
+    
     const items = await Announcement.find({
         endedAt: null,
         startsAt: { $lte: new Date(now + CACHE_MS) },
@@ -48,7 +48,7 @@ async function liveAnnouncements(now = Date.now()) {
     return items;
 }
 
-/** datetime-local inputs have no zone; the portal runs on India time. */
+
 function parseLocalDateTime(value) {
     const text = String(value || '').trim();
     if (!text) return null;
@@ -83,11 +83,7 @@ function validateAnnouncement(body = {}, now = new Date()) {
     };
 }
 
-/**
- * In-app notifications for the announcement's audience. Candidates get their
- * own; companies get one per company, which their whole team sees. Capped so
- * one click can't flood the database.
- */
+
 async function notifyAudience(announcement) {
     const base = { type: 'announcement', title: announcement.title, message: announcement.message, link: '/' };
     const docs = [];
@@ -111,7 +107,7 @@ async function createAnnouncement(admin, body, now = new Date()) {
 
     const { notify, ...fields } = value;
     const announcement = await Announcement.create({ ...fields, createdBy: admin._id });
-    // Notifications only go out for announcements that start now.
+    
     if (notify && fields.startsAt <= now) {
         announcement.notified = await notifyAudience(announcement);
         await announcement.save();
@@ -160,7 +156,7 @@ async function listAnnouncements(now = new Date()) {
 
 const wantsJson = req => req.xhr || req.get('X-Requested-With') === 'fetch' || req.accepts(['html', 'json']) === 'json';
 
-/** Puts the banners for this visitor on res.locals.siteAnnouncements. */
+
 function loadAnnouncements(req, res, next) {
     if (req.method !== 'GET' || wantsJson(req)) return next();
     liveAnnouncements().then(items => {

@@ -404,7 +404,7 @@
             clearAllFiltersBtn.addEventListener('click', resetAllFilters);
         }
 
-        // Single-click remove from saved bookmarks
+        
         const bookmarkBtns = document.querySelectorAll('.bookmark-btn');
         bookmarkBtns.forEach(btn => {
             btn.addEventListener('click', async (e) => {
@@ -417,7 +417,7 @@
 
                 btn.disabled = true;
 
-                // Optimistically animate removal
+                
                 card.style.transition = 'all 0.25s ease';
                 card.style.transform = 'scale(0.95)';
                 card.style.opacity = '0';
@@ -435,7 +435,7 @@
                         const data = await response.json();
 
                         if (!data || !data.success) {
-                            // Revert on failure
+                            
                             card.removeAttribute('data-removed');
                             card.style.display = 'flex';
                             setTimeout(() => {
@@ -448,7 +448,7 @@
                         }
                     } catch (err) {
                         console.error('Error toggling saved bookmark:', err);
-                        // Revert on network error
+                        
                         card.removeAttribute('data-removed');
                         card.style.display = 'flex';
                         setTimeout(() => {
@@ -463,7 +463,7 @@
             });
         });
 
-        // Initial filter application in case query params were populated
+        
         applyFilters();
     });
 </script>

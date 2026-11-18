@@ -6,8 +6,8 @@ const { logAdminAction, registerNotificationTypes } = require('./adminAudit');
 
 registerNotificationTypes('listing_moderation');
 
-// Checks that point an admin at listings worth a look. They only flag;
-// nothing is hidden automatically.
+
+
 const RISK_RULES = {
     fees: { label: 'Asks for a fee or deposit', severity: 'high' },
     openings: { label: 'Impossible number of openings', severity: 'high' },
@@ -19,13 +19,13 @@ const RISK_RULES = {
 };
 const SEVERITY_RANK = { high: 3, medium: 2, low: 1, none: 0 };
 
-// PMIS internships are free to apply for; any fee or deposit is a red flag.
+
 const FEE_PATTERN = /\b(?:registration|processing|training|joining|application|kit|onboarding|enrol?ment)\s+(?:fees?|charges?)\b|\b(?:security|refundable|caution)\s+(?:deposit|amount|fees?)\b|\bpay\s+(?:a\s+)?(?:fees?|deposit|rs\.?|inr|₹)/i;
 const PHONE_PATTERN = /(?:\+?91[\s-]?)?\b[6-9]\d{9}\b/;
 const EMAIL_PATTERN = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i;
 const CHAT_PATTERN = /wa\.me|whatsapp|t\.me\/|telegram/i;
 
-/** "12 Months", "1 Year", "6 weeks", "3" -> months, or null if it can't be read. */
+
 function durationInMonths(text) {
     const match = String(text || '').trim().match(/^(\d{1,3})(?:\.\d+)?\s*(months?|mos?|weeks?|wks?|years?|yrs?|days?)?$/i);
     if (!match) return null;
@@ -37,11 +37,7 @@ function durationInMonths(text) {
     return n;
 }
 
-/**
- * @param {object} listing Internship (plain or document).
- * @param {object|null} owner The company account, for the verification check.
- * @returns {Array<{id,label,severity}>}
- */
+
 function assessListing(listing = {}, owner = null) {
     const text = [listing.title, listing.description, ...(listing.responsibilities || []), ...(listing.eligibilityCriteria || [])]
         .filter(Boolean).join('\n');
@@ -73,10 +69,7 @@ const MODERATION = {
 
 const ownerIdOf = listing => listing.companyId || listing.postedBy || null;
 
-/**
- * Pause, close or restore a listing. The status only changes if it is still
- * what the admin saw, and the company is told why.
- */
+
 async function moderateListing(admin, listingId, actionKey, text, now = new Date()) {
     const rule = MODERATION[actionKey];
     if (!rule) return { error: 'Unknown action.' };
@@ -98,7 +91,7 @@ async function moderateListing(admin, listingId, actionKey, text, now = new Date
         }
     }
 
-    // Status and isPaused are set together, the same way the model keeps them in step.
+    
     const update = { status: rule.to, isPaused: rule.to === 'paused' };
     if (rule.to === 'published') update.publishedAt = now;
     const result = await Internship.updateOne({ _id: listing._id, status: listing.status }, { $set: update });
@@ -134,11 +127,7 @@ const REVIEW_SCAN = 500;
 const REVIEW_PAGE = 30;
 const escapeRegExp = text => String(text).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-/**
- * Newest listings with their flags. Flags depend on text and the owner, so
- * the newest REVIEW_SCAN listings for the chosen status are checked and the
- * risk filter is applied to those.
- */
+
 async function listingsForReview({ status, risk, q, page } = {}) {
     const query = {};
     query.status = REVIEW_STATUSES.includes(status) ? status : (status === 'all' ? { $in: REVIEW_STATUSES } : 'published');

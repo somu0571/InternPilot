@@ -26,7 +26,7 @@ const companyId = id();
 const otherCompanyId = id();
 const candidate = { _id: id(), role: 'candidate' };
 const otherCandidate = { _id: id(), role: 'candidate' };
-const owner = { _id: companyId, role: 'company' };            // legacy owner, no companyId
+const owner = { _id: companyId, role: 'company' };            
 const recruiter = { _id: id(), role: 'recruiter', companyId };
 const hiringManager = { _id: id(), role: 'hiring_manager', companyId };
 const outsider = { _id: id(), role: 'recruiter', companyId: otherCompanyId };
@@ -183,10 +183,10 @@ test('each applicant card gets a Message button once messaging is mounted', () =
 
     const html = ejs.render(template, { ...locals, messageUnreadCount: 0 }, { filename: templatePath });
     assert.ok(html.includes(startForm));
-    // Icon-only on the card, so the name goes in the tooltip and screen reader label.
+    
     assert.match(html, /aria-label="Message Asha Rao"/);
 
-    // Views rendered without the messages router (like older tests) leave it out.
+    
     assert.ok(!ejs.render(template, locals, { filename: templatePath }).includes(startForm));
 });
 
@@ -197,7 +197,7 @@ test('candidates can start a thread only on open applications without one', () =
     const rejected = { _id: id(), status: 'Rejected', internship: listing };
     const withdrawn = { _id: id(), status: 'withdrawn', internship: listing };
     const deletedListing = { _id: id(), status: 'Submitted', internship: null };
-    // getInbox populates the application, so match on its _id as well as a raw id.
+    
     const inbox = [{ application: { _id: alreadyTalking._id, status: 'Submitted' } }];
 
     const result = startableApplications([open, alreadyTalking, rejected, withdrawn, deletedListing], inbox);

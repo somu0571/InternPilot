@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
-// One conversation per application, so every thread carries its context:
-// which candidate, which internship, and which hiring company.
+
+
 const conversationSchema = new mongoose.Schema({
     application: {
         type: mongoose.Schema.Types.ObjectId,
@@ -20,8 +20,8 @@ const conversationSchema = new mongoose.Schema({
         required: true,
         index: true
     },
-    // The company account that owns the internship. Every member of that
-    // company (owner, recruiters, hiring managers) shares the thread.
+    
+    
     company: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
@@ -34,8 +34,8 @@ const conversationSchema = new mongoose.Schema({
     lastMessagePreview: { type: String, default: '' },
     lastMessageBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 
-    // When each participant last read the thread. Kept per user so two
-    // recruiters at the same company each get their own unread count.
+    
+    
     reads: [{
         _id: false,
         user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },

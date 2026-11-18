@@ -111,7 +111,7 @@ test('dashboard filters normalize aliases and build deadline-aware lifecycle que
 });
 
 test('sort algorithm orders properly by newest and oldest with _id tie-breaker', () => {
-    // Generate IDs with different creation timestamps
+    
     const oldId = new mongoose.Types.ObjectId(Math.floor(Date.now() / 1000 - 1000).toString(16) + '0000000000000000');
     const newId = new mongoose.Types.ObjectId(Math.floor(Date.now() / 1000).toString(16) + '0000000000000000');
 
@@ -126,7 +126,7 @@ test('sort algorithm orders properly by newest and oldest with _id tie-breaker',
     assert.equal(sortedOldest[0]._id, oldId);
     assert.equal(sortedOldest[1]._id, newId);
 
-    // Test tie-breaking when timestamps are identical (same second)
+    
     const fixedTime = Math.floor(Date.now() / 1000).toString(16);
     const tieId1 = new mongoose.Types.ObjectId(fixedTime + '0000000000000001');
     const tieId2 = new mongoose.Types.ObjectId(fixedTime + '0000000000000002');
@@ -159,9 +159,9 @@ test('sort algorithm orders properly by most applications', () => {
     };
 
     const sorted = sortCompanyDashboardInternships([itemA, itemB, itemC], 'most_applications', appCountMap);
-    assert.equal(sorted[0]._id, idB); // 25
-    assert.equal(sorted[1]._id, idC); // 12
-    assert.equal(sorted[2]._id, idA); // 5
+    assert.equal(sorted[0]._id, idB); 
+    assert.equal(sorted[1]._id, idC); 
+    assert.equal(sorted[2]._id, idA); 
 });
 
 test('sort algorithm orders titles alphabetically without case sensitivity', () => {

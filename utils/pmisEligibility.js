@@ -1,13 +1,4 @@
-/**
- * PMIS (Prime Minister's Internship Scheme) Candidate Eligibility Evaluator
- * 
- * Central configurable source of truth for PMIS scheme candidate eligibility rules:
- * - Age must be between 21 and 24 years (inclusive).
- * - Annual family income must not exceed ₹8,00,000 (8 LPA).
- * - Recognized educational qualification must be specified.
- * - Must not be currently enrolled in full-time formal education.
- * - Must not be currently engaged in full-time regular employment.
- */
+
 
 const PMIS_RULES = {
     age: {
@@ -39,26 +30,16 @@ const PMIS_RULES = {
     }
 };
 
-/**
- * Format currency amount to Indian Rupee format
- * @param {Number|String} amount 
- * @returns {String}
- */
+
 function formatCurrency(amount) {
     const num = Number(amount);
     if (isNaN(num)) return '₹N/A';
     return '₹' + num.toLocaleString('en-IN');
 }
 
-/**
- * Evaluates candidate profile data against PMIS eligibility rules.
- * 
- * @param {Object} candidate - Candidate or User object (or form submission values)
- * @param {Object} [customConfig] - Optional rules config overrides
- * @returns {Object} { status, isEligible, badge, reasons, missingFields, criteria, rules }
- */
+
 function checkPmisEligibility(candidate = {}, customConfig = {}) {
-    // Deep merge rules with custom overrides if provided
+    
     const rules = {
         age: { ...PMIS_RULES.age, ...(customConfig.age || {}) },
         familyIncome: { ...PMIS_RULES.familyIncome, ...(customConfig.familyIncome || {}) },
@@ -70,7 +51,7 @@ function checkPmisEligibility(candidate = {}, customConfig = {}) {
     const reasons = [];
     const missingFields = [];
 
-    // Safely extract candidate values
+    
     const rawAge = candidate ? candidate.age : undefined;
     const hasAge = rawAge !== undefined && rawAge !== null && rawAge !== '' && !isNaN(Number(rawAge)) && Number(rawAge) > 0;
     const ageNum = hasAge ? Number(rawAge) : null;
@@ -92,7 +73,7 @@ function checkPmisEligibility(candidate = {}, customConfig = {}) {
     const employment = candidate && candidate.employmentStatus ? candidate.employmentStatus.toString().trim().toLowerCase() : '';
     const hasEmployment = Boolean(employment);
 
-    // 1. Evaluate Disqualifying Criteria
+    
     let ageStatus = 'pass';
     if (hasAge) {
         if (ageNum < rules.age.min) {
@@ -148,7 +129,7 @@ function checkPmisEligibility(candidate = {}, customConfig = {}) {
         missingFields.push('Employment status is not specified (required to verify regular employment status).');
     }
 
-    // 2. Determine Overall Status
+    
     let status = 'eligible';
     if (reasons.length > 0) {
         status = 'ineligible';
@@ -158,7 +139,7 @@ function checkPmisEligibility(candidate = {}, customConfig = {}) {
 
     const isEligible = status === 'eligible';
 
-    // 3. Construct Standardized Badge Metadata
+    
     let badge = {};
     if (status === 'eligible') {
         badge = {
@@ -192,7 +173,7 @@ function checkPmisEligibility(candidate = {}, customConfig = {}) {
         };
     }
 
-    // 4. Detailed Criteria Checklist Breakdown
+    
     const criteria = [
         {
             key: 'age',

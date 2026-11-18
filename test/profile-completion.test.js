@@ -57,7 +57,7 @@ test('calculateProfileCompletion: calculates 100% when all criteria are met', ()
 });
 
 test('calculateProfileCompletion: partial profile with basic details, education, skills, and resume', () => {
-    // 15 (contact) + 20 (education) + 20 (skills) + 20 (resume) = 75%
+    
     const candidate = {
         name: 'Priya Sharma',
         email: 'priya@example.com',
@@ -79,10 +79,10 @@ test('calculateProfileCompletion: partial profile with basic details, education,
     assert.equal(result.badge.label, 'Intermediate');
     assert.equal(result.completedItems.length, 4);
     assert.equal(result.missingItems.length, 2);
-    // Missing items are projects (15%) and certifications (10%)
+    
     assert.ok(result.missingItems.some(i => i.id === 'projects'));
     assert.ok(result.missingItems.some(i => i.id === 'certifications'));
-    // Next action should suggest projects because it has higher weight (15 > 10)
+    
     assert.equal(result.nextAction.id, 'projects');
     assert.equal(result.requiredMissingCount, 0);
     assert.equal(result.recommendedMissingCount, 2);
@@ -96,7 +96,7 @@ test('calculateProfileCompletion: custom criteria / weight overrides', () => {
         skills: ['Python']
     };
 
-    // Override weights
+    
     const customConfig = {
         contactInfo: { weight: 50 },
         skills: { weight: 50 },
@@ -107,7 +107,7 @@ test('calculateProfileCompletion: custom criteria / weight overrides', () => {
     };
 
     const result = calculateProfileCompletion(candidate, customConfig);
-    // 50 (contactInfo) + 50 (skills) = 100% of 100 total weight
+    
     assert.equal(result.percentage, 100);
     assert.equal(result.isComplete, true);
 });
@@ -153,7 +153,7 @@ test('candidate-profile.ejs: renders Profile Completion Card, progress bar, badg
         showConflictModal: false
     });
 
-    // Check header completion pill / indicator
+    
     assert.match(html, /id="headerCompletionBadge"/);
     assert.match(html, /id="profileCompletionCard"/);
     assert.match(html, /id="profileProgressBar"/);

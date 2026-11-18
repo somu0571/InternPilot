@@ -104,7 +104,7 @@ test('company applicants card renders graceful metadata fallback without orphan 
     const templatePath = path.join(__dirname, '..', 'views', 'company', 'company-applicants.ejs');
     const template = fs.readFileSync(templatePath, 'utf8').replace("<% layout('layouts/boilerplate') %>", '');
 
-    // Case 1: Incomplete profile (missing location district and state, but has qualification and age)
+    
     const incompleteApp = {
         _id: new mongoose.Types.ObjectId(),
         status: 'Submitted',
@@ -126,11 +126,11 @@ test('company applicants card renders graceful metadata fallback without orphan 
         user: { _id: new mongoose.Types.ObjectId(), role: 'recruiter' }
     });
 
-    // Should NOT have hanging map-pin icon
+    
     assert.doesNotMatch(html, /ph-map-pin/);
-    // Should NOT have double separator dots
+    
     assert.doesNotMatch(html, /&bull;(?:\s*<[^>]+>\s*)*&bull;/);
-    // Should render qualification and age
+    
     assert.match(html, /B\.Tech/);
     assert.match(html, /Age: 24/);
 });
@@ -200,10 +200,10 @@ test('company applicants card renders only skills matching recruiter requirement
         user: { _id: new mongoose.Types.ObjectId(), role: 'recruiter' }
     });
 
-    // Should render matching skills
+    
     assert.match(html, />\s*JavaScript\s*</);
     assert.match(html, />\s*Node\.js\s*</);
-    // Should NOT render non-matching skills as visible badges
+    
     assert.doesNotMatch(html, />\s*Python\s*</);
     assert.doesNotMatch(html, />\s*Ruby\s*</);
 });

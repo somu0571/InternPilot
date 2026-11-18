@@ -5,9 +5,9 @@ const path = require('node:path');
 const ejs = require('ejs');
 const mongoose = require('mongoose');
 
-// The stipend / duration row on each internship card (#145). It used to have
-// a bullet between the two values that floated on its own in the middle of
-// the row; spacing now comes from the flex gap.
+
+
+
 
 const viewPath = path.join(__dirname, '..', 'views', 'extras', 'internships.ejs');
 const template = fs.readFileSync(viewPath, 'utf8');
@@ -31,7 +31,7 @@ function renderCard(internship) {
         appliedIds: []
     }, { filename: viewPath });
 
-    // The row that holds the stipend and the duration.
+    
     const start = html.indexOf('ph-currency-inr');
     const rowStart = html.lastIndexOf('<div', start);
     const rowEnd = html.indexOf('ph-clock', start);

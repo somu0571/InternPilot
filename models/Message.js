@@ -13,8 +13,8 @@ const messageSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
-    // Which side of the conversation sent it. Stored so the thread can be
-    // drawn without looking up every sender's role.
+    
+    
     senderSide: {
         type: String,
         enum: ['candidate', 'company'],

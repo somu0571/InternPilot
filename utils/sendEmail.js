@@ -2,16 +2,12 @@ require('dotenv').config();
 const nodemailer = require('nodemailer');
 const { sanitizeHttpUrl } = require('./safeUrl');
 
-/**
- * Creates and returns a configured Nodemailer transporter.
- * Supports custom SMTP configuration with fallback to Gmail service.
- * Includes timeout settings to prevent hanging connections.
- */
+
 const createTransporter = () => {
     const timeoutConfig = {
-        connectionTimeout: 10000, // 10 seconds
-        greetingTimeout: 10000,   // 10 seconds
-        socketTimeout: 15000      // 15 seconds
+        connectionTimeout: 10000, 
+        greetingTimeout: 10000,   
+        socketTimeout: 15000      
     };
 
     if (process.env.SMTP_HOST) {
@@ -40,14 +36,7 @@ const createTransporter = () => {
     });
 };
 
-/**
- * Sends an email with retry logic and exponential backoff.
- * Logs delivery attempts, successes, and failures server-side.
- * 
- * @param {Object} mailOptions 
- * @param {number} maxRetries 
- * @returns {Promise<Object>} info
- */
+
 const sendWithRetry = async (mailOptions, maxRetries = 3) => {
     let lastError;
 
@@ -63,7 +52,7 @@ const sendWithRetry = async (mailOptions, maxRetries = 3) => {
             console.error(`[EMAIL] ERROR: Attempt ${attempt}/${maxRetries} failed for ${mailOptions.to}: ${err.message}`);
 
             if (attempt < maxRetries) {
-                const backoffDelay = attempt * 1500; // 1.5s, 3s backoff
+                const backoffDelay = attempt * 1500; 
                 console.log(`[EMAIL] Retrying delivery in ${backoffDelay}ms...`);
                 await new Promise((resolve) => setTimeout(resolve, backoffDelay));
             }
@@ -98,13 +87,7 @@ const onlineMeetingDetails = (meetingLink) => {
     return `<p><strong>Meeting Link:</strong> <a href="${escapedMeetingLink}">${escapedMeetingLink}</a></p>`;
 };
 
-/**
- * Sends an OTP verification email to the user.
- * 
- * @param {string} email 
- * @param {string} otp 
- * @returns {Promise<Object>}
- */
+
 const sendOTPEmail = async (email, otp) => {
     const cleanEmail = (email || '').trim().toLowerCase();
 
@@ -139,15 +122,7 @@ const sendOTPEmail = async (email, otp) => {
     return await sendWithRetry(mailOptions);
 };
 
-/**
- * Sends an internship application status update email to the candidate.
- * 
- * @param {string} email 
- * @param {string} candidateName 
- * @param {string} internshipTitle 
- * @param {string} status 
- * @returns {Promise<Object>}
- */
+
 const sendStatusUpdateEmail = async (email, candidateName, internshipTitle, status) => {
     const cleanEmail = (email || '').trim().toLowerCase();
 
@@ -193,9 +168,7 @@ const sendStatusUpdateEmail = async (email, candidateName, internshipTitle, stat
     return await sendWithRetry(mailOptions);
 };
 
-/**
- * Sends an interview scheduled email to the candidate.
- */
+
 const sendInterviewScheduledEmail = async (email, candidateName, internshipTitle, interviewDetails) => {
     const cleanEmail = (email || '').trim().toLowerCase();
     if (!cleanEmail || !isValidEmail(cleanEmail)) throw new Error('Invalid email address.');
@@ -237,9 +210,7 @@ const sendInterviewScheduledEmail = async (email, candidateName, internshipTitle
     return await sendWithRetry(mailOptions);
 };
 
-/**
- * Sends an interview rescheduled email to the candidate.
- */
+
 const sendInterviewRescheduledEmail = async (email, candidateName, internshipTitle, interviewDetails) => {
     const cleanEmail = (email || '').trim().toLowerCase();
     if (!cleanEmail || !isValidEmail(cleanEmail)) throw new Error('Invalid email address.');
@@ -281,9 +252,7 @@ const sendInterviewRescheduledEmail = async (email, candidateName, internshipTit
     return await sendWithRetry(mailOptions);
 };
 
-/**
- * Sends an interview cancelled email to the candidate.
- */
+
 const sendInterviewCancelledEmail = async (email, candidateName, internshipTitle, cancelReason) => {
     const cleanEmail = (email || '').trim().toLowerCase();
     if (!cleanEmail || !isValidEmail(cleanEmail)) throw new Error('Invalid email address.');
@@ -311,19 +280,7 @@ const sendInterviewCancelledEmail = async (email, candidateName, internshipTitle
     return await sendWithRetry(mailOptions);
 };
 
-/**
- * Sends either one instant saved-search alert or a daily/weekly digest. The
- * caller passes server-owned search names and internship records; every value
- * is escaped here so listing content cannot become email HTML.
- *
- * @param {string} email
- * @param {string} candidateName
- * @param {string[]} searchNames
- * @param {Array<{title?: string, companyName?: string}>} internships
- * @param {'instant'|'daily'|'weekly'} frequency
- * @param {string} resultsPath A relative InternPilot results path.
- * @returns {Promise<Object>}
- */
+
 const sendSavedSearchAlertEmail = async (
     email,
     candidateName,
@@ -361,7 +318,7 @@ const sendSavedSearchAlertEmail = async (
         try {
             resultsUrl = new URL(resultsPath, configuredBase).toString();
         } catch (error) {
-            // The email remains useful without a deep link when APP_URL is malformed.
+            
             resultsUrl = '';
         }
     }
@@ -397,17 +354,7 @@ const sendSavedSearchAlertEmail = async (
     return sendWithRetry(mailOptions);
 };
 
-/**
- * Sends a certificate issued notification email to the candidate.
- * 
- * @param {string} email 
- * @param {string} candidateName 
- * @param {string} companyName 
- * @param {string} internshipTitle 
- * @param {string} certificateId 
- * @param {string} viewUrl 
- * @returns {Promise<Object>}
- */
+
 const sendCertificateIssuedEmail = async (email, candidateName, companyName, internshipTitle, certificateId, viewUrl) => {
     const cleanEmail = (email || '').trim().toLowerCase();
 

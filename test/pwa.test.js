@@ -11,14 +11,14 @@ const sw = require('../public/sw.js');
 
 const ORIGIN = 'https://internpilot.example';
 
-// Width and height straight from a PNG's IHDR chunk.
+
 function pngSize(file) {
     const buf = fs.readFileSync(file);
     assert.equal(buf.toString('hex', 0, 8), '89504e470d0a1a0a', `${path.basename(file)} is a PNG`);
     return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
 }
 
-// --- manifest and icons ---
+
 
 test('the web app manifest has what browsers need to install the app', () => {
     const manifest = JSON.parse(fs.readFileSync(path.join(publicDir, 'manifest.webmanifest'), 'utf8'));
@@ -53,27 +53,27 @@ test('the offline page works with no network: nothing loaded from other sites', 
     assert.match(html, /<html lang="en">/);
     assert.match(html, /name="robots" content="noindex"/);
     assert.match(html, /Try again/);
-    assert.doesNotMatch(html, /(src|href)="https?:\/\//, 'no external scripts, styles or images');
+    assert.doesNotMatch(html, /(src|href)="https?:\/\
     assert.doesNotMatch(html, /<link[^>]+stylesheet/, 'styles are inline');
-    // The only asset it uses is precached by the service worker.
+    
     for (const [, url] of html.matchAll(/src="([^"]+)"/g)) {
         assert.ok(sw.PRECACHE_URLS.includes(url), `${url} is precached`);
     }
 });
 
-// --- service worker: what gets cached ---
+
 
 const req = (url, { method = 'GET', mode = 'no-cors' } = {}) => ({ url: new URL(url, ORIGIN).href, method, mode });
 
 test('pages go to the network, static files are cached, personal data never is', () => {
     const s = (url, opts) => sw.strategyFor(req(url, opts), ORIGIN);
 
-    // Pages: network with the offline fallback, never cached.
+    
     assert.equal(s('/', { mode: 'navigate' }), 'page');
     assert.equal(s('/candidate/profile', { mode: 'navigate' }), 'page');
     assert.equal(s('/auth/login', { mode: 'navigate' }), 'page');
 
-    // Our static files and the CDN files the layout loads.
+    
     assert.equal(s('/css/header.css'), 'static');
     assert.equal(s('/js/pwa.js'), 'static');
     assert.equal(s('/images/internpilot-logo.svg'), 'static');
@@ -83,7 +83,7 @@ test('pages go to the network, static files are cached, personal data never is',
     assert.equal(s('https://unpkg.com/@phosphor-icons/web'), 'static');
     assert.equal(s('https://fonts.gstatic.com/s/inter/v1/x.woff2'), 'static');
 
-    // Left alone: form posts, data requests, uploads, other sites, the worker itself.
+    
     assert.equal(s('/auth/login', { method: 'POST', mode: 'navigate' }), 'bypass');
     assert.equal(s('/messages/123/updates'), 'bypass');
     assert.equal(s('/api/v1/analytics/landing-stats'), 'bypass');
@@ -93,7 +93,7 @@ test('pages go to the network, static files are cached, personal data never is',
     assert.equal(s('/sw.js'), 'bypass');
 });
 
-// Minimal Cache Storage double.
+
 function fakeCaches() {
     const stores = new Map();
     const keyOf = r => (typeof r === 'string' ? new URL(r, ORIGIN).href : r.url);
@@ -180,7 +180,7 @@ test('activating a new version removes only our old caches', async () => {
     assert.deepEqual((await caches.keys()).sort(), [sw.STATIC_CACHE, 'some-other-app'].sort());
 });
 
-// --- layout wiring ---
+
 
 test('every page using the layout gets the manifest, icons and the install script', async () => {
     const layout = fs.readFileSync(path.join(root, 'views/layouts/boilerplate.ejs'), 'utf8');
@@ -194,7 +194,7 @@ test('every page using the layout gets the manifest, icons and the install scrip
     assert.match(html, /<script src="\/js\/pwa\.js" defer><\/script>/);
 });
 
-// --- install prompt (public/js/pwa.js) in a tiny fake browser ---
+
 
 class FakeElement {
     constructor(tag) {
@@ -297,7 +297,7 @@ test('"Not now" hides the prompt for 30 days', () => {
     assert.equal(b.banner(), null);
     assert.ok(Number(local.get('internpilot:install-dismissed-at')) > 0);
 
-    const later = browser({ local }); // a new visit, new session
+    const later = browser({ local }); 
     later.fire('beforeinstallprompt', installEvent());
     assert.equal(later.banner(), null, 'not shown again while dismissed');
 });
@@ -308,7 +308,7 @@ test('the prompt shows at most once per session, and never inside the installed 
     first.fire('beforeinstallprompt', installEvent());
     assert.ok(first.banner());
 
-    const nextPage = browser({ session }); // same session, next page
+    const nextPage = browser({ session }); 
     nextPage.fire('beforeinstallprompt', installEvent());
     assert.equal(nextPage.banner(), null);
 

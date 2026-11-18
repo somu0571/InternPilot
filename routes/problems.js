@@ -47,7 +47,7 @@ const problemGenerationSchema = {
     }
 };
 
-// Hub / Generator selection
+
 router.get('/problems', isAuthenticated, authorize('candidate'), async (req, res) => {
     try {
         const problemSets = await ResumeProblemSet.find({ candidate: req.user._id }).sort({ createdAt: -1 });
@@ -59,7 +59,7 @@ router.get('/problems', isAuthenticated, authorize('candidate'), async (req, res
     }
 });
 
-// Extract Resume Preview
+
 router.post('/problems/extract', isAuthenticated, authorize('candidate'), async (req, res) => {
     try {
         const { resumeVersionId } = req.body;
@@ -97,7 +97,7 @@ ${resume.text}
     }
 });
 
-// Generate Problems from Selection
+
 router.post('/problems/generate', isAuthenticated, authorize('candidate'), async (req, res) => {
     try {
         const today = new Date();
@@ -156,7 +156,7 @@ ${resume.text}
     }
 });
 
-// View Problem Set Workspace
+
 router.get('/problems/set/:id', isAuthenticated, authorize('candidate'), async (req, res) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -172,7 +172,7 @@ router.get('/problems/set/:id', isAuthenticated, authorize('candidate'), async (
     }
 });
 
-// Submit Solution to a Problem
+
 router.post('/problems/set/:setId/submit/:problemId', isAuthenticated, authorize('candidate'), async (req, res) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(req.params.setId)) {

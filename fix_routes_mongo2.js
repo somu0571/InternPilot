@@ -56,7 +56,7 @@ function fixRoute(file) {
 
     const oldQueryRegex = /const searchQuery = \(req\.query\.search \|\| ''\)\.trim\(\);\s*const statusFilter = \(req\.query\.status \|\| 'all'\)\.trim\(\);\s*const sortOrder = \(req\.query\.sort \|\| 'applied_desc'\)\.trim\(\);\s*let filteredApps = applications\.filter[\s\S]*?filteredApps\.sort\([\s\S]*?\}\);/m;
     
-    // In the old code, we had the initial query: const applications = await Application.find... and stats
+    
     const initialQueryRegex = /const applications = await Application\.find\(\{ candidate: userId \}\)[\s\S]*?rejected: applications\.filter\(a => a\.status === 'Rejected'\)\.length\s*\};/m;
 
     if (initialQueryRegex.test(c) && oldQueryRegex.test(c)) {

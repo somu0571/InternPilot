@@ -74,9 +74,9 @@
             const resendForm = document.getElementById('resendForm');
             const otpInput = document.getElementById('otpInput');
             const storageKey = 'otp_cooldown_' + encodeURIComponent(email);
-            const COOLDOWN_DURATION = 60 * 1000; // 60 seconds
+            const COOLDOWN_DURATION = 60 * 1000; 
 
-            // Only allow numbers in OTP input
+            
             if (otpInput) {
                 otpInput.addEventListener('input', function (e) {
                     this.value = this.value.replace(/[^0-9]/g, '');
@@ -92,13 +92,13 @@
 
             const now = Date.now();
 
-            // Initialize cooldown if not set or invalid
+            
             if (!cooldownEnd || isNaN(cooldownEnd)) {
                 cooldownEnd = now + COOLDOWN_DURATION;
                 try {
                     sessionStorage.setItem(storageKey, cooldownEnd);
                 } catch (_) {
-                    // Fallback to in-memory cooldown
+                    
                 }
             }
 
@@ -126,12 +126,12 @@
 
             if (resendForm) {
                 resendForm.addEventListener('submit', function () {
-                    // Set new cooldown for next request
+                    
                     cooldownEnd = Date.now() + COOLDOWN_DURATION;
                     try {
                         sessionStorage.setItem(storageKey, cooldownEnd);
                     } catch (_) {
-                        // Fallback to in-memory cooldown
+                        
                     }
                     resendBtn.disabled = true;
                     cooldownSpan.textContent = '(60s)';

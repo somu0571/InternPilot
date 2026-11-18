@@ -78,7 +78,7 @@ test('candidate-profile.ejs persistently displays "Resume uploaded: <filename>" 
         resumeUploadedAt: new Date('2026-09-20T10:00:00Z')
     });
 
-    // Persistent display in header/card
+    
     assert.match(html, /Resume uploaded:\s*<span[^>]*>resume_v2\.pdf<\/span>/);
     assert.match(html, /On File/);
     assert.match(html, /Active/);
@@ -108,7 +108,7 @@ test('candidate-profile.ejs includes client-side dropzone and error feedback con
 });
 
 test('resume upload fileFilter accepts valid PDF/Word files and rejects other types with specific message', () => {
-    // Test the logic implemented in routes/user.js fileFilter
+    
     const allowedMimes = [
         'application/pdf',
         'application/x-pdf',
@@ -130,17 +130,17 @@ test('resume upload fileFilter accepts valid PDF/Word files and rejects other ty
         });
     }
 
-    // PDF accepted
+    
     testFileFilter({ originalname: 'resume.pdf', mimetype: 'application/pdf' }).then(res => {
         assert.equal(res.accepted, true);
     });
 
-    // DOCX accepted
+    
     testFileFilter({ originalname: 'resume.docx', mimetype: 'application/octet-stream' }).then(res => {
         assert.equal(res.accepted, true);
     });
 
-    // PNG rejected
+    
     testFileFilter({ originalname: 'picture.png', mimetype: 'image/png' }).then(res => {
         assert.equal(res.accepted, false);
         assert.equal(res.error.code, 'INVALID_FILE_TYPE');
@@ -171,25 +171,25 @@ test('specific helpful error messages are mapped for upload failure cases', () =
         return `Resume upload failed: ${msg}`;
     }
 
-    // Size limit
+    
     assert.equal(
         mapUploadError({ code: 'LIMIT_FILE_SIZE' }),
         'Resume file is too large. Maximum allowed size is 5MB.'
     );
 
-    // Invalid format
+    
     assert.equal(
         mapUploadError({ code: 'INVALID_FILE_TYPE', message: 'Invalid file type. Only PDF (.pdf) and Word (.docx, .doc) files are allowed.' }),
         'Invalid file type. Only PDF (.pdf) and Word (.docx, .doc) files are allowed.'
     );
 
-    // Network timeout
+    
     assert.match(
         mapNetworkError({ code: 'ETIMEDOUT', message: 'connect ETIMEDOUT' }),
         /Network error while uploading resume/
     );
 
-    // DNS failure
+    
     assert.match(
         mapNetworkError({ code: 'ENOTFOUND', message: 'getaddrinfo ENOTFOUND' }),
         /Network error while uploading resume/
@@ -210,7 +210,7 @@ test('resume upload fallback saves file locally when cloud upload fails', () => 
     const resumeUrl = `/uploads/resumes/${uniqueFileName}`;
     assert.match(resumeUrl, /^\/uploads\/resumes\/\d+_test_sample_resume\.pdf$/);
 
-    // Clean up
+    
     fs.unlinkSync(localFilePath);
     assert.equal(fs.existsSync(localFilePath), false);
 });

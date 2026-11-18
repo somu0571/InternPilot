@@ -5,16 +5,16 @@ const router = express.Router();
 const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
 const Application = require('../models/Application');
-// Registered here because threads populate it; don't rely on another route
-// having loaded it first.
+
+
 require('../models/Internship');
 const { isAuthenticated } = require('../middleware/auth');
 const messaging = require('../utils/messaging');
 
 const wantsJson = req => req.get('X-Requested-With') === 'fetch' || req.accepts(['html', 'json']) === 'json';
 
-// Header badge. This router is mounted ahead of the page routes, so the count
-// is available on every page. Skipped for fetch/JSON calls such as polling.
+
+
 router.use(async (req, res, next) => {
     res.locals.messageUnreadCount = 0;
     if (req.user && req.method === 'GET' && !wantsJson(req)) {
@@ -27,10 +27,7 @@ router.use(async (req, res, next) => {
     next();
 });
 
-/**
- * Loads a conversation the current user is part of. Anyone else gets the
- * same 404 as a missing id, so a thread's existence is never revealed.
- */
+
 async function loadConversation(req, res, next) {
     try {
         const { id } = req.params;
@@ -82,7 +79,7 @@ router.get('/messages', isAuthenticated, async (req, res, next) => {
     }
 });
 
-// Opens the thread for an application, creating it the first time.
+
 router.post('/messages/start/:applicationId', isAuthenticated, async (req, res, next) => {
     try {
         const { applicationId } = req.params;
@@ -121,7 +118,7 @@ router.get('/messages/:id', isAuthenticated, loadConversation, async (req, res, 
     }
 });
 
-// Polled by the open thread for anything newer than the last message shown.
+
 router.get('/messages/:id/updates', isAuthenticated, loadConversation, async (req, res, next) => {
     try {
         const after = new Date(req.query.after);

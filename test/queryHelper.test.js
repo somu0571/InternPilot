@@ -9,7 +9,7 @@ test('escapeRegex escapes special regex characters', () => {
 
 test('parseInternshipQuery excludes draft internships by default', () => {
     const { filterObj } = parseInternshipQuery({});
-    // Draft listings must be excluded
+    
     const filterString = JSON.stringify(filterObj);
     assert.ok(filterString.includes('draft'));
     assert.deepEqual(filterObj, { status: { $ne: 'draft' } });
@@ -42,17 +42,17 @@ test('parseInternshipQuery combines search, sector, and location conjunctively (
     assert.ok(filterObj.$and, 'Criteria must be combined with $and');
     assert.equal(filterObj.$and.length, 4);
 
-    // 1: Status condition (excluding drafts)
+    
     assert.deepEqual(filterObj.$and[0], { status: { $ne: 'draft' } });
 
-    // 2: Search condition ($or across fields)
+    
     assert.ok(filterObj.$and[1].$or);
     assert.equal(filterObj.$and[1].$or.length, 4);
 
-    // 3: Sector condition
+    
     assert.ok(filterObj.$and[2].sector);
 
-    // 4: Location condition ($or across location fields)
+    
     assert.ok(filterObj.$and[3].$or);
     assert.equal(filterObj.$and[3].$or.length, 3);
 });

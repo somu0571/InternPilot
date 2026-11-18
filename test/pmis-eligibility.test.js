@@ -131,7 +131,7 @@ test('PMIS eligibility: returns Incomplete with missing fields when profile lack
     const candidate = {
         name: 'Incomplete Candidate',
         location: { district: 'Delhi', state: 'Delhi' }
-        // Missing age, familyIncome, qualification, enrollmentStatus, employmentStatus
+        
     };
 
     const result = checkPmisEligibility(candidate);
@@ -149,8 +149,8 @@ test('PMIS eligibility: returns Incomplete with missing fields when profile lack
 
 test('PMIS eligibility: disqualifying condition takes precedence over incomplete info', () => {
     const candidate = {
-        age: 30, // Disqualified: > 24
-        // familyIncome and qualification are missing
+        age: 30, 
+        
         enrollmentStatus: 'not_enrolled',
         employmentStatus: 'unemployed'
     };
@@ -177,11 +177,11 @@ test('PMIS eligibility: supports custom configurable rules override', () => {
         employmentStatus: 'unemployed'
     };
 
-    // Under default rules, this candidate is ineligible (age 26 > 24, income 10L > 8L)
+    
     const defaultResult = checkPmisEligibility(candidate);
     assert.equal(defaultResult.status, 'ineligible');
 
-    // Under custom rules, candidate is eligible
+    
     const customResult = checkPmisEligibility(candidate, customRules);
     assert.equal(customResult.status, 'eligible');
     assert.equal(customResult.isEligible, true);

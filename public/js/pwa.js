@@ -1,14 +1,4 @@
-/*
- * Registers the service worker and shows a small "Install app" prompt (#195).
- *
- * Chrome, Edge and Samsung Internet fire `beforeinstallprompt` when the site
- * can be installed; we hold on to it and offer an Install button instead of
- * the browser's mini bar. iPhone and iPad have no such event, so Safari users
- * get a one-line hint about "Add to Home Screen" instead.
- *
- * The prompt shows at most once per browser session, never inside the
- * installed app, and "Not now" hides it for 30 days.
- */
+
 (function () {
     'use strict';
 
@@ -30,7 +20,7 @@
         try {
             return window[storage].getItem(key);
         } catch (err) {
-            return null; // storage blocked (private mode, strict settings)
+            return null; 
         }
     }
 
@@ -38,7 +28,7 @@
         try {
             window[storage].setItem(key, value);
         } catch (err) {
-            // storage blocked: the prompt simply may show again next time
+            
         }
     }
 
@@ -98,7 +88,7 @@
         return button;
     }
 
-    // options: { text, installLabel, onInstall }
+    
     function showBanner(options) {
         if (banner || isStandalone() || dismissedRecently() || read('sessionStorage', SHOWN_KEY)) return;
         write('sessionStorage', SHOWN_KEY, '1');
@@ -166,7 +156,7 @@
         hideBanner();
     });
 
-    // iPhone and iPad have no install event, so explain the manual steps once.
+    
     if (isIos() && !isStandalone()) {
         window.addEventListener('load', function () {
             showBanner({ text: 'Tap the Share button, then "Add to Home Screen".' });

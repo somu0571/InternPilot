@@ -13,16 +13,14 @@ function getAiClient() {
 
 const POOL_SIZE = parseInt(process.env.RECOMMENDATION_AI_POOL_SIZE, 10) || 25;
 
-/**
- * Executes the multi-stage recommendation funnel for a candidate.
- */
+
 async function generateRecommendationsForUser(user) {
     try {
-        // 1. Fetch already applied internships
+        
         const apps = await Application.find({ candidate: user._id }).select('internship');
         const appliedIds = apps.map(a => a.internship ? a.internship.toString() : null).filter(Boolean);
 
-        // 2. Fetch all eligible active internships (exclude draft and paused)
+        
         const activeDeadlineCondition = {
             $or: [
                 { applicationDeadline: { $exists: false } },
@@ -38,7 +36,7 @@ async function generateRecommendationsForUser(user) {
             ...activeDeadlineCondition
         }).lean();
 
-        // If deadline filter eliminated all listings, fall back without deadline restriction
+        
         if (allEligible.length === 0) {
             allEligible = await Internship.find({
                 status: { $nin: ['draft', 'paused'] },
@@ -49,10 +47,10 @@ async function generateRecommendationsForUser(user) {
 
         if (allEligible.length === 0) {
             await Recommendation.deleteMany({ candidate: user._id });
-            return []; // Nothing to recommend
+            return []; 
         }
 
-        // 3. Cheap Candidate Pre-filter
+        
         const scoredInternships = allEligible.map(internship => ({
             internship,
             preFilterScore: calculatePreFilterScore(user, internship)
@@ -61,7 +59,7 @@ async function generateRecommendationsForUser(user) {
         scoredInternships.sort((a, b) => b.preFilterScore - a.preFilterScore);
         const pool = scoredInternships.slice(0, POOL_SIZE);
 
-        // 4. Privacy Filter: Strip PII before sending to Gemini
+        
         const candidateProfile = {
             skillProfiles: buildSkillProfiles(user),
             education: user.education || {},
@@ -82,7 +80,7 @@ async function generateRecommendationsForUser(user) {
         let aiResults = [];
         let isFallback = false;
 
-        // 5. Gemini Semantic Scoring with multi-model fallback
+        
         try {
             const prompt = `
 You are an expert AI recruiter. Evaluate this candidate against a list of internships.
@@ -156,11 +154,11 @@ ${JSON.stringify(internshipsPayload, null, 2)}
                 throw lastAiErr || new Error("All Gemini models failed or returned empty results.");
             }
         } catch (aiError) {
-            // Log the underlying AI failure server-side for diagnosis
+            
             console.error('Gemini Recommendation Error:', aiError.message || aiError);
             isFallback = true;
             
-            // Deterministic Fallback Data Contract
+            
             aiResults = pool.map(item => ({
                 id: item.internship._id.toString(),
                 aiMatchScore: item.preFilterScore,
@@ -169,7 +167,7 @@ ${JSON.stringify(internshipsPayload, null, 2)}
             }));
         }
 
-        // 6. Build the bulk write operations to completely replace existing recommendations
+        
         const newRecommendations = [];
         for (const item of pool) {
             const aiData = aiResults.find(r => r.id === item.internship._id.toString());
@@ -186,18 +184,18 @@ ${JSON.stringify(internshipsPayload, null, 2)}
             }
         }
 
-        // Delete old recommendations for this candidate and insert the fresh generation
+        
         await Recommendation.deleteMany({ candidate: user._id });
         
         if (newRecommendations.length > 0) {
-            // Sort by AI score before saving so they are naturally retrieved in order
+            
             newRecommendations.sort((a, b) => b.aiMatchScore - a.aiMatchScore);
             await Recommendation.insertMany(newRecommendations);
         }
 
         return newRecommendations;
     } catch (systemError) {
-        // Do not catch database/system failures as if they were AI failures.
+        
         console.error('System error during recommendation generation:', systemError);
         throw systemError;
     }

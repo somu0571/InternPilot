@@ -114,7 +114,7 @@ async function createCandidateApplication({ candidate, internship, applicationKi
         throw error;
     }
 
-    // These auxiliary updates must not make a successful application fail.
+    
     try {
         notifyNewApplication(application, internship);
         checkAndNotifyHighVolume(internship._id);
@@ -160,7 +160,7 @@ async function getCachedSectorsAndSkills() {
     const sectors = availableSectors.filter(Boolean).sort();
     const skillOptions = uniqueSortedOptions(availableSkills);
     sectorsAndSkillsCache = [sectors, skillOptions];
-    sectorsAndSkillsCacheExpiry = now + 120000; // Cache for 2 minutes
+    sectorsAndSkillsCacheExpiry = now + 120000; 
     return sectorsAndSkillsCache;
 }
 
@@ -179,7 +179,7 @@ router.get('/', async (req, res) => {
         const currentUser = req.user;
         const initialSkip = (page - 1) * limit;
 
-        // Run counting, listing search, candidate applications, and cached metadata concurrently
+        
         const [totalItems, rawInternships, candidateApps, [sectors, skillOptions]] = await Promise.all([
             Internship.countDocuments(filterObj),
             Internship.find(filterObj)
@@ -320,9 +320,9 @@ router.get('/:id', async (req, res) => {
 
 router.post('/new', isAuthenticated, requireCompanyPermission('internship:create'), requireVerifiedCompany({ allowDraft: true }), async (req, res) => {
     try {
-        // The company name and ID are always resolved from the authenticated
-        // company umbrella; a recruiter must never be able to submit a name
-        // for another company.
+        
+        
+        
         const { title, location, sector, stipend, monthlyStipend, vacancies, duration, requiredSkills, minQualifications, deadline, action, description, responsibilities: responsibilitiesRaw, eligibilityCriteria: eligibilityRaw } = req.body;
         const isDraft = action === 'draft';
         const status = isDraft ? 'draft' : 'published';
@@ -407,8 +407,8 @@ router.post('/:id/edit', isAuthenticated, requireCompanyPermission('internship:e
         const internship = await Internship.findOne({ _id: req.params.id, ...companyInternshipQuery(req.company) });
         if (!internship) return res.status(404).send('Internship not found');
 
-        // `companyInternshipQuery` above scopes this edit to the current
-        // company, while `requireCompanyPermission` enforces the role.
+        
+        
         const { title, location, sector, stipend, monthlyStipend, duration, vacancies, requiredSkills, minQualifications, deadline, description, responsibilities: responsibilitiesRaw, eligibilityCriteria: eligibilityRaw } = req.body;
 
         const parseLines = (raw) => (raw ? raw.split('\n').map(s => s.trim()).filter(Boolean) : []);
@@ -474,7 +474,7 @@ router.post('/:id/delete', isAuthenticated, requireCompanyPermission('internship
         const internship = await Internship.findOneAndDelete({ _id: req.params.id, ...companyInternshipQuery(req.company) });
         if (!internship) return res.status(404).send('Internship not found');
 
-        // Clean up orphaned applications for this deleted internship
+        
         await Application.deleteMany({ internship: req.params.id });
         invalidateSectorsAndSkillsCache();
 
@@ -604,9 +604,9 @@ router.post('/:id/application-kit/submit', isAuthenticated, authorize('candidate
     }
 });
 
-// Keep the original one-click behavior for simple listings. A listing that
-// asks company questions must use the reviewed Application Kit flow, and the
-// same restriction is enforced here to prevent a direct POST from bypassing it.
+
+
+
 router.post('/:id/apply', isAuthenticated, authorize('candidate'), async (req, res) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -651,8 +651,8 @@ router.post('/:id/apply', isAuthenticated, authorize('candidate'), async (req, r
     }
 });
 
-// The route middleware verifies permissions; this helper only validates the
-// requested listing belongs to the resolved company.
+
+
 async function verifyInternshipManager(req) {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
         return { authorized: false, error: 'Invalid internship ID.', statusCode: 400 };
@@ -844,13 +844,7 @@ router.get('/:id/applicants', isAuthenticated, requireCompanyPermission('applica
     }
 });
 
-/**
- * GET /internships/:id/skill-gap
- *
- * Renders how the logged-in candidate's skills line up against one
- * internship's requirements. Drafts are excluded and the candidate is always
- * taken from the session, never from the URL.
- */
+
 router.get('/:id/skill-gap', isAuthenticated, authorize('candidate'), async (req, res) => {
     try {
         const internship = await Internship.findOne({ _id: req.params.id, status: { $ne: 'draft' } });

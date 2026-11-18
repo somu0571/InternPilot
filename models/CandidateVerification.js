@@ -2,9 +2,9 @@ const mongoose = require('mongoose');
 
 const VERIFICATION_STATUSES = ['pending', 'approved', 'rejected', 'suspended'];
 
-// Document content belongs in object storage. This model deliberately keeps
-// only the storage pointer and a masked identifier; it must never contain a
-// full government or identity number.
+
+
+
 const verificationDocumentSchema = new mongoose.Schema({
     documentType: {
         type: String,
@@ -42,7 +42,7 @@ const candidateVerificationSchema = new mongoose.Schema({
         index: true
     },
     documents: { type: [verificationDocumentSchema], default: [] },
-    // Only a display-safe value such as "•••• 1234" is retained.
+    
     maskedIdentifier: {
         type: String,
         default: '',

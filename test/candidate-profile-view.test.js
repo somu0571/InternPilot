@@ -6,9 +6,9 @@ const ejs = require('ejs');
 const mongoose = require('mongoose');
 const { sanitizeHttpUrl } = require('../utils/safeUrl');
 
-// The recruiter "View Profile" page. A merge once dropped the lines that pass
-// and read the reviewer permission, and every visit crashed with
-// "canReviewApplications is not defined".
+
+
+
 
 const viewPath = path.join(__dirname, '..', 'views', 'company', 'candidate-profile-view.ejs');
 const template = fs.readFileSync(viewPath, 'utf8').replace("<% layout('layouts/boilerplate') %>", '');

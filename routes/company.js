@@ -82,7 +82,7 @@ function sanitizeWebsiteUrl(val) {
     if (!raw) return { url: '' };
 
     let urlToTest = raw;
-    if (!/^https?:\/\//i.test(urlToTest)) {
+    if (!/^https?:\/\
         urlToTest = 'https://' + urlToTest;
     }
 
@@ -126,7 +126,7 @@ function questionsFromListingRequest(body, fallback = []) {
     return hasQuestionFields ? parseApplicationQuestions(body) : fallback;
 }
 
-// Company Profile Management (GET: view/edit form)
+
 router.get('/company/profile', isAuthenticated, requireCompanyRole(['company', 'recruiter']), async (req, res) => {
     try {
         const companyId = req.user.companyId || (req.user.role === 'company' ? req.user._id : null);
@@ -151,7 +151,7 @@ router.get('/company/profile', isAuthenticated, requireCompanyRole(['company', '
     }
 });
 
-// Company Profile Management (POST: update company details & logo)
+
 router.post('/company/profile', isAuthenticated, requireCompanyRole(['company', 'recruiter']), handleLogoUpload('logo'), async (req, res) => {
     try {
         const {
@@ -229,7 +229,7 @@ router.post('/company/profile', isAuthenticated, requireCompanyRole(['company', 
 
         await company.save();
 
-        // Synchronize updated company name on all internships posted by this company
+        
         if (trimmedName && trimmedName !== oldCompanyName) {
             await Internship.updateMany(
                 { companyId: company._id },
@@ -246,9 +246,9 @@ router.post('/company/profile', isAuthenticated, requireCompanyRole(['company', 
     }
 });
 
-// The company owner submits supporting registration documents. A new
-// submission always returns the organisation to pending review so changes to
-// evidence cannot silently retain a prior approval.
+
+
+
 router.post('/company/verification/documents', isAuthenticated, requireCompanyRole(['company']), handleVerificationDocumentsUpload, async (req, res) => {
     try {
         const files = Array.isArray(req.files) ? req.files : [];
@@ -289,8 +289,8 @@ router.post('/company/verification/documents', isAuthenticated, requireCompanyRo
                 startCompanyReverification(transactionalCompany, { submittedBy: req.user._id });
                 await transactionalCompany.save({ session });
 
-                // Always retry cleanup: a prior failed attempt may have left
-                // a pending company with listings that still appear public.
+                
+                
                 await unpublishCompanyListings(transactionalCompany._id, { session });
             });
         } finally {
@@ -306,7 +306,7 @@ router.post('/company/verification/documents', isAuthenticated, requireCompanyRo
     }
 });
 
-// Public Company Profile View (Accessible to all students/visitors)
+
 router.get(['/company/:id/profile', '/company/profile/:id'], async (req, res) => {
     try {
         const { id } = req.params;
@@ -325,7 +325,7 @@ router.get(['/company/:id/profile', '/company/profile/:id'], async (req, res) =>
             return res.redirect('/internships');
         }
 
-        // If ID belongs to a recruiter account, resolve to their parent company
+        
         if (['recruiter', 'hiring_manager'].includes(company.role) && company.companyId) {
             const parentCompany = await User.findById(company.companyId);
             if (parentCompany) {
@@ -333,7 +333,7 @@ router.get(['/company/:id/profile', '/company/profile/:id'], async (req, res) =>
             }
         }
 
-        // Fetch all active/published internships by this company
+        
         const internships = await Internship.find({
             $or: [
                 { companyId: company._id },
@@ -349,7 +349,7 @@ router.get(['/company/:id/profile', '/company/profile/:id'], async (req, res) =>
              (req.user.companyId || req.user._id).toString() === company._id.toString())
         );
 
-        // Fetch verified reviews and statistics
+        
         const Review = require('../models/Review');
         const { calculateCompanyReviewStats, checkReviewEligibility } = require('../utils/reviews');
         const reviewStats = await calculateCompanyReviewStats(company._id);
@@ -589,7 +589,7 @@ router.get('/company/internships/:id/applicants', isAuthenticated, requireCompan
             user: req.user,
             internship,
             permissions: req.companyPermissions,
-            // Filters run after the match scores above are recalculated.
+            
             ...buildApplicantViewLocals(applications, req.query, internship._id)
         });
     } catch (error) {
@@ -771,9 +771,9 @@ router.post('/company/applications/:id/status', isAuthenticated, requireCompanyP
         const { status } = req.body;
         const applicationId = req.params.id;
 
-        // Interview progression is handled by the interview scheduler and
-        // Hired is reserved for an accepted formal offer. Keeping them out of
-        // this generic endpoint prevents bypassing either lifecycle.
+        
+        
+        
         const allowedStatuses = ['Submitted', 'Under Review', 'Shortlisted', 'Rejected'];
         if (!status || !allowedStatuses.includes(status)) {
             if (req.flash) req.flash('error_msg', 'Invalid application status provided.');
@@ -848,7 +848,7 @@ router.post('/company/applications/:id/status', isAuthenticated, requireCompanyP
                 if (refUrl.host === req.get('host') && refUrl.pathname.startsWith('/company/')) {
                     return res.redirect(refUrl.pathname + refUrl.search);
                 }
-            } catch (_) { /* malformed referrer — fall through */ }
+            } catch (_) {  }
         }
         res.redirect(`/company/internships/${application.internship._id}/applicants`);
     } catch (error) {
@@ -1101,7 +1101,7 @@ router.post('/company/internships/publish/:id', isAuthenticated, requireCompanyP
     }
 });
 
-// Pause applications for an internship
+
 const handlePause = async (req, res) => {
     try {
         const internship = await Internship.findOne({ _id: req.params.id, ...companyInternshipQuery(req.company) });
@@ -1140,7 +1140,7 @@ const handlePause = async (req, res) => {
     }
 };
 
-// Resume applications for an internship
+
 const handleResume = async (req, res) => {
     try {
         const internship = await Internship.findOne({ _id: req.params.id, ...companyInternshipQuery(req.company) });
@@ -1177,7 +1177,7 @@ const handleResume = async (req, res) => {
     }
 };
 
-// Toggle pause status for an internship
+
 const handleTogglePause = async (req, res) => {
     try {
         const internship = await Internship.findOne({ _id: req.params.id, ...companyInternshipQuery(req.company) });
@@ -1242,7 +1242,7 @@ router.post('/company/internships/delete/:id', isAuthenticated, requireCompanyPe
         const internship = await Internship.findOneAndDelete({ _id: req.params.id, ...companyInternshipQuery(req.company) });
         if (!internship) return res.status(404).send('Internship not found or unauthorized.');
 
-        // Clean up orphaned applications for this deleted internship
+        
         await Application.deleteMany({ internship: req.params.id });
 
         logRecruiterActivity(req, {
@@ -1260,7 +1260,7 @@ router.post('/company/internships/delete/:id', isAuthenticated, requireCompanyPe
     }
 });
 
-// --- Team Management Routes ---
+
 
 router.get('/company/team', isAuthenticated, requireCompanyPermission('team:manage'), async (req, res) => {
     try {
@@ -1350,7 +1350,7 @@ router.post('/company/team/remove/:id', isAuthenticated, requireCompanyPermissio
     }
 });
 
-// --- Candidate Profile View (Read-Only for Recruiters) ---
+
 
 router.get('/company/applications/:id/candidate', isAuthenticated, requireCompanyPermission('applications:view'), async (req, res) => {
     try {
@@ -1395,7 +1395,7 @@ router.get('/company/applications/:id/candidate', isAuthenticated, requireCompan
     }
 });
 
-// --- Interview Scheduling Routes ---
+
 
 router.post('/company/applications/:id/interview/schedule', isAuthenticated, requireCompanyPermission('applications:review'), async (req, res) => {
     try {
@@ -1593,7 +1593,7 @@ router.post('/company/applications/:id/interview/cancel', isAuthenticated, requi
         application.interview.cancelledAt = new Date();
         application.interview.cancelReason = cancelReason ? cancelReason.trim() : '';
 
-        // As requested by user, we do NOT revert the application.status here. We leave it as 'Interview'.
+        
 
         await application.save();
 
@@ -1624,8 +1624,8 @@ router.post('/company/applications/:id/interview/cancel', isAuthenticated, requi
     }
 });
 
-// JSON feed the dashboard overview polls so its numbers stay current without
-// a page reload.
+
+
 router.get('/company/dashboard/overview', isAuthenticated, requireCompanyPermission('dashboard:view'), async (req, res) => {
     try {
         res.set('Cache-Control', 'no-store');

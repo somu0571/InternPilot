@@ -3,7 +3,7 @@ const router = express.Router();
 const User = require('../models/User');
 const Internship = require('../models/Internship');
 
-// In-memory cache for landing stats (30 seconds TTL)
+
 let cachedStats = null;
 let lastCacheTime = 0;
 const CACHE_TTL = 30 * 1000;
@@ -21,7 +21,7 @@ router.get('/analytics/landing-stats', async (req, res) => {
             Internship.countDocuments({ status: { $ne: 'draft' } })
         ]);
 
-        // If no non-draft internships found, count all registered internships in the database
+        
         if (internships === 0) {
             internships = await Internship.countDocuments({});
         }

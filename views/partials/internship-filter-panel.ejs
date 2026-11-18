@@ -1,13 +1,13 @@
 <%
-    // Read the render local directly: the parent's `query` alias is a local
-    // variable in its own template function and is not visible from an include.
+    
+    
     const panelState = typeof queryState !== 'undefined' && queryState ? queryState : {};
     const chosenSkills = Array.isArray(panelState.skills) ? panelState.skills : [];
     const chosenSkillKeys = chosenSkills.map(s => s.toLowerCase());
     const chosenDurations = Array.isArray(panelState.duration) ? panelState.duration : [];
     const skillList = typeof skillOptions !== 'undefined' && Array.isArray(skillOptions) ? skillOptions : [];
     const buckets = typeof durationBuckets !== 'undefined' && Array.isArray(durationBuckets) ? durationBuckets : [];
-    // Chosen skills first, so they stay visible without scrolling the list.
+    
     const orderedSkills = skillList.slice().sort((a, b) =>
         Number(chosenSkillKeys.includes(b.toLowerCase())) - Number(chosenSkillKeys.includes(a.toLowerCase())));
 %>

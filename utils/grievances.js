@@ -8,13 +8,13 @@ const { formatLocalizedDateTime } = require('./dateFormat');
 
 const { GrievanceCounter } = Grievance;
 
-// Registered here so models/Notification.js stays untouched.
+
 const typePath = Notification.schema.path('type');
 if (typePath && Array.isArray(typePath.enumValues) && !typePath.enumValues.includes('grievance_update')) {
     typePath.enum('grievance_update');
 }
 
-// The first four are the categories listed on /grievance.
+
 const CATEGORIES = {
     fees: 'Demand for fees or a security deposit',
     stipend: 'Stipend or grant not paid',
@@ -32,7 +32,7 @@ const STATUS = {
     closed: { label: 'Closed', badge: 'bg-slate-100 text-slate-600 border-slate-200' }
 };
 
-// The escalation matrix published on /grievance.
+
 const TIERS = {
     1: { label: 'Tier 1', desk: 'Internal Helpdesk', hours: 48, sla: '48 hours' },
     2: { label: 'Tier 2', desk: 'Grievance Redressal Officer', workingDays: 7, sla: '7 working days' },
@@ -47,14 +47,10 @@ const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
 const IST_OFFSET_MS = 330 * 60 * 1000;
 
-// Weekends are counted in India time, where the portal operates.
+
 const istWeekday = time => new Date(time + IST_OFFSET_MS).getUTCDay();
 
-/**
- * @param {Date} from
- * @param {number} days Working days to add; Saturdays and Sundays are skipped.
- * @returns {Date} Same time of day, `days` working days later.
- */
+
 function addWorkingDays(from, days) {
     let time = new Date(from).getTime();
     let added = 0;
@@ -76,14 +72,7 @@ const isActive = status => ACTIVE.includes(status);
 const isOverdue = (g, now = new Date()) => Boolean(g && isActive(g.status) && g.dueAt && new Date(g.dueAt) < now);
 const idOf = value => String((value && value._id) || value || '');
 
-/**
- * Moves an overdue grievance up the tiers, as many steps as the time passed
- * calls for. Each step starts from the due date it missed, so a ticket nobody
- * opened for weeks lands where it would have been anyway. Tier 3 is the top.
- * Changes `g` in place.
- *
- * @returns {number[]} The tiers it moved to.
- */
+
 function applyEscalations(g, now = new Date()) {
     const moved = [];
     while (isOverdue(g, now) && g.tier < 3) {
@@ -102,10 +91,7 @@ function applyEscalations(g, now = new Date()) {
     return moved;
 }
 
-/**
- * A resolved grievance can be reopened for a week; after that it closes.
- * Changes `g` in place.
- */
+
 function applyAutoClose(g, now = new Date()) {
     if (g.status !== 'resolved' || !g.resolvedAt) return false;
     const windowEnds = new Date(new Date(g.resolvedAt).getTime() + LIMITS.reopenDays * DAY_MS);
@@ -126,14 +112,14 @@ function canReopen(g, now = new Date()) {
         now - new Date(g.resolvedAt) <= LIMITS.reopenDays * DAY_MS);
 }
 
-/** Only the person who raised it and admins can see a grievance. */
+
 function canView(user, g) {
     if (!user || !g) return false;
     if (user.role === 'admin') return true;
     return idOf(g.raisedBy) === idOf(user);
 }
 
-/** @returns {'candidate'|'company'|null} Who may raise grievances. */
+
 function raiserRoleFor(user) {
     if (!user) return null;
     if (user.role === 'candidate') return 'candidate';
@@ -168,7 +154,7 @@ function validateMessage(text, { required = true } = {}) {
 
 const formatTicket = (year, seq) => `GRV-${year}-${String(seq).padStart(6, '0')}`;
 
-/** Next ticket number for the current year, from an atomic counter. */
+
 async function nextTicket(now = new Date()) {
     const year = new Date(now.getTime() + IST_OFFSET_MS).getUTCFullYear();
     const counter = await GrievanceCounter.findOneAndUpdate(
@@ -181,7 +167,7 @@ async function nextTicket(now = new Date()) {
 
 const ownListingsQuery = companyId => ({ $or: [{ companyId }, { postedBy: companyId }] });
 
-/** Choices for "Related to" on the form: the raiser's own applications or listings. */
+
 async function linkOptions(user) {
     const role = raiserRoleFor(user);
     if (role === 'candidate') {
@@ -203,7 +189,7 @@ async function linkOptions(user) {
     return [];
 }
 
-/** Turns a "Related to" value into ids, only if it belongs to the raiser. */
+
 async function resolveLink(user, role, link) {
     const [kind, id] = String(link || '').split(':');
     if (!id || !mongoose.Types.ObjectId.isValid(id)) return {};
@@ -221,10 +207,7 @@ async function resolveLink(user, role, link) {
     return {};
 }
 
-/**
- * In-app notice to whoever raised the grievance. Company notifications are
- * shared with the whole hiring team, so those only carry the ticket number.
- */
+
 async function notifyRaiser(g, title, message) {
     try {
         const link = `/grievances/${g.ticket}`;
@@ -278,11 +261,7 @@ async function createGrievance(user, body, now = new Date()) {
     return { grievance };
 }
 
-/**
- * Applies overdue escalations and the auto-close, saving and notifying when
- * something changed. Called whenever a grievance is loaded, so the state is
- * right the moment anyone looks, without a background job.
- */
+
 async function refresh(g, now = new Date()) {
     const moved = applyEscalations(g, now);
     const closed = applyAutoClose(g, now);
@@ -319,9 +298,7 @@ async function reopenGrievance(g, user, text, now = new Date()) {
     return { ok: true };
 }
 
-/**
- * An admin reply and/or status change. Resolving needs a note for the raiser.
- */
+
 async function adminRespond(g, admin, { message: text, status } = {}, now = new Date()) {
     if (g.status === 'closed') return { error: 'This grievance is closed.' };
     const nextStatus = STATUS[status] ? status : g.status;
@@ -358,7 +335,7 @@ async function adminEscalate(g, admin, now = new Date()) {
     return { ok: true };
 }
 
-/** Brings every overdue or stale ticket up to date. Used before the admin queue. */
+
 async function sweep(now = new Date()) {
     const due = await Grievance.find({
         $or: [
@@ -370,11 +347,7 @@ async function sweep(now = new Date()) {
     return due.length;
 }
 
-/**
- * The admin desk: filtered tickets plus counts for the filter chips.
- * Filters: status (active by default, or open / in_review / resolved / closed / all),
- * tier, category, overdue.
- */
+
 async function adminQueue(filters = {}, now = new Date()) {
     await sweep(now);
 
@@ -388,7 +361,7 @@ async function adminQueue(filters = {}, now = new Date()) {
         query.dueAt = { $lt: now };
     }
 
-    // Open work is ordered by what's due first; finished tickets by latest activity.
+    
     const openWork = Boolean(query.status && (query.status.$in || isActive(query.status)));
     const [items, byStatus, overdue] = await Promise.all([
         Grievance.find(query)
@@ -406,7 +379,7 @@ async function adminQueue(filters = {}, now = new Date()) {
     return { items: items.map(g => present(g, now)), counts };
 }
 
-/** Counts for the card on the admin dashboard. */
+
 async function adminSummary(now = new Date()) {
     const [active, overdue] = await Promise.all([
         Grievance.countDocuments({ status: { $in: ACTIVE } }),
@@ -415,7 +388,7 @@ async function adminSummary(now = new Date()) {
     return { active, overdue };
 }
 
-/** "due in 1 day 4 h" / "overdue by 3 h" */
+
 function timeLeft(dueAt, now = new Date()) {
     if (!dueAt) return '';
     const diff = new Date(dueAt) - now;
@@ -435,7 +408,7 @@ const UPDATE_TEXT = {
     reopened: 'Reopened by the raiser'
 };
 
-/** Plain object with everything the views show, labels included. */
+
 function present(g, now = new Date()) {
     const plain = typeof g.toObject === 'function' ? g.toObject() : { ...g };
     const tier = TIERS[plain.tier] || TIERS[1];

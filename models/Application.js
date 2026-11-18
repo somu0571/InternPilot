@@ -84,7 +84,7 @@ const applicationSchema = new mongoose.Schema({
             enum: ['Scheduled', 'Rescheduled', 'Cancelled']
         },
         scheduledAt: { type: Date },
-        duration: { type: Number, default: 30 }, // in minutes
+        duration: { type: Number, default: 30 }, 
         mode: {
             type: String,
             enum: ['Online', 'Phone', 'In-Person']
@@ -118,18 +118,18 @@ const applicationSchema = new mongoose.Schema({
                 required: true
             },
             changedAt: { type: Date, default: Date.now },
-            // Only offer-driven outcomes populate this. It keeps the ordinary
-            // status timeline backwards compatible while providing a durable
-            // placement audit reference.
+            
+            
+            
             offer: { type: mongoose.Schema.Types.ObjectId, ref: 'Offer' }
         }
     ],
 
-    // Tracks the most recent status transition independently from application
-    // creation, notes, and other edits.
+    
+    
     statusUpdatedAt: { type: Date, default: Date.now },
 
-    // Withdrawal audit metadata
+    
     withdrawnAt: { type: Date },
     withdrawalReason: { type: String, trim: true, default: null },
 
@@ -139,8 +139,8 @@ const applicationSchema = new mongoose.Schema({
         decidedAt: { type: Date }
     },
 
-    // A denormalized, server-built record of exactly what was submitted.
-    // It is intentionally not a reference to the mutable candidate profile.
+    
+    
     applicationKit: {
         type: applicationKitSchema,
         immutable: true
@@ -154,7 +154,7 @@ const applicationSchema = new mongoose.Schema({
     }]
 }, { timestamps: true });
 
-// Statuses from which an application can be transitioned to 'Withdrawn'
+
 const WITHDRAWABLE_STATUSES = [
     'Submitted', 'pending',
     'Under Review',
@@ -162,7 +162,7 @@ const WITHDRAWABLE_STATUSES = [
     'Interview'
 ];
 
-// Terminal statuses that forbid withdrawal
+
 const TERMINAL_STATUSES = [
     'Rejected',
     'Hired',
@@ -170,12 +170,7 @@ const TERMINAL_STATUSES = [
     'Withdrawn'
 ];
 
-/**
- * Checks whether this application can currently be withdrawn by the student.
- * Permitted when submitted/pending, under review, shortlisted, or interview stage.
- * Blocked if already rejected, hired, or withdrawn.
- * @returns {boolean}
- */
+
 applicationSchema.methods.canWithdraw = function () {
     const s = this.status;
     if (!s) return false;
@@ -183,12 +178,7 @@ applicationSchema.methods.canWithdraw = function () {
     return WITHDRAWABLE_STATUSES.includes(s);
 };
 
-/**
- * Transitions the application to Withdrawn, recording audit metadata.
- * Also cancels any pending interview so the two fields don't disagree.
- * @param {string} [reason] - Optional reason (e.g. accepted another offer)
- * @returns {this}
- */
+
 applicationSchema.methods.withdraw = function (reason) {
     if (!this.canWithdraw()) {
         const err = new Error(`Application currently in '${this.status}' status cannot be withdrawn.`);
@@ -230,12 +220,12 @@ applicationSchema.methods.withdraw = function (reason) {
     return this;
 };
 
-// Expose status lists as statics
+
 applicationSchema.statics.WITHDRAWABLE_STATUSES = WITHDRAWABLE_STATUSES;
 applicationSchema.statics.TERMINAL_STATUSES = TERMINAL_STATUSES;
 
-// Keep statusUpdatedAt correct regardless of which route changes the status.
-// Legacy records without the field are backfilled from appliedAt.
+
+
 applicationSchema.pre('save', function (next) {
     if (!this.isNew && this.isModified('applicationKit')) {
         return next(new Error('Submitted application kits are immutable.'));
@@ -249,9 +239,9 @@ applicationSchema.pre('save', function (next) {
     if (typeof next === 'function') next();
 });
 
-// Route handlers normally modify a document and call `.save()`, but protect
-// the immutable snapshot from query-based updates as well. This prevents a
-// future endpoint from silently changing historical submitted material.
+
+
+
 function rejectApplicationKitQueryMutation(next) {
     const update = this.getUpdate ? this.getUpdate() : {};
     const mutatesKit = value => Object.keys(value || {}).some(key => key === 'applicationKit' || key.startsWith('applicationKit.'));
@@ -268,7 +258,7 @@ function rejectApplicationKitQueryMutation(next) {
 
 applicationSchema.pre(['updateOne', 'updateMany', 'findOneAndUpdate'], rejectApplicationKitQueryMutation);
 
-// Prevent accidental duplicate applications even when two submissions race.
+
 applicationSchema.index({ internship: 1, candidate: 1 }, { unique: true });
 
 module.exports = mongoose.model("Application", applicationSchema);

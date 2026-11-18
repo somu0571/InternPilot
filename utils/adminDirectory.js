@@ -48,7 +48,7 @@ async function listUsers({ q, role, status, page } = {}, admin = null) {
             ...u,
             roleLabel: ROLES[u.role] || u.role,
             suspended: suspended.has(String(u._id)),
-            // Deleting still goes through the confirmation panel on the user page.
+            
             deletable: Boolean(admin) && !deletionBlocker(admin, u),
             joinedLabel: u.createdAt ? formatLocalizedDateTime(u.createdAt) : ''
         })),
@@ -58,7 +58,7 @@ async function listUsers({ q, role, status, page } = {}, admin = null) {
     };
 }
 
-/** Everything the user page shows, or null if there is no such user. */
+
 async function userDetail(id, admin) {
     if (!mongoose.Types.ObjectId.isValid(id)) return null;
     const user = await User.findById(id)
@@ -112,7 +112,7 @@ async function userDetail(id, admin) {
     };
 }
 
-/** Application filters shared by the list and the CSV export. */
+
 async function applicationQuery({ status, q, from, to } = {}) {
     const query = {};
     if (APPLICATION_STATUSES.includes(status)) query.status = status;

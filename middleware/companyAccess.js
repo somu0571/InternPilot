@@ -1,8 +1,8 @@
 const User = require('../models/User');
 const { isCompanyVerified } = require('../utils/companyVerification');
 
-// A company owner is the Admin for its organisation. Recruiters can publish
-// and review candidates, while hiring managers have read-only access.
+
+
 const COMPANY_ROLES = ['company', 'recruiter', 'hiring_manager'];
 const TEAM_MEMBER_ROLES = ['recruiter', 'hiring_manager'];
 
@@ -48,8 +48,8 @@ function deny(req, res, status, message) {
     return res.status(status).render('extras/error', { message, error: {} });
 }
 
-// Permission checks happen on every protected server endpoint. This protects
-// against direct requests even when a button is hidden in the UI.
+
+
 function requireCompanyPermission(...permissions) {
     return async (req, res, next) => {
         if (!req.user) return deny(req, res, 401, 'Please log in to access this resource.');
@@ -57,8 +57,8 @@ function requireCompanyPermission(...permissions) {
             return deny(req, res, 403, 'This area is only available to company team members.');
         }
 
-        // Older company-owner accounts were created before `companyId` became
-        // mandatory. The owner is still the company record in that case.
+        
+        
         const companyId = req.user.companyId || (req.user.role === 'company' ? req.user._id : null);
         if (!companyId) {
             return deny(req, res, 403, 'This area is only available to company team members.');
@@ -94,9 +94,9 @@ function denyUnverifiedCompany(req, res) {
     return res.redirect('/company/profile');
 }
 
-// This middleware must follow requireCompanyPermission, which resolves the
-// parent company record into req.company. Drafts are intentionally allowed so
-// an organisation can prepare a listing while its review is pending.
+
+
+
 function requireVerifiedCompany({ allowDraft = false } = {}) {
     return (req, res, next) => {
         if (allowDraft && req.body?.action === 'draft') return next();
@@ -113,8 +113,8 @@ function companyInternshipQuery(company) {
     return {
         $or: [
             { companyId: company._id },
-            // Older listings were owned through postedBy before companyId was
-            // introduced. Keep them available to the same company and its team.
+            
+            
             { companyId: null, postedBy: company._id }
         ]
     };

@@ -15,7 +15,7 @@ test('footer template exists and contains valid markup', () => {
 test('footer links do not contain any dead placeholders (# or empty hrefs)', () => {
     const content = fs.readFileSync(footerPath, 'utf8');
 
-    // Extract all href values
+    
     const hrefMatches = [...content.matchAll(/href=["']([^"']*)["']/g)];
     assert.ok(hrefMatches.length > 0, 'footer must contain links');
 
@@ -35,7 +35,7 @@ test('footer links do not contain any dead placeholders (# or empty hrefs)', () 
 test('footer does not use unlinked span elements as clickable placeholders', () => {
     const content = fs.readFileSync(footerPath, 'utf8');
 
-    // Ensure span tags with cursor-pointer aren't used in place of actual links for legal/policy items
+    
     const pseudoLinkMatch = content.match(/<span[^>]*cursor-pointer[^>]*>(Privacy|Terms|Hyperlinking|About|Contact)<\/span>/i);
     assert.equal(
         pseudoLinkMatch,
@@ -94,7 +94,7 @@ test('pages router defines and exports all footer route handlers', () => {
     const pagesRouter = require('../routes/pages');
     assert.ok(pagesRouter, 'routes/pages.js must export an Express router');
 
-    // Inspect route paths registered on the router
+    
     const registeredPaths = pagesRouter.stack
         .filter(layer => layer.route)
         .flatMap(layer => Array.isArray(layer.route.path) ? layer.route.path : [layer.route.path]);

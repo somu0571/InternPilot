@@ -17,7 +17,7 @@
     (function () {
         const box = document.getElementById('siteAnnouncements');
         if (!box) return;
-        // Remembered per browser; storage can be blocked, so every access is guarded.
+        
         const key = id => 'announcement-dismissed-' + id;
         const dismissed = id => {
             try { return window.localStorage.getItem(key(id)) === '1'; } catch (err) { return false; }
@@ -31,7 +31,7 @@
             const button = banner.querySelector('[data-dismiss-announcement]');
             if (!button) return;
             button.addEventListener('click', () => {
-                try { window.localStorage.setItem(key(id), '1'); } catch (err) { /* still hide it for now */ }
+                try { window.localStorage.setItem(key(id), '1'); } catch (err) {  }
                 banner.remove();
             });
         });

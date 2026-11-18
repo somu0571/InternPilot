@@ -5,16 +5,16 @@ const { isAuthenticated } = require('../middleware/auth');
 const { deviceLabel, passwordStamp } = require('../utils/deviceInfo');
 const { formatLocalizedDateTime } = require('../utils/dateFormat');
 
-// "Where you're signed in" (#196): every browser and device signed in to the
-// account, with a way to sign any of them out. Sessions live in MongoDB
-// (#179), so the page reads them straight from the session store.
+
+
+
 
 const HOUR_MS = 60 * 60 * 1000;
 
 function lastActiveLabel(value, now) {
     if (!value) return 'Last active: unknown';
     const ms = now - new Date(value).getTime();
-    // The store renews a session's timestamp at most once an hour.
+    
     if (ms < HOUR_MS) return 'Active in the last hour';
     const hours = Math.floor(ms / HOUR_MS);
     if (hours < 24) return `Last active ${hours} hour${hours === 1 ? '' : 's'} ago`;
@@ -22,7 +22,7 @@ function lastActiveLabel(value, now) {
     return `Last active ${days} day${days === 1 ? '' : 's'} ago`;
 }
 
-/** The account's live sessions. Ones from before a password change are signed out here too. */
+
 async function liveSessions(req) {
     const store = req.sessionStore;
     const current = passwordStamp(req.user);
@@ -43,8 +43,8 @@ router.get('/account/sessions', isAuthenticated, async (req, res, next) => {
         const sessions = (await liveSessions(req))
             .map(item => {
                 const current = item.sid === req.sessionID;
-                // On the first page after signing in, this session's device is
-                // noted in this request and only reaches the store afterwards.
+                
+                
                 const device = (current && req.session.device) || item.device;
                 const signedIn = (device && device.signedInAt) || item.createdAt;
                 return {
@@ -80,7 +80,7 @@ router.post('/account/sessions/sign-out-others', isAuthenticated, async (req, re
 
 router.post('/account/sessions/:handle/sign-out', isAuthenticated, async (req, res, next) => {
     try {
-        // Looked up among this account's own sessions only.
+        
         const sessions = await req.sessionStore.listForUser(req.user._id);
         const target = sessions.find(item => item.handle === String(req.params.handle));
         if (!target) {

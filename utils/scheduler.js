@@ -7,24 +7,21 @@ const { expireDueOffers } = require('./offers');
 
 const APPROACHING_DEADLINE_DAYS = parseInt(process.env.APPROACHING_DEADLINE_DAYS, 10) || 3;
 
-/**
- * Scheduled job to check for approaching internship deadlines.
- * Runs at midnight every day.
- */
+
 cron.schedule('0 0 * * *', async () => {
     try {
         console.log('[Scheduler] Running deadline checker...');
         
-        // Use a timezone-safe boundary (e.g. 3 days from now)
+        
         const now = new Date();
         
-        // Exact target day in the future
+        
         const targetDate = new Date();
         targetDate.setDate(targetDate.getDate() + APPROACHING_DEADLINE_DAYS);
 
-        // Build start/end boundaries from the ISO date string to avoid
-        // mutation hazards — setHours mutates the receiver in-place.
-        const isoDate = targetDate.toISOString().slice(0, 10); // YYYY-MM-DD
+        
+        
+        const isoDate = targetDate.toISOString().slice(0, 10); 
         const startOfTarget = new Date(`${isoDate}T00:00:00.000Z`);
         const endOfTarget = new Date(`${isoDate}T23:59:59.999Z`);
 
@@ -74,9 +71,9 @@ cron.schedule('0 0 * * *', async () => {
     }
 });
 
-// Saved-search digests run after the morning listing refresh in India. Instant
-// alerts are emitted from the publish paths; these jobs are only for users who
-// explicitly selected Daily or Weekly delivery.
+
+
+
 cron.schedule('0 9 * * *', async () => {
     try {
         await runSavedSearchDigests('daily');
@@ -93,9 +90,9 @@ cron.schedule('0 9 * * 1', async () => {
     }
 }, { timezone: 'Asia/Kolkata' });
 
-// Offer expiry is also checked when a candidate opens or responds to an offer.
-// This lightweight sweep makes the final state and notifications timely even
-// when neither party revisits the offer page.
+
+
+
 cron.schedule('*/5 * * * *', async () => {
     try {
         await expireDueOffers();

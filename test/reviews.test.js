@@ -9,7 +9,7 @@ const Review = require('../models/Review');
 const reviewsRouter = require('../routes/reviews');
 const { calculateCompanyReviewStats, checkReviewEligibility } = require('../utils/reviews');
 
-// Helper to look up registered routes in router
+
 function findRouteLayer(router, pathPattern, method) {
     return router.stack.find(layer => {
         if (!layer.route || !layer.route.methods[method.toLowerCase()]) return false;
@@ -20,9 +20,9 @@ function findRouteLayer(router, pathPattern, method) {
     });
 }
 
-// ---------------------------------------------------------------------------
-// 1. Review Model & Schema Tests
-// ---------------------------------------------------------------------------
+
+
+
 
 test('Review schema creates a valid instance with all core fields and defaults', () => {
     const companyId = new mongoose.Types.ObjectId();
@@ -78,7 +78,7 @@ test('Review schema enforces 1-5 rating range bounds on all metrics', () => {
     const companyId = new mongoose.Types.ObjectId();
     const candidateId = new mongoose.Types.ObjectId();
 
-    // Below min
+    
     const tooLow = new Review({
         company: companyId,
         candidate: candidateId,
@@ -95,7 +95,7 @@ test('Review schema enforces 1-5 rating range bounds on all metrics', () => {
     assert.ok(errorLow.errors.rating, 'Rating < 1 should fail');
     assert.ok(errorLow.errors.mentorshipRating, 'Mentorship < 1 should fail');
 
-    // Above max
+    
     const tooHigh = new Review({
         company: companyId,
         candidate: candidateId,
@@ -140,15 +140,15 @@ test('Review schema supports employer response subdocument', () => {
     assert.equal(review.employerResponse.respondedBy.toString(), recruiterId.toString());
 });
 
-// ---------------------------------------------------------------------------
-// 2. Review Utilities & Analytics Tests (utils/reviews.js)
-// ---------------------------------------------------------------------------
+
+
+
 
 test('calculateCompanyReviewStats returns zero-state defaults when no reviews exist', async t => {
     const originalFind = Review.find;
     t.after(() => { Review.find = originalFind; });
 
-    // Mock empty reviews array
+    
     Review.find = () => ({
         lean: async () => []
     });
@@ -202,25 +202,25 @@ test('calculateCompanyReviewStats computes accurate multi-metric averages, perce
     const stats = await calculateCompanyReviewStats(companyId);
 
     assert.equal(stats.totalReviews, 3);
-    // (5 + 4 + 3) / 3 = 4.0
+    
     assert.equal(stats.averageRating, 4.0);
-    // (5 + 4 + 3) / 3 = 4.0
+    
     assert.equal(stats.mentorshipAvg, 4.0);
-    // (4 + 5 + 3) / 3 = 4.0
+    
     assert.equal(stats.learningAvg, 4.0);
-    // (5 + 4 + 3) / 3 = 4.0
+    
     assert.equal(stats.stipendAvg, 4.0);
-    // (4 + 3 + 2) / 3 = 3.0
+    
     assert.equal(stats.workLifeAvg, 3.0);
-    // 2 out of 3 reviews are >= 4 stars -> 67%
+    
     assert.equal(stats.recommendRate, 67);
-    // Star counts
+    
     assert.equal(stats.ratingDistribution['5'], 1);
     assert.equal(stats.ratingDistribution['4'], 1);
     assert.equal(stats.ratingDistribution['3'], 1);
     assert.equal(stats.ratingDistribution['2'], 0);
     assert.equal(stats.ratingDistribution['1'], 0);
-    // Percentages: 1/3 ~ 33%
+    
     assert.equal(stats.distributionPercentages['5'], 33);
     assert.equal(stats.distributionPercentages['4'], 33);
 });
@@ -246,7 +246,7 @@ test('checkReviewEligibility verifies candidate completed/accepted internship st
     const companyId = new mongoose.Types.ObjectId();
     const internshipId = new mongoose.Types.ObjectId();
 
-    // 1. Candidate is not eligible if no accepted application or certificate exists
+    
     Application.findOne = () => null;
     Certificate.findOne = () => null;
     Review.findOne = () => null;
@@ -260,7 +260,7 @@ test('checkReviewEligibility verifies candidate completed/accepted internship st
     assert.equal(notEligible.isEligible, false);
     assert.equal(notEligible.reason, 'unverified');
 
-    // 2. Candidate is eligible if they have a 'Hired' or 'Accepted' application
+    
     Application.findOne = () => ({
         populate: async () => ({
             _id: new mongoose.Types.ObjectId(),
@@ -276,7 +276,7 @@ test('checkReviewEligibility verifies candidate completed/accepted internship st
     assert.equal(eligibleHired.verifiedVia, 'application');
     assert.ok(eligibleHired.matchedInternship);
 
-    // 3. Existing review detection
+    
     Review.findOne = () => ({
         lean: async () => ({ _id: new mongoose.Types.ObjectId(), rating: 5 })
     });
@@ -285,9 +285,9 @@ test('checkReviewEligibility verifies candidate completed/accepted internship st
     assert.ok(alreadyReviewed.existingReview, 'Detects existing review document');
 });
 
-// ---------------------------------------------------------------------------
-// 3. Review Routes Registration Tests (routes/reviews.js)
-// ---------------------------------------------------------------------------
+
+
+
 
 test('reviews router exposes all required verified review endpoints', () => {
     const expected = [
@@ -317,9 +317,9 @@ test('review submission routes enforce authentication', () => {
     assert.ok(hasPostAuth, 'POST /companies/:id/reviews must require authentication');
 });
 
-// ---------------------------------------------------------------------------
-// 4. View Templates Rendering Tests
-// ---------------------------------------------------------------------------
+
+
+
 
 test('submit-review.ejs renders rating inputs, sliders, pros/cons, and anonymous toggle', () => {
     const templatePath = path.join(__dirname, '..', 'views', 'company', 'submit-review.ejs');

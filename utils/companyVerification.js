@@ -6,8 +6,8 @@ function companyVerificationStatus(company) {
     const storedStatus = company?.companyDetails?.verificationStatus;
     if (COMPANY_VERIFICATION_STATUSES.includes(storedStatus)) return storedStatus;
 
-    // Preserve access for organisations approved before verificationStatus
-    // was introduced. The next review writes the explicit state.
+    
+    
     return company?.companyDetails?.isVerified ? 'approved' : 'pending';
 }
 

@@ -1,7 +1,4 @@
-/**
- * Candidate Routes - InternPilot
- * Handles candidate specific actions including application tracking and withdrawal.
- */
+
 const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router();
@@ -91,10 +88,10 @@ function isValidSavedSearchId(value) {
     return mongoose.Types.ObjectId.isValid(value);
 }
 
-// MongoDB is the final authority for the candidate + criteriaHash unique
-// index. The read-before-write checks below make the common path friendly,
-// while this recognises the small window where two identical requests reach
-// the index at the same time.
+
+
+
+
 function isSavedSearchDuplicateKeyError(error) {
     if (error?.code !== 11000) return false;
 
@@ -127,10 +124,7 @@ async function getPublishedListingsForSavedSearches() {
     }).select('_id title companyName sector location requiredSkills monthlyStipend duration applicationDeadline status isPaused').lean();
 }
 
-/**
- * GET /candidate/saved-internships
- * Renders the saved internships dashboard with search, sector filtering, and deadline indicators.
- */
+
 router.get('/candidate/saved-internships', isAuthenticated, authorize('candidate'), async (req, res) => {
     try {
         const user = await User.findById(req.user._id).populate({
@@ -140,7 +134,7 @@ router.get('/candidate/saved-internships', isAuthenticated, authorize('candidate
 
         const rawSaved = (user && user.savedInternships ? user.savedInternships : []).filter(Boolean);
 
-        // Fetch applications submitted by this candidate for any of the saved internships
+        
         const internshipIds = rawSaved.map(item => item._id);
         const applications = internshipIds.length > 0
             ? await Application.find({
@@ -191,10 +185,7 @@ router.get('/candidate/saved-internships', isAuthenticated, authorize('candidate
     }
 });
 
-/**
- * POST /candidate/saved-internships/:id/toggle
- * Toggles the saved status of an internship for the candidate.
- */
+
 router.post('/candidate/saved-internships/:id/toggle', isAuthenticated, authorize('candidate'), async (req, res) => {
     try {
         const user = await User.findById(req.user._id);
@@ -218,11 +209,7 @@ router.post('/candidate/saved-internships/:id/toggle', isAuthenticated, authoriz
     }
 });
 
-/**
- * GET /candidate/saved-searches
- * Shows saved filters with an accurate current-match count and a compact
- * preview. The same pure matcher is used when an alert is delivered.
- */
+
 router.get('/candidate/saved-searches', isAuthenticated, authorize('candidate'), async (req, res) => {
     try {
         const [savedSearches, publishedInternships] = await Promise.all([
@@ -256,11 +243,7 @@ router.get('/candidate/saved-searches', isAuthenticated, authorize('candidate'),
     }
 });
 
-/**
- * POST /candidate/saved-searches
- * Persists a normalized copy of the selected filters. A candidate can save a
- * given criterion set once; re-saving it updates its alert preferences.
- */
+
 router.post('/candidate/saved-searches', isAuthenticated, authorize('candidate'), async (req, res) => {
     const returnTo = savedSearchReturnPath(req, '/internships');
 
@@ -285,9 +268,9 @@ router.post('/candidate/saved-searches', isAuthenticated, authorize('candidate')
 
         const currentCount = await SavedSearch.countDocuments({ candidate: req.user._id });
         if (currentCount >= MAX_SAVED_SEARCHES) {
-            // A concurrent matching save can occupy the final slot between
-            // the first lookup and this count. It is still an idempotent
-            // update, not a new eleventh search.
+            
+            
+            
             const concurrentSearch = await SavedSearch.findOne({ candidate: req.user._id, criteriaHash });
             if (concurrentSearch) {
                 applyRepeatedSavedSearchSettings(concurrentSearch, { name, frequency, delivery, now });
@@ -312,9 +295,9 @@ router.post('/candidate/saved-searches', isAuthenticated, authorize('candidate')
         } catch (error) {
             if (!isSavedSearchDuplicateKeyError(error)) throw error;
 
-            // A concurrent request saved the same filters after our initial
-            // lookup. Update that one record so repeat saves stay idempotent
-            // instead of exposing an E11000 error to the candidate.
+            
+            
+            
             const concurrentSearch = await SavedSearch.findOne({ candidate: req.user._id, criteriaHash });
             if (!concurrentSearch) {
                 throw new Error('This saved search changed while it was being saved. Please try again.');
@@ -338,12 +321,7 @@ router.post('/candidate/saved-searches', isAuthenticated, authorize('candidate')
     }
 });
 
-/**
- * PATCH /candidate/saved-searches/:id
- * Edits the title and alert preferences. The criteria field is optional so a
- * settings form cannot accidentally discard a saved filter; API clients may
- * provide it to update filters after choosing a different result set.
- */
+
 router.patch('/candidate/saved-searches/:id', isAuthenticated, authorize('candidate'), async (req, res) => {
     const returnTo = savedSearchReturnPath(req);
 
@@ -396,11 +374,7 @@ router.patch('/candidate/saved-searches/:id', isAuthenticated, authorize('candid
     }
 });
 
-/**
- * POST /candidate/saved-searches/:id/pause
- * Explicitly supports pause and resume without removing a candidate's chosen
- * filters or their selected alert settings.
- */
+
 router.post('/candidate/saved-searches/:id/pause', isAuthenticated, authorize('candidate'), async (req, res) => {
     const returnTo = savedSearchReturnPath(req);
 
@@ -412,8 +386,8 @@ router.post('/candidate/saved-searches/:id/pause', isAuthenticated, authorize('c
         const wasPaused = savedSearch.isPaused;
         savedSearch.isPaused = readCheckbox(req.body?.isPaused);
         if (wasPaused && !savedSearch.isPaused) {
-            // Resuming begins a fresh alert window. Candidates should not get
-            // a backlog of internships published while the search was paused.
+            
+            
             const now = new Date();
             savedSearch.alertStartAt = now;
             if (savedSearch.frequency === 'daily' || savedSearch.frequency === 'weekly') {
@@ -430,10 +404,7 @@ router.post('/candidate/saved-searches/:id/pause', isAuthenticated, authorize('c
     }
 });
 
-/**
- * DELETE /candidate/saved-searches/:id
- * Candidate ownership is included in the deletion query to prevent IDOR.
- */
+
 router.delete('/candidate/saved-searches/:id', isAuthenticated, authorize('candidate'), async (req, res) => {
     const returnTo = savedSearchReturnPath(req);
 
@@ -450,11 +421,7 @@ router.delete('/candidate/saved-searches/:id', isAuthenticated, authorize('candi
     }
 });
 
-/**
- * GET /candidate/saved-searches/:id/edit
- * Gives candidates a full filter editor instead of requiring them to recreate
- * a search when their target skill, city, stipend, or duration changes.
- */
+
 router.get('/candidate/saved-searches/:id/edit', isAuthenticated, authorize('candidate'), async (req, res) => {
     try {
         if (!isValidSavedSearchId(req.params.id)) throw new Error('Saved search not found.');
@@ -472,11 +439,7 @@ router.get('/candidate/saved-searches/:id/edit', isAuthenticated, authorize('can
     }
 });
 
-/**
- * GET /candidate/saved-searches/:id/results
- * Uses a server-owned criterion record rather than accepting a caller-provided
- * filter object, then returns to the standard searchable opportunities page.
- */
+
 router.get('/candidate/saved-searches/:id/results', isAuthenticated, authorize('candidate'), async (req, res) => {
     try {
         if (!isValidSavedSearchId(req.params.id)) throw new Error('Saved search not found.');
@@ -490,11 +453,7 @@ router.get('/candidate/saved-searches/:id/results', isAuthenticated, authorize('
     }
 });
 
-/**
- * GET /candidate/my-applications
- * Preserves the legacy URL while using the same canonical application-card
- * renderer as /candidate/applications.
- */
+
 router.get('/candidate/my-applications', isAuthenticated, authorize('candidate'), async (req, res) => {
     try {
         const userId = req.user._id || req.user.id;
@@ -569,13 +528,7 @@ router.get('/candidate/my-applications', isAuthenticated, authorize('candidate')
     }
 });
 
-/**
- * GET /candidate/applications/:id/kit
- *
- * Shows the immutable, server-recorded Application Kit for the signed-in
- * candidate. Querying by both _id and candidate is deliberate: an
- * application identifier must never reveal another candidate's submission.
- */
+
 router.get('/candidate/applications/:id/kit', isAuthenticated, authorize('candidate'), async (req, res) => {
     try {
         const candidateId = req.user._id || req.user.id;
@@ -629,16 +582,13 @@ router.get('/candidate/applications/:id/certificates/:type', isAuthenticated, au
     }
 });
 
-/**
- * Core withdrawal logic handler.
- * Supports both POST and PATCH methods for /candidate/applications/:id/withdraw.
- */
+
 async function handleApplicationWithdrawal(req, res) {
     try {
         const { id } = req.params;
         const reason = req.body && req.body.reason ? String(req.body.reason).trim() : '';
 
-        // Validate ObjectId format
+        
         if (!mongoose.Types.ObjectId.isValid(id)) {
             const errorMsg = 'Invalid application ID provided.';
             if (req.xhr || req.headers.accept?.includes('application/json') || req.is('json')) {
@@ -659,7 +609,7 @@ async function handleApplicationWithdrawal(req, res) {
             return res.redirect('/candidate/applications');
         }
 
-        // Ownership & IDOR Protection: Only the applicant can withdraw their application
+        
         const candidateId = application.candidate?._id || application.candidate;
         const currentUserId = req.user._id || req.user.id;
 
@@ -672,7 +622,7 @@ async function handleApplicationWithdrawal(req, res) {
             return res.redirect('/candidate/applications');
         }
 
-        // Check if application is already in terminal or non-withdrawable state
+        
         const currentStatus = application.status;
         const normalizedStatus = (currentStatus || '').toLowerCase();
 
@@ -694,7 +644,7 @@ async function handleApplicationWithdrawal(req, res) {
             return res.redirect('/candidate/applications');
         }
 
-        // Validate using schema method if present, or enforce permitted statuses
+        
         if (typeof application.canWithdraw === 'function' && !application.canWithdraw()) {
             const errorMsg = `Application in '${currentStatus}' status cannot be withdrawn.`;
             if (req.xhr || req.headers.accept?.includes('application/json') || req.is('json')) {
@@ -704,11 +654,11 @@ async function handleApplicationWithdrawal(req, res) {
             return res.redirect('/candidate/applications');
         }
 
-        // Use the model's .withdraw() method to ensure statusHistory,
-        // statusUpdatedAt, and interview cancellation are all handled.
+        
+        
         application.withdraw(reason || undefined);
 
-        // Add audit entry in application notes
+        
         if (Array.isArray(application.notes)) {
             application.notes.push({
                 text: `[AUDIT] Application withdrawn by student.${reason ? ` Reason: "${reason}"` : ''}`,
@@ -719,7 +669,7 @@ async function handleApplicationWithdrawal(req, res) {
 
         await application.save();
 
-        // Trigger recruiter notification (non-blocking)
+        
         if (application.internship) {
             notifyCandidateWithdrawal(application, application.internship);
         }
@@ -753,10 +703,10 @@ async function handleApplicationWithdrawal(req, res) {
     }
 }
 
-// POST /candidate/applications/:id/withdraw
+
 router.post('/candidate/applications/:id/withdraw', isAuthenticated, authorize('candidate'), handleApplicationWithdrawal);
 
-// PATCH /candidate/applications/:id/withdraw
+
 router.patch('/candidate/applications/:id/withdraw', isAuthenticated, authorize('candidate'), handleApplicationWithdrawal);
 
 module.exports = router;

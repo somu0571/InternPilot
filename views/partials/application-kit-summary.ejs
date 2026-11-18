@@ -7,7 +7,7 @@
     const kitProfile = submittedKit && submittedKit.candidateProfile ? submittedKit.candidateProfile : {};
     const safeKitFileUrl = value => {
         const raw = typeof value === 'string' ? value.trim() : '';
-        return /^\/uploads\/(?:resumes|documents)\//.test(raw) ? raw : sanitizeHttpUrl(raw).url;
+        return /^\/uploads\/(?:resumes|documents)\
     };
     const kitResumeUrl = submittedKit && submittedKit.resume ? safeKitFileUrl(submittedKit.resume.fileUrl) : '';
     const kitDate = submittedKit && submittedKit.submittedAt ? new Date(submittedKit.submittedAt) : null;

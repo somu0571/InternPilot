@@ -42,7 +42,7 @@ const POOL = [
 
 const ids = list => list.map(a => a.id);
 
-// What Express's default query parser hands the route: repeated keys become arrays.
+
 const toQuery = search => {
     const params = new URLSearchParams(search);
     const query = {};

@@ -58,8 +58,8 @@ async function sendAnnouncementNotifications(announcement) {
 
     const notifications = users.map(user => ({
         ...(user.role === 'company' ? { companyId: user._id } : { recipient: user._id }),
-        // Existing notification categories are intentionally reused so this
-        // console stays independent of the legacy Notification schema.
+        
+        
         type: 'application_status',
         title: announcement.title,
         message: announcement.message,
@@ -216,8 +216,8 @@ async function listApplications(query) {
     });
 }
 
-// Mounted at the app root. It supplies public banners and signs a suspended
-// account out before any protected route can act on its session.
+
+
 router.use(async (req, res, next) => {
     try {
         const now = new Date();
@@ -238,8 +238,8 @@ router.use(async (req, res, next) => {
         };
         return typeof req.logout === 'function' ? req.logout(finish) : finish();
     } catch (error) {
-        // Banners and the separate console tables must not make the public
-        // application unavailable during a transient database failure.
+        
+        
         console.error('Admin console context error:', error);
         return next();
     }

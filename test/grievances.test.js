@@ -14,7 +14,7 @@ const id = () => new mongoose.Types.ObjectId();
 const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
 
-// Swaps a method for the length of one test.
+
 async function withStub(target, method, fake, fn) {
     const original = target[method];
     target[method] = fake;
@@ -25,7 +25,7 @@ async function withStub(target, method, fake, fn) {
     }
 }
 
-// A plain grievance with a save() stub, for the functions that save.
+
 function ticket(overrides = {}) {
     return {
         _id: id(),
@@ -54,17 +54,17 @@ const render = (file, locals) => ejs.render(
     { filename: view(file) }
 );
 
-// --- Deadlines ---
+
 
 test('working days skip Saturday and Sunday', () => {
-    // Friday 25 Sep 2026, 10:00 IST.
+    
     const friday = new Date('2026-09-25T04:30:00Z');
-    assert.equal(g.addWorkingDays(friday, 1).toISOString(), '2026-09-28T04:30:00.000Z'); // Monday
-    assert.equal(g.addWorkingDays(friday, 7).toISOString(), '2026-10-06T04:30:00.000Z'); // Tuesday after next
+    assert.equal(g.addWorkingDays(friday, 1).toISOString(), '2026-09-28T04:30:00.000Z'); 
+    assert.equal(g.addWorkingDays(friday, 7).toISOString(), '2026-10-06T04:30:00.000Z'); 
 });
 
 test('weekends are counted in India time, not UTC', () => {
-    // Sunday 27 Sep, 02:00 IST is still Saturday in UTC. The next working day is Monday in India.
+    
     const sundayIst = new Date('2026-09-26T20:30:00Z');
     assert.equal(g.addWorkingDays(sundayIst, 1).toISOString(), '2026-09-27T20:30:00.000Z');
 });
@@ -76,7 +76,7 @@ test('each tier gets the deadline published on /grievance', () => {
     assert.equal(g.dueDateFor(3, friday).toISOString(), g.addWorkingDays(friday, 15).toISOString());
 });
 
-// --- Escalation and closing ---
+
 
 test('an overdue grievance moves up one tier, stamped with the deadline it missed', () => {
     const due = new Date('2026-09-28T10:00:00Z');
@@ -125,7 +125,7 @@ test('reopening is allowed once, within 7 days of the resolution', () => {
     assert.equal(g.canReopen(ticket({ status: 'open' }), within), false);
 });
 
-// --- Access and input ---
+
 
 test('only the raiser and admins can see a grievance', () => {
     const raiser = { _id: id(), role: 'candidate' };
@@ -173,7 +173,7 @@ test('time left reads naturally both before and after the deadline', () => {
     assert.equal(g.timeLeft(new Date(now.getTime() + 10 * 60 * 1000), now), 'due in 1 h');
 });
 
-// --- Raising a grievance ---
+
 
 test('raising checks who you are and what you wrote before touching the database', async () => {
     assert.match((await g.createGrievance({ _id: id(), role: 'admin' }, {})).errors[0], /Only candidates and companies/);
@@ -209,7 +209,7 @@ test('a new grievance starts at Tier 1 with a 48-hour deadline and a ticket numb
     assert.equal(created.updates[0].kind, 'created');
 });
 
-// --- Updates and notifications ---
+
 
 test('grievance notifications are accepted by the notification centre', async () => {
     const note = new Notification({ recipient: id(), type: 'grievance_update', title: 't', message: 'm' });
@@ -273,7 +273,7 @@ test('replies need an open grievance; admins can escalate up to Tier 3', async (
     });
 });
 
-// --- Pages ---
+
 
 const shown = (overrides = {}, now = new Date('2026-09-26T12:00:00Z')) => g.present(ticket({
     updates: [

@@ -7,7 +7,7 @@ const { MongoSessionStore, buildSessionOptions, SESSION_TTL_MS, TOUCH_AFTER_MS, 
 
 const HOUR = 60 * 60 * 1000;
 
-// Just enough of a MongoDB collection for the store, keeping every call.
+
 function fakeCollection() {
     const docs = new Map();
     const calls = [];

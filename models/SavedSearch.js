@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 
-// These are the durable, user-selected filters for an internship search. They
-// deliberately exclude presentation-only query values such as page and sort,
-// so a saved search always describes the same set of listings.
+
+
+
 const savedSearchCriteriaSchema = new mongoose.Schema({
     search: { type: String, trim: true, maxlength: 160, default: '' },
     sector: { type: String, trim: true, maxlength: 80, default: '' },
@@ -38,8 +38,8 @@ const savedSearchSchema = new mongoose.Schema({
         type: savedSearchCriteriaSchema,
         required: true
     },
-    // A stable hash of normalized criteria lets each candidate keep one copy
-    // of a search while still choosing a different label or alert preference.
+    
+    
     criteriaHash: {
         type: String,
         required: true,
@@ -57,8 +57,8 @@ const savedSearchSchema = new mongoose.Schema({
         default: () => ({})
     },
     isPaused: { type: Boolean, default: false },
-    // New digests begin at the time a candidate saves or changes a search, so
-    // they do not unexpectedly deliver every historical matching listing.
+    
+    
     alertStartAt: { type: Date, default: Date.now },
     lastAlertAt: { type: Date },
     lastDigestAt: { type: Date }

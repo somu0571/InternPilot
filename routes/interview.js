@@ -44,12 +44,12 @@ const evaluationResponseSchema = {
         strengths: { type: "ARRAY", items: { type: "STRING" } },
         improvements: { type: "ARRAY", items: { type: "STRING" } },
         feedback: { type: "STRING", description: "General summary feedback paragraph" }
-        // Note: dimensionScores is added dynamically based on interview type
+        
     },
     required: ["overallScore", "strengths", "improvements", "feedback"]
 };
 
-// Hub / Dashboard
+
 router.get('/interview', isAuthenticated, authorize('candidate'), async (req, res) => {
     try {
         const sessions = await MockInterviewSession.find({ candidate: req.user._id }).sort({ createdAt: -1 });
@@ -60,7 +60,7 @@ router.get('/interview', isAuthenticated, authorize('candidate'), async (req, re
     }
 });
 
-// Setup Form
+
 router.get('/interview/setup', isAuthenticated, authorize('candidate'), async (req, res) => {
     try {
         const user = await User.findById(req.user._id).select('resumeVersions');
@@ -71,7 +71,7 @@ router.get('/interview/setup', isAuthenticated, authorize('candidate'), async (r
     }
 });
 
-// Create Session
+
 router.post('/interview/setup', isAuthenticated, authorize('candidate'), async (req, res) => {
     try {
         const today = new Date();
@@ -100,7 +100,7 @@ router.post('/interview/setup', isAuthenticated, authorize('candidate'), async (
             }
         }
 
-        // Abandon existing in-progress sessions
+        
         await MockInterviewSession.updateMany(
             { candidate: req.user._id, status: 'In Progress' },
             { $set: { status: 'Abandoned' } }
@@ -124,7 +124,7 @@ router.post('/interview/setup', isAuthenticated, authorize('candidate'), async (
     }
 });
 
-// Render Room
+
 router.get('/interview/session/:id', isAuthenticated, authorize('candidate'), async (req, res) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -140,7 +140,7 @@ router.get('/interview/session/:id', isAuthenticated, authorize('candidate'), as
     }
 });
 
-// Submit Answer & Get Next Turn
+
 router.post('/interview/session/:id/turn', isAuthenticated, authorize('candidate'), async (req, res) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -153,21 +153,21 @@ router.post('/interview/session/:id/turn', isAuthenticated, authorize('candidate
             return res.status(400).json({ error: 'Invalid or completed session' });
         }
 
-        // If there's an active question awaiting an answer, save the answer to it
+        
         if (session.transcript.length > 0 && !session.transcript[session.transcript.length - 1].candidateAnswer) {
             session.transcript[session.transcript.length - 1].candidateAnswer = answer;
             session.transcript[session.transcript.length - 1].durationSeconds = durationSeconds || 0;
             session.transcript[session.transcript.length - 1].timestamp = new Date();
         }
 
-        // Check turn limit
+        
         if (session.usage.turns >= MAX_TURNS) {
             session.status = 'Completed';
             await session.save();
             return res.json({ action: 'finish', message: 'Maximum turns reached. Ending interview.' });
         }
 
-        // Build Prompt Context
+        
         let resumeContext = '';
         if (session.resumeReference) {
             const user = await User.findById(req.user._id).select('resumeVersions');
@@ -180,7 +180,7 @@ router.post('/interview/session/:id/turn', isAuthenticated, authorize('candidate
 
         let transcriptText = session.transcript.map((t, i) => `Turn ${i+1}:\nQ: ${t.question}\nA: ${t.candidateAnswer || '[No Answer]'}`).join('\n\n');
 
-        // Define the question blueprint based on interview type
+        
         let blueprint = '';
         if (session.interviewType === 'Technical') {
             blueprint = 'Topics to cover sequentially: 1. Core language fundamentals, 2. Framework/Tooling knowledge, 3. Debugging/Problem solving, 4. Optimization/Performance.';
@@ -211,7 +211,7 @@ Do NOT output any internal chain-of-thought or reasoning.`;
             aiResponse = await aiClient.generateJsonWithRetry(systemPrompt, interviewResponseSchema, ['action']);
         } catch (aiErr) {
             console.error('AI Turn Error:', aiErr);
-            // Safe fallback
+            
             aiResponse = { action: 'next_question', question_text: "Let's move on. Could you share a project you're particularly proud of?" };
         }
 
@@ -239,7 +239,7 @@ Do NOT output any internal chain-of-thought or reasoning.`;
     }
 });
 
-// Request Hint
+
 router.post('/interview/session/:id/hint', isAuthenticated, authorize('candidate'), async (req, res) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -276,7 +276,7 @@ Provide a brief, encouraging hint to help them structure their answer. Do NOT gi
     }
 });
 
-// Reframe Question
+
 router.post('/interview/session/:id/reframe', isAuthenticated, authorize('candidate'), async (req, res) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -303,7 +303,7 @@ router.post('/interview/session/:id/reframe', isAuthenticated, authorize('candid
 
         session.usage.reframes += 1;
         session.transcript[session.transcript.length - 1].reframed = true;
-        session.transcript[session.transcript.length - 1].question = aiResponse.reframed_question; // Update question in place
+        session.transcript[session.transcript.length - 1].question = aiResponse.reframed_question; 
         await session.save();
 
         res.json({ reframed_question: aiResponse.reframed_question });
@@ -313,7 +313,7 @@ router.post('/interview/session/:id/reframe', isAuthenticated, authorize('candid
     }
 });
 
-// Complete & Generate Report
+
 router.post('/interview/session/:id/complete', isAuthenticated, authorize('candidate'), async (req, res) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -324,7 +324,7 @@ router.post('/interview/session/:id/complete', isAuthenticated, authorize('candi
         
         session.status = 'Completed';
         
-        // Build dynamic schema based on interview type
+        
         let dimensionKeys = [];
         if (session.interviewType === 'Technical') dimensionKeys = ['codeQuality', 'problemSolving', 'optimization'];
         else if (session.interviewType === 'Behavioral') dimensionKeys = ['starStructuring', 'leadership', 'conflictResolution'];
@@ -354,13 +354,13 @@ Provide a list of strengths, areas for improvement, and a summary feedback parag
 Transcript:
 ${transcriptText}`;
 
-        // Generate evaluation from AI
+        
         let aiResponse;
         try {
             aiResponse = await aiClient.generateJsonWithRetry(prompt, dynamicEvalSchema, ['overallScore', 'strengths', 'improvements', 'feedback', 'dimensionScores']);
         } catch (aiErr) {
             console.error('Eval Gen Error:', aiErr);
-            // Fallback values
+            
             aiResponse = {
                 overallScore: 70,
                 strengths: ['Completed the interview'],
@@ -370,7 +370,7 @@ ${transcriptText}`;
             };
         }
 
-        // Validate and coerce types
+        
         if (!aiResponse || typeof aiResponse.overallScore !== 'number' || !Array.isArray(aiResponse.strengths) || !Array.isArray(aiResponse.improvements) || typeof aiResponse.feedback !== 'string' || typeof aiResponse.dimensionScores !== 'object') {
             console.warn('AI evaluation returned incomplete data, applying fallback defaults');
             aiResponse = {
@@ -382,7 +382,7 @@ ${transcriptText}`;
             };
         }
 
-        // Ensure numeric types for scores
+        
         aiResponse.overallScore = Number(aiResponse.overallScore) || 0;
         Object.keys(aiResponse.dimensionScores || {}).forEach(k => {
             aiResponse.dimensionScores[k] = Number(aiResponse.dimensionScores[k]) || 0;

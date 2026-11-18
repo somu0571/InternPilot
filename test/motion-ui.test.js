@@ -8,13 +8,13 @@ const root = path.join(__dirname, '..');
 const read = p => fs.readFileSync(path.join(root, p), 'utf8');
 const MODULE = path.join(root, 'public/js/motion-ui.js');
 
-// A fresh copy of the module, so each test starts with Motion not yet loaded.
+
 function freshMotionUi() {
     delete require.cache[require.resolve(MODULE)];
     return require(MODULE);
 }
 
-// --- a tiny DOM, just enough for the motion layer ---
+
 
 class El {
     constructor(tag) {
@@ -68,7 +68,7 @@ class El {
     querySelectorAll(selector) {
         const parts = selector.split(',').map(s => s.trim());
         return this.all().slice(1).filter(el => parts.some(part => {
-            // "tag", "[attr]" or "tag[attr]"
+            
             const [, tag, attr] = part.match(/^([a-z]*)(?:\[([\w-]+)\])?$/i) || [];
             return (!tag || el.tagName === tag.toUpperCase()) && (!attr || el.hasAttribute(attr));
         }));
@@ -116,7 +116,7 @@ function flashAlert(doc, kind, message) {
 
 const toasts = doc => (doc.getElementById('ip-toasts') || { children: [] }).children;
 
-// --- helpers ---
+
 
 test('count-up keeps the text around the number and ends on the server value', () => {
     const { parseCount, formatCount } = freshMotionUi();
@@ -138,7 +138,7 @@ test('tilt stays within a few degrees and toasts pick their type from the flash 
     assert.equal(toastType({ className: 'bg-emerald-50' }), 'success');
 });
 
-// --- behaviour ---
+
 
 test('flash messages become toasts that close on their own, pause on hover and close on click', () => {
     const { doc, win, timers } = browser();
@@ -153,7 +153,7 @@ test('flash messages become toasts that close on their own, pause on hover and c
     assert.equal(list[0].children[0].textContent, 'Profile saved.');
     assert.equal(list[1].hasAttribute('data-toast'), true);
 
-    // Without Web Animations (as here) a timer closes each toast; errors stay longer.
+    
     assert.deepEqual(timers.map(t => t.ms), [5000, 9000]);
     list[0].fire('mouseenter');
     assert.equal(timers[0].cleared, true, 'hovering pauses the countdown');
@@ -216,7 +216,7 @@ test('with reduced motion nothing is loaded, nothing is hidden, and toasts still
     assert.equal(toasts(doc).length, 1);
 });
 
-// --- styles and wiring ---
+
 
 test('page transitions, reveals and tilt switch off for reduced motion', () => {
     const css = read('public/css/motion-ui.css');
@@ -256,7 +256,7 @@ test('shared shell behavior is served from deferred assets instead of inline lay
     assert.match(script, /prefers-reduced-motion: reduce/);
 });
 
-// --- confirmation dialogs ---
+
 
 function formWithConfirm(doc, question) {
     const form = doc.body.appendChild(new El('form'));
@@ -308,7 +308,7 @@ test('the dialog shows the question as text, focuses Cancel, and Cancel or Escap
     const [cancel, confirmButton] = dialog.querySelectorAll('button');
     assert.equal(cancel.autofocus, true, 'the safe choice has focus');
     assert.equal(confirmButton.textContent, 'Remove');
-    dialog.close(''); // Escape
+    dialog.close(''); 
     await tick();
     assert.equal(form.submitted, 0);
     assert.equal(doc.body.querySelector('dialog'), null, 'the dialog is removed afterwards');
@@ -345,7 +345,7 @@ test('admin pages use the motion layer and the dialog, never the browser confirm
     assert.match(sidebar, /view-transition-name: ip-console-active/, 'the active item glides between sections');
 });
 
-// --- phase 3: candidate pages and the 3D plane ---
+
 
 function applySection(doc, label, { disabled = false, tag = 'a' } = {}) {
     const section = doc.body.appendChild(new El('div'));

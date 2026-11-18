@@ -68,11 +68,11 @@ test('company-applicants.ejs allows reviewers to update status for Interview can
         permissions: ['applications:view', 'applications:review']
     }, { filename: companyApplicantsPath });
 
-    // Reviewer should have a form targeting the status update route
+    
     assert.ok(html.includes(`action="/company/applications/${interviewApp._id}/status"`), 'Must render status update form');
-    // The dropdown should have Interview selected
+    
     assert.match(html, /<option value="Interview"\s+selected/, 'Interview should be selected in the dropdown');
-    // Dropdown should contain options to advance to Hired or Rejected
+    
     assert.match(html, /<option value="Hired"/, 'Should include Hired option');
     assert.match(html, /<option value="Rejected"/, 'Should include Rejected option');
 });
@@ -111,7 +111,7 @@ test('my-applications.ejs counts Interview applications in active applications',
         formatLocalizedDateTime: () => '24 Sept 2026, 5:30 pm'
     }, { filename: myAppsPath });
 
-    // Active / Under Review card should count the Interview application (1 active)
+    
     assert.match(html, /Active \/ Under Review/);
     assert.match(html, /<div class="text-2xl font-bold text-emerald-700 mt-1">1<\/div>/);
 });

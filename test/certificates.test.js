@@ -21,7 +21,7 @@ test('Certificate ID generation produces compliant, unique, tamper-proof IDs', (
     assert.equal(isValidCertificateId(id1), true, `"${id1}" must satisfy isValidCertificateId`);
     assert.equal(isValidCertificateId(id2), true, `"${id2}" must satisfy isValidCertificateId`);
 
-    // Negative tests for invalid IDs
+    
     assert.equal(isValidCertificateId(''), false);
     assert.equal(isValidCertificateId(null), false);
     assert.equal(isValidCertificateId('IP-2026-INVALID'), false);
@@ -42,7 +42,7 @@ test('Certificate model validates required fields and enum constraints', () => {
     assert.ok(validationError.errors.companyName, 'companyName is required');
     assert.ok(validationError.errors.internshipTitle, 'internshipTitle is required');
 
-    // Valid certificate document creation (in-memory)
+    
     const validCert = new Certificate({
         certificateId: generateCertificateId(),
         application: new mongoose.Types.ObjectId(),
@@ -180,7 +180,7 @@ test('public verification portal view (verify.ejs) correctly renders both verifi
     assert.ok(fs.existsSync(templatePath), 'verify.ejs must exist in views/certificates/');
     const rawTemplate = fs.readFileSync(templatePath, 'utf8').replace("<% layout('layouts/boilerplate') %>", '');
 
-    // 1. Initial Search View
+    
     const searchHtml = ejs.render(rawTemplate, {
         certificate: null,
         searchedId: '',
@@ -190,7 +190,7 @@ test('public verification portal view (verify.ejs) correctly renders both verifi
     assert.match(searchHtml, /Verify Internship Credentials/);
     assert.match(searchHtml, /name="certificateId"/);
 
-    // 2. Verified Credential View
+    
     const mockVerifiedCert = {
         certificateId: 'IP-2026-VERI-9999',
         candidateName: 'Aditi Deshmukh',
@@ -217,7 +217,7 @@ test('public verification portal view (verify.ejs) correctly renders both verifi
     assert.match(verifiedHtml, /IP-2026-VERI-9999/);
     assert.match(verifiedHtml, /Status:\s*Active/);
 
-    // 3. Not Found View
+    
     const notFoundHtml = ejs.render(rawTemplate, {
         certificate: null,
         searchedId: 'IP-2026-FAKE-0000',
@@ -233,7 +233,7 @@ test('candidate certificates dashboard view (candidate/certificates.ejs) display
     assert.ok(fs.existsSync(templatePath), 'certificates.ejs must exist in views/candidate/');
     const rawTemplate = fs.readFileSync(templatePath, 'utf8').replace("<% layout('layouts/boilerplate') %>", '');
 
-    // Empty state
+    
     const emptyHtml = ejs.render(rawTemplate, {
         certificates: [],
         stats: { totalCertificates: 0, totalSkills: 0, withLORCount: 0 },
@@ -242,7 +242,7 @@ test('candidate certificates dashboard view (candidate/certificates.ejs) display
     assert.match(emptyHtml, /No Certificates Earned Yet/);
     assert.match(emptyHtml, /Browse Opportunities/);
 
-    // Populated state
+    
     const populatedHtml = ejs.render(rawTemplate, {
         certificates: [
             {

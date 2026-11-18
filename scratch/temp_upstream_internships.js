@@ -353,7 +353,7 @@ router.post('/:id/apply', isAuthenticated, authorize('candidate'), async (req, r
             matchScore: score
         });
 
-        // Delete from recommendations cache if it exists
+        
         await Recommendation.findOneAndDelete({
             internship: internship._id,
             candidate: candidate._id
@@ -367,7 +367,7 @@ router.post('/:id/apply', isAuthenticated, authorize('candidate'), async (req, r
     }
 });
 
-// Helper to verify recruiter/admin authorization for internship status modification
+
 async function verifyInternshipManager(req) {
     const isAdmin = req.user && req.user.role === 'admin';
     const isCompanyUser = req.user && ['company', 'recruiter'].includes(req.user.role);
@@ -553,13 +553,7 @@ router.get('/:id/applicants', isAuthenticated, requireCompanyRole(['company', 'r
     }
 });
 
-/**
- * GET /internships/:id/skill-gap
- *
- * Renders how the logged-in candidate's skills line up against one
- * internship's requirements. Drafts are excluded and the candidate is always
- * taken from the session, never from the URL.
- */
+
 router.get('/:id/skill-gap', isAuthenticated, authorize('candidate'), async (req, res) => {
     try {
         const internship = await Internship.findOne({ _id: req.params.id, status: { $ne: 'draft' } });

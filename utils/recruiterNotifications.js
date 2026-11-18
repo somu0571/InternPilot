@@ -1,9 +1,7 @@
 const Notification = require('../models/Notification');
 const Application = require('../models/Application');
 
-/**
- * Helper to safely notify without crashing the main thread
- */
+
 async function safeExecute(name, fn) {
     try {
         await fn();
@@ -46,7 +44,7 @@ async function notifyCandidateWithdrawal(application, internship) {
 
 async function checkAndNotifyHighVolume(internshipId) {
     return safeExecute('checkAndNotifyHighVolume', async () => {
-        const internship = require('../models/Internship'); // lazy load
+        const internship = require('../models/Internship'); 
         const internshipDoc = await internship.findById(internshipId);
         if (!internshipDoc || !internshipDoc.companyId) return;
 
@@ -55,14 +53,14 @@ async function checkAndNotifyHighVolume(internshipId) {
             status: { $nin: ['Withdrawn', 'withdrawn'] } 
         });
 
-        // Configurable thresholds, e.g., 50, 100, 150
+        
         const thresholds = [150, 100, 50];
         const breachedThreshold = thresholds.find(t => count >= t);
 
         if (breachedThreshold) {
-            // Using idempotency index on { companyId, internship, type, metadata.threshold }
-            // If it already exists for this threshold, this will silently fail or not insert due to unique index,
-            // but we can also use updateOne with upsert safely.
+            
+            
+            
             await Notification.updateOne(
                 {
                     companyId: internshipDoc.companyId,

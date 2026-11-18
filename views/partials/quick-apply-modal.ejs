@@ -226,7 +226,7 @@
                 if (confirmText) confirmText.textContent = 'Confirm Application';
             }
 
-            // Bind click interception to all Quick Apply forms
+            
             document.body.addEventListener('submit', (e) => {
                 const form = e.target;
                 if (!form || !form.action) return;
@@ -238,7 +238,7 @@
                     e.preventDefault();
                     e.stopPropagation();
 
-                    // Read title and company from form data attributes or parent card context
+                    
                     let title = form.getAttribute('data-internship-title');
                     let company = form.getAttribute('data-company-name');
 
@@ -254,7 +254,7 @@
                 }
             }, true);
 
-            // Modal Controls
+            
             if (closeBtn) closeBtn.addEventListener('click', closeModal);
             if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
             if (backdrop) backdrop.addEventListener('click', closeModal);
@@ -265,7 +265,7 @@
                 }
             });
 
-            // Confirm Application Handler
+            
             confirmBtn.addEventListener('click', async () => {
                 if (!activeActionUrl || isSubmitting) return;
 
@@ -286,7 +286,7 @@
                     if (response.ok && data.success) {
                         isSubmitting = false;
 
-                        // Update Quick Apply form to "Applied" button state
+                        
                         if (targetForm) {
                             const appliedBadge = document.createElement('button');
                             appliedBadge.disabled = true;

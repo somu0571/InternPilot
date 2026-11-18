@@ -79,7 +79,7 @@
         const list = document.getElementById('messageList');
         if (!list || !window.fetch) return;
 
-        // "<" is escaped so a name holding a closing script tag can't end this block early.
+        
         const OTHER = <%- JSON.stringify(other).replace(/</g, '\\u003c') %>;
         const POLL_MS = 5000;
         let lastAt = list.dataset.lastAt || '';
@@ -90,7 +90,7 @@
 
         const fmt = value => new Date(value).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
 
-        // Built with textContent, never innerHTML, so message text can't inject markup.
+        
         const append = (m) => {
             if (seen.has(m.id)) return;
             seen.add(m.id);
@@ -125,9 +125,9 @@
                 const nearBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 80;
                 (data.messages || []).forEach(append);
                 if (data.messages && data.messages.length && nearBottom) scrollToEnd();
-                // The application closed while the thread was open.
+                
                 if (data.readOnly && document.getElementById('messageForm')) window.location.reload();
-            } catch (err) { /* keep the page usable if a poll fails */ }
+            } catch (err) {  }
         };
         setInterval(poll, POLL_MS);
         document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') poll(); });
@@ -163,7 +163,7 @@
                 box.value = '';
                 counter.textContent = '0';
             } catch (err) {
-                // Network trouble: fall back to a normal form post.
+                
                 form.submit();
             } finally {
                 button.disabled = false;

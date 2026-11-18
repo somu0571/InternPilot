@@ -1,9 +1,9 @@
 <script>
     (function () {
-        // Updates the listing without a full page reload. The server still
-        // renders everything: this fetches the same /internships URL, swaps
-        // the [data-live-region] blocks, and keeps the address bar in sync.
-        // Without JavaScript the form and links work as ordinary navigation.
+        
+        
+        
+        
         const form = document.querySelector('[data-internship-filters]');
         if (!form || !window.fetch || !window.DOMParser || !window.history) return;
 
@@ -18,7 +18,7 @@
                 try {
                     if (value) sessionStorage.setItem(STORAGE_KEY, value);
                     else sessionStorage.removeItem(STORAGE_KEY);
-                } catch (e) { /* private mode: persistence is a nice-to-have */ }
+                } catch (e) {  }
             }
         };
 
@@ -29,8 +29,8 @@
             try { return JSON.parse(region && region.dataset.state ? region.dataset.state : '{}'); } catch (e) { return {}; }
         };
 
-        // Builds a tidy URL from the form: blanks and defaults are left out, and
-        // multi-select values are joined the same way buildQueryString does.
+        
+        
         const urlFromForm = () => {
             const params = new URLSearchParams();
             const lists = {};
@@ -55,8 +55,8 @@
             summary.textContent = count ? 'Skills (' + count + ' selected)' : 'Skills: any';
         };
 
-        // Puts the form back in line with what the server actually applied,
-        // e.g. after Back, after removing a chip, or when a min/max pair was swapped.
+        
+        
         const syncForm = (state) => {
             const set = (name, value) => { if (form.elements[name]) form.elements[name].value = value || ''; };
             set('search', state.search);
@@ -112,15 +112,15 @@
                     if (next) el.replaceWith(next);
                 });
 
-                // Immediately ensure motion-pending is cleared so freshly swapped listing cards are never stuck at opacity: 0
+                
                 document.documentElement.classList.remove('motion-pending');
 
-                // Re-trigger motion reveals and tilt handlers on the newly injected cards
+                
                 if (window.InternPilotMotion && typeof window.InternPilotMotion.refresh === 'function') {
                     window.InternPilotMotion.refresh(resultsRegion() || document);
                 }
 
-                // Notify page components (e.g. compare checkboxes) of the DOM swap
+                
                 document.dispatchEvent(new CustomEvent('internpilot:content-updated'));
 
                 if (replace) history.replaceState({ internshipFilters: true }, '', url);
@@ -135,7 +135,7 @@
                 }
             } catch (err) {
                 if (err.name === 'AbortError') return;
-                // Anything unexpected: fall back to a normal page load.
+                
                 window.location.assign(url);
             } finally {
                 setBusy(false);
@@ -153,28 +153,28 @@
             load(urlFromForm());
         });
 
-        // Clear Filters: reset the form to default values and reload.
+        
         const clearBtn = document.getElementById('clear-filters-btn');
         if (clearBtn) {
             clearBtn.addEventListener('click', () => {
                 clearTimeout(timer);
 
-                // Text / number inputs → empty
+                
                 form.querySelectorAll('input[type="text"], input[type="number"]').forEach(el => { el.value = ''; });
 
-                // Select dropdowns → first (default) option
+                
                 if (form.elements.sector)  form.elements.sector.selectedIndex  = 0;
                 if (form.elements.sort)    form.elements.sort.value            = 'latest';
 
-                // Un-check all skill and duration checkboxes
+                
                 form.querySelectorAll('input[name="skills"], input[name="duration"]').forEach(box => { box.checked = false; });
                 updateSkillsSummary();
 
-                // Close the skills dropdown if open
+                
                 const dd = form.querySelector('[data-skills-dropdown]');
                 if (dd) dd.removeAttribute('open');
 
-                // Reset the skill search field
+                
                 const skillSearch = form.querySelector('[data-skills-search]');
                 if (skillSearch) {
                     skillSearch.value = '';
@@ -183,21 +183,21 @@
                     if (empty) empty.classList.add('hidden');
                 }
 
-                // Preserve the status (All / Active / Paused) tab only
+                
                 const status = form.elements.status ? form.elements.status.value : 'all';
                 const clearUrl = (status && status !== 'all')
                     ? '/internships?status=' + encodeURIComponent(status)
                     : '/internships';
 
-                // Wipe persisted session filters
+                
                 storage.set('');
 
-                // Load the unfiltered results in-place
+                
                 load(clearUrl, { scroll: true });
             });
         }
 
-        // Checkboxes and selects apply straight away; typing waits for a pause.
+        
         form.addEventListener('change', (e) => {
             if (e.target.matches('[data-skills-search]')) return;
             if (e.target.matches('input[type="checkbox"], select')) {
@@ -209,8 +209,8 @@
             if (e.target.matches('input[type="text"], input[type="number"]')) scheduleApply(500);
         });
 
-        // Chips, Clear all, status tabs and pagination: any plain click on a
-        // link back to /internships loads in place.
+        
+        
         document.addEventListener('click', (e) => {
             if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
             const link = e.target.closest('a[href]');
@@ -219,7 +219,7 @@
             if (url.origin !== window.location.origin || url.pathname !== '/internships') return;
             e.preventDefault();
 
-            // Optimistic tab update for instant visual feedback on tab switch
+            
             const tabsRegion = link.closest('[data-live-region="tabs"]');
             if (tabsRegion) {
                 tabsRegion.querySelectorAll('a').forEach(tab => {
@@ -244,7 +244,7 @@
             load(window.location.pathname + window.location.search, { push: false });
         });
 
-        // Skills dropdown: filter the list as you type, close on outside click or Escape.
+        
         const dropdown = form.querySelector('[data-skills-dropdown]');
         if (dropdown) {
             const search = dropdown.querySelector('[data-skills-search]');
@@ -260,7 +260,7 @@
                     });
                     if (empty) empty.classList.toggle('hidden', shown > 0);
                 });
-                // Enter in the skill search should not submit the whole form.
+                
                 search.addEventListener('keydown', (e) => { if (e.key === 'Enter') e.preventDefault(); });
             }
             document.addEventListener('click', (e) => {
@@ -271,13 +271,13 @@
             });
         }
 
-        // Start from what the server applied, so auto-apply never drops a
-        // filter the form failed to show.
+        
+        
         syncForm(readState());
         history.replaceState({ internshipFilters: true }, '', window.location.href);
 
-        // Per-session persistence: arriving on a bare /internships brings back
-        // the filters used earlier in this tab. "Clear all" empties it.
+        
+        
         const saved = storage.get();
         if (!window.location.search && saved) {
             load('/internships' + saved, { replace: true });

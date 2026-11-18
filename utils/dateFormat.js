@@ -36,14 +36,7 @@ function formatLocalizedDateTime(value, locale = DEFAULT_LOCALE, timeZone = DEFA
     }).format(date);
 }
 
-/**
- * Calculates deadline urgency and returns presentation metadata for UI badges.
- * @param {Date|string|number} deadline - The application deadline.
- * @param {Date|string|number} [now=new Date()] - Reference time for calculation.
- * @param {string} [locale=DEFAULT_LOCALE] - Locale for formatting.
- * @param {string} [timeZone=DEFAULT_TIME_ZONE] - TimeZone for formatting.
- * @returns {object|null} Urgency metadata object or null if deadline is invalid/missing.
- */
+
 function formatDeadlineUrgency(deadline, now = new Date(), locale = DEFAULT_LOCALE, timeZone = DEFAULT_TIME_ZONE) {
     const deadlineDate = asValidDate(deadline);
     const currentDate = asValidDate(now);

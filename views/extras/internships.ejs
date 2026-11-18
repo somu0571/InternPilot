@@ -983,7 +983,7 @@
                                                 document.getElementById('editModal').classList.add('hidden');
                                             }
 
-                                            // Bookmark Toggle Logic (Delegated)
+                                            
                                             document.addEventListener('click', async (e) => {
                                                 const btn = e.target.closest('.bookmark-btn');
                                                 if (!btn) return;
@@ -994,7 +994,7 @@
                                                 const internshipId = btn.getAttribute('data-id');
                                                 if (!icon || !internshipId) return;
 
-                                                // Optimistic UI update for sleek feel
+                                                
                                                 const isCurrentlySaved = icon.classList.contains('ph-fill');
                                                 if (isCurrentlySaved) {
                                                     icon.classList.remove('ph-fill', 'text-indigo-600');
@@ -1011,7 +1011,7 @@
                                                     });
                                                     const data = await response.json();
                                                     if (!data.success) {
-                                                        // Revert on failure
+                                                        
                                                         if (isCurrentlySaved) {
                                                             icon.classList.remove('ph-bold');
                                                             icon.classList.add('ph-fill', 'text-indigo-600');
@@ -1023,7 +1023,7 @@
                                                     }
                                                 } catch (err) {
                                                     console.error(err);
-                                                    // Revert on error
+                                                    
                                                     if (isCurrentlySaved) {
                                                         icon.classList.remove('ph-bold');
                                                         icon.classList.add('ph-fill', 'text-indigo-600');
@@ -1122,7 +1122,7 @@
                                                     });
                                                 }
 
-                                                // Re-sync checkboxes when content is dynamically swapped (e.g., tab switch or filter)
+                                                
                                                 document.addEventListener('internpilot:content-updated', () => {
                                                     syncCheckboxes();
                                                 });

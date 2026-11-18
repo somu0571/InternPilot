@@ -36,8 +36,8 @@ function sendError(req, res, error, fallbackPath) {
     return res.redirect(fallbackPath);
 }
 
-// Company/recruiter issue an offer. Hired remains intentionally absent from
-// the general status endpoint: only a candidate acceptance reaches it.
+
+
 router.post('/company/applications/:id/offers', isAuthenticated, requireCompanyPermission('applications:review'), async (req, res) => {
     const fallbackPath = `/company/applications/${req.params.id}/candidate`;
     try {
@@ -77,8 +77,8 @@ router.post('/company/applications/:id/offers', isAuthenticated, requireCompanyP
             events: [{ action: 'issued', actor: req.user._id, actorRole: 'company', at: now }]
         });
 
-        // Keep a human-readable audit marker beside the status timeline. The
-        // Offer remains the authoritative terms and decision record.
+        
+        
         await Application.updateOne(
             { _id: application._id },
             { $push: { notes: { text: `[OFFER] Offer issued; expires ${expiresAt.toISOString()}.`, createdBy: req.user._id, createdAt: now } } }
@@ -102,8 +102,8 @@ router.post('/company/applications/:id/offers', isAuthenticated, requireCompanyP
     }
 });
 
-// Candidate's dedicated offer page. Looking at an expired offer lazily marks
-// it expired, so stale offers cannot remain actionable between scheduler runs.
+
+
 router.get('/candidate/offers/:id', isAuthenticated, authorize('candidate'), async (req, res) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(req.params.id)) {

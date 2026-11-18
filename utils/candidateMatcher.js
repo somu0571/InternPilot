@@ -38,9 +38,9 @@ function calculateCandidateMatch(candidate = {}, internship = {}) {
         .filter(Boolean);
     const matchingSkills = matchingSkillProfiles.map(match => match.skill);
 
-    // 70 points are reserved for skills. A Beginner match still receives
-    // credit, while Intermediate and Advanced candidates rank progressively
-    // higher for the same set of required skills.
+    
+    
+    
     const skillScore = requiredSkills.length === 0
         ? 35
         : Math.round((matchingSkillProfiles.reduce((total, match) => total + match.weight, 0) / requiredSkills.length) * 70);

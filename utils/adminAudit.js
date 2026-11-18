@@ -16,20 +16,14 @@ const ACTION_LABELS = {
 
 const PAGE_SIZE = 50;
 
-/**
- * Adds the notification types the console sends, without editing
- * models/Notification.js (same approach as messaging and grievances).
- */
+
 function registerNotificationTypes(...types) {
     const typePath = Notification.schema.path('type');
     if (!typePath || !Array.isArray(typePath.enumValues)) return;
     types.filter(t => !typePath.enumValues.includes(t)).forEach(t => typePath.enum(t));
 }
 
-/**
- * Records one admin action. Never throws: a logging problem must not undo
- * or block the action itself.
- */
+
 async function logAdminAction(admin, { action, targetType, targetId, targetLabel, reason, details } = {}) {
     try {
         return await AdminAction.create({
@@ -49,7 +43,7 @@ async function logAdminAction(admin, { action, targetType, targetId, targetLabel
 
 const pageNumber = value => Math.max(1, Math.min(1000, parseInt(value, 10) || 1));
 
-/** Newest first, optionally one action type or one target. */
+
 async function listActions({ action, targetId, page } = {}) {
     const query = {};
     if (ACTION_LABELS[action]) query.action = action;

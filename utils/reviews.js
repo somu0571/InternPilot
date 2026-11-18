@@ -4,9 +4,7 @@ const Application = require('../models/Application');
 const Certificate = require('../models/Certificate');
 const Internship = require('../models/Internship');
 
-/**
- * Calculates aggregate review statistics for a given company.
- */
+
 async function calculateCompanyReviewStats(companyId) {
     if (!companyId || !mongoose.Types.ObjectId.isValid(companyId)) {
         return getEmptyReviewStats();
@@ -105,10 +103,7 @@ function getEmptyReviewStats() {
     };
 }
 
-/**
- * Checks if a candidate is eligible to review a company.
- * Candidate must have been Hired / Accepted or earned a Certificate for a role at the company.
- */
+
 async function checkReviewEligibility(candidateId, companyId) {
     if (!candidateId || !companyId) {
         return { isEligible: false, reason: 'unverified', existingReview: null, application: null, internship: null, roleTitle: 'Intern' };
@@ -117,7 +112,7 @@ async function checkReviewEligibility(candidateId, companyId) {
     const cId = new mongoose.Types.ObjectId(candidateId);
     const compId = new mongoose.Types.ObjectId(companyId);
 
-    // Check if review already exists
+    
     let existingReview = null;
     try {
         const rQuery = Review.findOne({ candidate: cId, company: compId });
@@ -126,7 +121,7 @@ async function checkReviewEligibility(candidateId, companyId) {
         existingReview = null;
     }
 
-    // 1. Check if candidate has a Certificate issued with this company
+    
     try {
         const certQuery = Certificate.findOne({
             candidate: cId,
@@ -150,10 +145,10 @@ async function checkReviewEligibility(candidateId, companyId) {
             };
         }
     } catch (e) {
-        // Ignore and check applications
+        
     }
 
-    // 2. Check directly on Application collection
+    
     try {
         const appQuery = Application.findOne({
             candidate: cId,
@@ -180,10 +175,10 @@ async function checkReviewEligibility(candidateId, companyId) {
             };
         }
     } catch (e) {
-        // Ignore and check via internship IDs
+        
     }
 
-    // 3. Check applications via company's internships
+    
     try {
         const iQuery = Internship.find({
             $or: [{ companyId: compId }, { postedBy: compId }]
@@ -215,7 +210,7 @@ async function checkReviewEligibility(candidateId, companyId) {
             }
         }
     } catch (e) {
-        // Fall through
+        
     }
 
     return {

@@ -7,10 +7,10 @@
 <script>
     (function () {
         var html = document.documentElement;
-        // The refreshed look is for the app pages; the landing page keeps its own design (#142).
+        
         html.setAttribute('data-ui', location.pathname === '/' ? 'landing' : 'app');
-        // Content marked data-animate stays hidden only until it animates in. If
-        // the animation script can't load in time, show everything anyway.
+        
+        
         try {
             if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
             html.classList.add('motion-pending');
@@ -21,11 +21,11 @@
     })();
 </script>
 <script>
-    // Tailwind's CDN build follows the operating system's dark mode by default,
-    // so pages using dark: classes (the admin dashboard) turned dark on their own
-    // while the rest of the site stayed light. Only an explicit html.dark class
-    // (a dark mode toggle, #118) should switch them. Runs as soon as the CDN
-    // script (next in <head>) has loaded, keeping any other config.
+    
+    
+    
+    
+    
     (function useClassDarkMode(attempt) {
         if (window.tailwind) {
             window.tailwind.config = Object.assign({}, window.tailwind.config, { darkMode: 'class' });

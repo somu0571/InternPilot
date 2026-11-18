@@ -4,13 +4,13 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 
-// Every inline <script> in the EJS views must at least parse. A syntax error
-// in one silently disables the whole block in the browser, which is how a
-// bad merge once took out the applicant search and proficiency filter.
+
+
+
 
 const VIEWS_DIR = path.join(__dirname, '..', 'views');
-// Classic scripts only. vm.Script can't parse import/export, so a
-// type="module" block would need a module parser (there are none today).
+
+
 const JS_TYPES = ['', 'text/javascript', 'application/javascript'];
 
 function listViews(dir) {
@@ -39,8 +39,8 @@ function inlineScripts(file) {
     return scripts;
 }
 
-// EJS output tags become a harmless literal so the surrounding JavaScript can
-// still be checked; EJS comments are dropped.
+
+
 function stripEjs(body) {
     return body
         .replace(/<%#[\s\S]*?%>/g, '')
@@ -64,8 +64,8 @@ for (const file of views) {
             assert.equal(/<%/.test(code), false,
                 `${path.relative(VIEWS_DIR, file)}:${line} has EJS control flow inside a script, which this check cannot follow`);
             try {
-                // Compiled as-is, like the browser does, so a top-level
-                // `return` fails here too. Nothing is run.
+                
+                
                 new vm.Script(code, { filename: `${file}:${line}` });
             } catch (err) {
                 assert.fail(`${path.relative(VIEWS_DIR, file)}:${line}: ${err.message}`);

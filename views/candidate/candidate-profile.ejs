@@ -1276,7 +1276,7 @@
                 const MAX_FILE_BYTES = 5 * 1024 * 1024;
                 const ALLOWED_EXTENSIONS = ['.pdf', '.png', '.jpg', '.jpeg'];
 
-                // ── Tab Navigation Engine ────────────────────────────────
+                
                 const tabButtons = document.querySelectorAll('.profile-tab-btn');
                 const tabContents = {
                     portfolio: document.getElementById('tabContent-portfolio'),
@@ -1320,7 +1320,7 @@
                     });
                 });
 
-                // Check URL hash for direct deep-linking
+                
                 const initialHash = (window.location.hash || '').replace('#', '').toLowerCase();
                 if (initialHash === 'resumes' || initialHash === 'resumeuploadcard' || initialHash === 'resumeparsesummary') {
                     window.switchTab('resumes');
@@ -1341,7 +1341,7 @@
                     }
                 });
 
-                // ── Entry Modals (Projects & Certs) ──────────────────────
+                
                 const openEntryModal = (id) => {
                     const el = document.getElementById(id);
                     if (!el) return;
@@ -1469,7 +1469,7 @@
                 const profileForm = document.getElementById('editProfileForm');
                 const saveBtn = document.getElementById('saveProfileBtn');
 
-                // --- Reactive PMIS Eligibility Live Preview in Profile Edit Modal ---
+                
                 const editAgeInput = document.getElementById('editAge');
                 const editIncomeInput = document.getElementById('editFamilyIncome');
                 const editQualificationInput = document.getElementById('editQualification');
@@ -1630,7 +1630,7 @@
                     });
                 }
 
-                // ── Resume Upload & Status Interactions ──────────────────
+                
                 const resumeUploadCard = document.getElementById('resumeUploadCard');
                 const resumeFormWrapper = document.getElementById('resumeFormWrapper');
                 const toggleReplaceBtn = document.getElementById('toggleReplaceResumeBtn');
@@ -1777,7 +1777,7 @@
                     });
                 }
 
-                // ── Interactive Profile Completion Engine ──────────────
+                
                 const profileProgressBar = document.getElementById('profileProgressBar');
                 const profileProgressPercent = document.getElementById('profileProgressPercent');
                 const profileScoreFraction = document.getElementById('profileScoreFraction');

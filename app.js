@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-// Ensure GEMINI_MODEL uses valid Google GenAI models and does not retain non-existent 3.8/3.5 models
+
 if (!process.env.GEMINI_MODEL || process.env.GEMINI_MODEL.includes('3.8') || process.env.GEMINI_MODEL.includes('3.5')) {
     process.env.GEMINI_MODEL = 'gemini-2.5-flash';
 }
@@ -10,8 +10,8 @@ if (!process.env.GEMINI_FALLBACK_MODEL || process.env.GEMINI_FALLBACK_MODEL.incl
 
 process.on('unhandledRejection', (reason, promise) => {
     console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-    // Do NOT exit — a single fire-and-forget promise failure (e.g. a
-    // background notification) must never take down the entire server.
+    
+    
 });
 
 process.on('uncaughtException', (error) => {
@@ -54,18 +54,18 @@ const analyticsRoutes = require('./routes/analytics');
 const app = express();
 const port = process.env.PORT || 8080;
 
-// Safe URL normalization is available to templates that render stored links.
+
 app.locals.sanitizeHttpUrl = sanitizeHttpUrl;
 
-// View engine setup
+
 app.engine("ejs", ejsMate);
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
-// Middleware
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-// Express 5 compatibility: provide req.xhr getter for X-Requested-With headers
+
 app.use((req, res, next) => {
     if (typeof req.xhr === 'undefined') {
         Object.defineProperty(req, 'xhr', {
@@ -85,17 +85,17 @@ app.use(express.static(path.join(__dirname, "public"), {
     lastModified: true
 }));
 
-// Session configuration. Sessions are kept in MongoDB so a restart or deploy
-// doesn't sign everyone out, and they last 7 days from the last visit (#179).
+
+
 if (process.env.NODE_ENV === 'production') app.set('trust proxy', 1);
 app.use(session(require('./utils/sessionStore').buildSessionOptions()));
 
-// Passport & Flash middleware
+
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
 
-// Local variables middleware
+
 app.use(async (req, res, next) => {
     res.locals.currentUser = req.user;
     res.locals.currentPath = req.path;
@@ -107,8 +107,8 @@ app.use(async (req, res, next) => {
     res.locals.checkPmisEligibility = checkPmisEligibility;
     res.locals.calculateProfileCompletion = calculateProfileCompletion;
 
-    // Only query notification counts for page navigations (HTML responses).
-    // Static assets (CSS, JS, images) and API/XHR calls skip the DB round-trip.
+    
+    
     const needsNotifications = req.user && req.accepts('html');
 
     if (needsNotifications) {
@@ -127,8 +127,8 @@ app.use(async (req, res, next) => {
                 });
             }
         } catch (error) {
-            // A notification lookup must never prevent the rest of the page
-            // from loading while the feature is unavailable.
+            
+            
             console.error('Error loading notification count:', error);
         }
     }
@@ -141,26 +141,26 @@ async function main() {
     await requireTransactionSupport(mongoose.connection);
 }
 
-// Signed-in devices (#196): notes the device for each sign-in, signs a session
-// out once the password changes, and serves the /account/sessions page.
+
+
 app.use(require('./middleware/trackSession'));
 app.use(require('./routes/accountSessions'));
 
-// In-app messaging (#136). Mounted before every page route so its unread
-// count is available to the header on all pages, the homepage included.
+
+
 app.use(require('./routes/messages'));
 
-// Admin console, announcement banners and sign-in suspensions. Mounted before
-// the page routes because the suspension check and banners apply to every page.
+
+
 app.use(require('./routes/adminConsole'));
 
-// Resume parser details (#20) for the candidate profile page.
+
 app.use(require('./routes/resumeParse'));
 
-// Grievance redressal (#161): raising, tracking and the admin desk.
+
 app.use(require('./routes/grievances'));
 
-// Homepage Route (Renders views/extras/index.ejs)
+
 app.get('/', async (req, res) => {
     try {
         let [totalInternships, totalCandidates, totalCompanies] = await Promise.all([
@@ -180,7 +180,7 @@ app.get('/', async (req, res) => {
     }
 });
 
-// Application Routes
+
 app.use('/', pagesRoutes);
 app.use('/auth', authRoutes);
 app.use('/internships', internshipRoutes);
@@ -200,17 +200,17 @@ app.use('/', require('./routes/reviews'));
 app.use('/api', activityRoutes);
 app.use('/api/v1', analyticsRoutes);
 
-// Ignore favicon requests to avoid noisy 404 logs in console
+
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 
-// 404 Catch-All Handler (Forward to error handler)
+
 app.use((req, res, next) => {
     const err = new Error(`Page Not Found: ${req.originalUrl}`);
     err.status = 404;
     next(err);
 });
 
-// Global Error Handler (Renders views/extras/error.ejs with safety fallback)
+
 app.use((err, req, res, next) => {
     console.error('Express Error:', err.stack || err);
     if (res.headersSent) {
@@ -247,8 +247,8 @@ async function startServer() {
         await main();
         console.log("MongoDB Connected Successfully");
 
-        // Start scheduled work only after the database meets the same
-        // transaction requirements as the moderation workflow.
+        
+        
         require('./utils/scheduler');
         app.listen(port, () => {
             console.log(`Server running on port ${port}`);

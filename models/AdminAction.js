@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-// Audit log for the admin console: who did what, to whom, when and why.
+
 const ACTIONS = [
     'user.suspend',
     'user.reactivate',
@@ -19,8 +19,8 @@ const adminActionSchema = new mongoose.Schema({
     action: { type: String, enum: ACTIONS, required: true, index: true },
     targetType: { type: String, enum: ['user', 'internship', 'announcement', 'report'], required: true },
     targetId: { type: mongoose.Schema.Types.ObjectId, index: true },
-    // A readable name kept at the time of the action, so the log still makes
-    // sense if the target is later renamed or removed.
+    
+    
     targetLabel: { type: String, default: '', trim: true, maxlength: 200 },
     reason: { type: String, default: '', trim: true, maxlength: 1000 },
     details: { type: mongoose.Schema.Types.Mixed }

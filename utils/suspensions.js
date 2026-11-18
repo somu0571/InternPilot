@@ -4,14 +4,14 @@ const { logAdminAction, registerNotificationTypes } = require('./adminAudit');
 
 registerNotificationTypes('account_update');
 
-// Company owner accounts are managed through employer verification (#162),
-// and admins can't lock each other out from here.
+
+
 const SUSPENDABLE_ROLES = ['candidate', 'recruiter', 'hiring_manager'];
 const CACHE_MS = 30 * 1000;
 const CACHE_LIMIT = 5000;
 
-// userId -> { suspension, at }. Every signed-in request asks, so answers are
-// kept briefly; suspending or reactivating clears the entry straight away.
+
+
 const cache = new Map();
 
 function clearSuspensionCache(userId) {
@@ -29,7 +29,7 @@ async function activeSuspension(userId, now = Date.now()) {
     return suspension;
 }
 
-/** @returns {string|null} Why this admin can't suspend this account, if they can't. */
+
 function suspensionBlocker(admin, target) {
     if (!target) return 'User not found.';
     if (String(target._id) === String(admin._id)) return "You can't suspend your own account.";
@@ -92,18 +92,13 @@ async function reactivateUser(admin, target, text) {
 
 const wantsJson = req => req.xhr || req.get('X-Requested-With') === 'fetch' || req.accepts(['html', 'json']) === 'json';
 
-/** The sign-in page message, with the reason the admin gave. */
+
 function suspendedMessage(reason) {
     const why = String(reason || '').trim().replace(/[.\s]+$/, '');
     return `Your account has been suspended${why ? `. Reason: ${why}` : ''}. If you think this is a mistake, contact the InternPilot team.`;
 }
 
-/**
- * Signs a suspended user out on their next request and sends them to the
- * sign-in page with the reason. Admins are never checked. If the lookup
- * itself fails the request goes through, so a database hiccup can't lock
- * everyone out.
- */
+
 function enforceSuspension(req, res, next) {
     if (!req.user || req.user.role === 'admin') return next();
     activeSuspension(req.user._id).then(suspension => {
@@ -130,7 +125,7 @@ async function suspensionHistory(userId) {
         .lean();
 }
 
-/** Ids of the given users who are suspended right now. */
+
 async function suspendedAmong(userIds) {
     if (!userIds.length) return new Set();
     const rows = await AccountSuspension.find({ user: { $in: userIds }, active: true }).select('user').lean();

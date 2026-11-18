@@ -6,13 +6,7 @@ const {
 
 const clean = (skills) => (Array.isArray(skills) ? skills : []).filter(Boolean);
 
-/**
- * Percentage of an internship's required skills that a candidate covers,
- * weighted by the declared proficiency for every exact skill match.
- *
- * Legacy string skills are deliberately treated as Intermediate by
- * `buildSkillProfiles`, so existing data continues to produce a useful score.
- */
+
 function calculateSkillScore(userOrSkills = [], requiredSkills = [], suppliedProfiles) {
     const required = clean(requiredSkills);
     if (!required.length) return 100;
@@ -66,11 +60,7 @@ function buildSummary({ hasProfileSkills, totalRequired, matchCount, missing, pa
     return `${base} Your profile covers everything this role asks for.`;
 }
 
-/**
- * Compares a candidate's skills against an internship's requirements.
- * Beginner exact matches are shown as developing skills rather than full
- * coverage, while Intermediate and Advanced exact matches satisfy the skill.
- */
+
 function analyzeSkillGap(userOrSkills = [], requiredSkills = [], suppliedProfiles) {
     const profiles = buildSkillProfiles(userOrSkills, suppliedProfiles);
     const required = clean(requiredSkills);

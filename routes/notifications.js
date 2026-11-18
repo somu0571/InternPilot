@@ -48,7 +48,7 @@ router.post('/notifications/:id/read', isAuthenticated, authorize('candidate'), 
     }
 });
 
-// ── Company / Recruiter Notifications ──────────────────────────────────────────
+
 
 router.get('/company/notifications', isAuthenticated, requireCompanyRole(['company', 'recruiter']), async (req, res) => {
     try {

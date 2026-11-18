@@ -1,10 +1,4 @@
-/**
- * Profile Completion Scoring Engine for InternPilot Candidates
- * 
- * Provides configurable weighted scoring, category classification (required vs recommended),
- * missing items checklist generation, and progress indicators to boost student engagement,
- * recruiter discovery, and AI matching accuracy.
- */
+
 
 const DEFAULT_COMPLETION_RULES = [
     {
@@ -201,12 +195,7 @@ const DEFAULT_COMPLETION_RULES = [
     }
 ];
 
-/**
- * Returns tier styling and metadata based on completion percentage.
- * 
- * @param {number} percentage - Integer 0 to 100
- * @returns {object} Badge metadata
- */
+
 function getCompletionBadge(percentage) {
     if (percentage >= 100) {
         return {
@@ -256,13 +245,7 @@ function getCompletionBadge(percentage) {
     };
 }
 
-/**
- * Calculates candidate profile completion score, checklist items, and next action.
- * 
- * @param {object} candidate - User/Candidate object
- * @param {object|Array} [customConfig] - Optional rules or weight overrides
- * @returns {object} Full completion profile
- */
+
 function calculateProfileCompletion(candidate = {}, customConfig = null) {
     let rules = DEFAULT_COMPLETION_RULES;
 
@@ -327,7 +310,7 @@ function calculateProfileCompletion(candidate = {}, customConfig = null) {
     const badge = getCompletionBadge(percentage);
     const isComplete = percentage === 100;
 
-    // Determine the next recommended action (prioritize required items with highest weight)
+    
     let nextAction = null;
     if (missingItems.length > 0) {
         const sortedMissing = [...missingItems].sort((a, b) => {

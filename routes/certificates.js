@@ -15,9 +15,7 @@ const {
 const { generateCertificateId, isValidCertificateId } = require('../utils/certificateId');
 const { notifyCertificateIssued } = require('../utils/notifications');
 
-/**
- * Helper to ensure a QR code data URL is available for a verification URL.
- */
+
 async function generateQrCode(url) {
     try {
         return await QRCode.toDataURL(url, {
@@ -25,7 +23,7 @@ async function generateQrCode(url) {
             margin: 1,
             width: 220,
             color: {
-                dark: '#1e1b4b', // Deep indigo
+                dark: '#1e1b4b', 
                 light: '#ffffff'
             }
         });
@@ -35,9 +33,7 @@ async function generateQrCode(url) {
     }
 }
 
-/**
- * Parse skills input from form (string with commas or array).
- */
+
 function parseSkillsInput(input) {
     if (Array.isArray(input)) {
         return input.map(s => String(s).trim()).filter(Boolean);
@@ -51,14 +47,11 @@ function parseSkillsInput(input) {
     return [];
 }
 
-// ---------------------------------------------------------
-// Recruiter / Company Routes: Certificate Issuance
-// ---------------------------------------------------------
 
-/**
- * GET /company/applications/:id/certificate/issue
- * Renders the certificate issuance form.
- */
+
+
+
+
 router.get(
     '/company/applications/:id/certificate/issue',
     isAuthenticated,
@@ -79,7 +72,7 @@ router.get(
                 return res.redirect('/company/dashboard');
             }
 
-            // Check if certificate already issued
+            
             const existingCertificate = await Certificate.findOne({
                 application: application._id,
                 status: 'Issued'
@@ -90,7 +83,7 @@ router.get(
                 return res.redirect(`/certificates/${existingCertificate.certificateId}/view`);
             }
 
-            // Extract candidate skills for prefill
+            
             let prefilledSkills = [];
             if (application.candidate?.skills && Array.isArray(application.candidate.skills)) {
                 prefilledSkills = application.candidate.skills.map(s => (typeof s === 'string' ? s : s.name)).filter(Boolean);
@@ -98,7 +91,7 @@ router.get(
                 prefilledSkills = application.applicationKit.skills.map(s => s.name).filter(Boolean);
             }
 
-            // Fallback to internship skills if candidate has none listed
+            
             if (!prefilledSkills.length && application.internship?.skillsRequired) {
                 prefilledSkills = Array.isArray(application.internship.skillsRequired)
                     ? application.internship.skillsRequired
@@ -123,10 +116,7 @@ router.get(
     }
 );
 
-/**
- * POST /company/applications/:id/certificate/issue
- * Processes issuance of Certificate & LOR.
- */
+
 router.post(
     '/company/applications/:id/certificate/issue',
     isAuthenticated,
@@ -147,7 +137,7 @@ router.post(
                 return res.redirect('/company/dashboard');
             }
 
-            // Check if certificate already exists
+            
             const existingCertificate = await Certificate.findOne({
                 application: application._id,
                 status: 'Issued'
@@ -177,7 +167,7 @@ router.post(
             const signatoryName = (req.body.signatoryName || req.user.name || '').trim();
             const signatoryTitle = (req.body.signatoryTitle || 'Authorized Representative').trim();
 
-            // Generate unique tamper-proof certificate ID
+            
             let certificateId;
             let collisionCount = 0;
             do {
@@ -187,13 +177,13 @@ router.post(
                 collisionCount++;
             } while (collisionCount < 5);
 
-            // Construct verification URL
+            
             const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'http';
             const host = req.get('host') || 'localhost:5000';
             const baseUrl = (process.env.APP_URL || `${protocol}://${host}`).replace(/\/+$/, '');
             const verificationUrl = `${baseUrl}/verify/certificate/${certificateId}`;
 
-            // Generate QR code data URL
+            
             const qrCodeDataUrl = await generateQrCode(verificationUrl);
 
             const resolvedCompanyName = companyName(req.company) || application.internship.companyName || 'Host Organisation';
@@ -226,7 +216,7 @@ router.post(
 
             await certificate.save();
 
-            // Mark application status as Hired if not already Hired
+            
             if (application.status !== 'Hired') {
                 application.status = 'Hired';
                 application.statusUpdatedAt = new Date();
@@ -237,7 +227,7 @@ router.post(
                 await application.save();
             }
 
-            // Dispatch candidate in-app notification & email
+            
             await notifyCertificateIssued(certificate);
 
             if (req.flash) req.flash('success_msg', 'Official Certificate of Completion & LOR issued successfully!');
@@ -250,14 +240,11 @@ router.post(
     }
 );
 
-// ---------------------------------------------------------
-// Candidate Dashboard: Certificates & Credentials
-// ---------------------------------------------------------
 
-/**
- * GET /candidate/certificates
- * Lists all certificates earned by the candidate.
- */
+
+
+
+
 router.get('/candidate/certificates', isAuthenticated, async (req, res) => {
     try {
         if (req.user.role !== 'candidate') {
@@ -272,7 +259,7 @@ router.get('/candidate/certificates', isAuthenticated, async (req, res) => {
             .populate('internship')
             .sort({ issuedAt: -1 });
 
-        // Calculate statistics
+        
         const allSkills = new Set();
         certificates.forEach(c => (c.skills || []).forEach(s => allSkills.add(s)));
         const withLORCount = certificates.filter(c => Boolean(c.letterOfRecommendation)).length;
@@ -294,14 +281,11 @@ router.get('/candidate/certificates', isAuthenticated, async (req, res) => {
     }
 });
 
-// ---------------------------------------------------------
-// Certificate Printable & Presentation View
-// ---------------------------------------------------------
 
-/**
- * GET /certificates/:certificateId/view
- * Full-resolution certificate display with print/download styling and LOR.
- */
+
+
+
+
 router.get('/certificates/:certificateId/view', async (req, res) => {
     try {
         const cleanId = (req.params.certificateId || '').trim().toUpperCase();
@@ -320,7 +304,7 @@ router.get('/certificates/:certificateId/view', async (req, res) => {
         const baseUrl = (process.env.APP_URL || `${protocol}://${host}`).replace(/\/+$/, '');
         const verifyUrl = `${baseUrl}/verify/certificate/${certificate.certificateId}`;
 
-        // Ensure QR code is present; generate if missing
+        
         let qrCodeDataUrl = certificate.qrCodeDataUrl;
         if (!qrCodeDataUrl) {
             qrCodeDataUrl = await generateQrCode(verifyUrl);
@@ -342,14 +326,11 @@ router.get('/certificates/:certificateId/view', async (req, res) => {
     }
 });
 
-// ---------------------------------------------------------
-// Public Verification Portal
-// ---------------------------------------------------------
 
-/**
- * GET /verify/certificate
- * Public verification search page.
- */
+
+
+
+
 router.get('/verify/certificate', async (req, res) => {
     try {
         const queryId = (req.query.id || req.query.certificateId || '').trim().toUpperCase();
@@ -376,10 +357,7 @@ router.get('/verify/certificate', async (req, res) => {
     }
 });
 
-/**
- * GET /verify/certificate/:certificateId
- * Public verification result page.
- */
+
 router.get('/verify/certificate/:certificateId', async (req, res) => {
     try {
         const cleanId = (req.params.certificateId || '').trim().toUpperCase();
@@ -422,10 +400,7 @@ router.get('/verify/certificate/:certificateId', async (req, res) => {
     }
 });
 
-/**
- * GET /api/certificates/:certificateId/verify
- * Programmatic JSON API endpoint for external verification.
- */
+
 router.get('/api/certificates/:certificateId/verify', async (req, res) => {
     try {
         const cleanId = (req.params.certificateId || '').trim().toUpperCase();

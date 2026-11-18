@@ -340,34 +340,30 @@
     const modalRoleName = document.getElementById('modalRoleName');
     const modalOrgName = document.getElementById('modalOrgName');
 
-    /**
-     * Opens the modal dialog and populates dynamic application data
-     */
+    
     function openWithdrawModal(applicationId, roleTitle, companyName) {
         if (!withdrawModal || !withdrawForm) return;
 
-        // Set action route for the form
+        
         withdrawForm.action = `/candidate/applications/${applicationId}/withdraw`;
 
-        // Update text labels in modal context preview
+        
         if (modalRoleName) modalRoleName.textContent = roleTitle || 'Internship';
         if (modalOrgName) modalOrgName.textContent = companyName || 'Company';
 
-        // Show modal
+        
         withdrawModal.classList.remove('hidden');
         document.body.classList.add('overflow-hidden');
     }
 
-    /**
-     * Closes the confirmation modal
-     */
+    
     function closeWithdrawModal() {
         if (!withdrawModal) return;
         withdrawModal.classList.add('hidden');
         document.body.classList.remove('overflow-hidden');
     }
 
-    // Dismiss on Escape key
+    
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape' && withdrawModal && !withdrawModal.classList.contains('hidden')) {
             closeWithdrawModal();

@@ -1,22 +1,5 @@
 <%
-/**
- * profileConflictModal.ejs
- * -----------------------------------------------------------------------
- * A full-page overlay modal showing a side-by-side comparison of every
- * conflicting field between the current profile and the parsed resume.
- *
- * Expected locals:
- *   conflicts  – Array of { fieldKey, fieldLabel, currentValue, parsedValue }
- *   autoMerged – Object of already-resolved fields (hidden inputs)
- *   resumeUrl  – (optional) URL of the uploaded resume file
- *   resumeQuality – (optional) AI quality analysis object
- *
- * The form POSTs to /candidate/profile/confirm-update with:
- *   field_<fieldKey> = "current" | "parsed"  (one per conflict row)
- *   autoMerged       = JSON string of pre-merged data
- *   resumeUrl        = cloudinary URL (hidden)
- *   resumeQuality    = JSON string (hidden)
- */
+
 %>
 
 <!-- ─── Conflict Resolution Modal ──────────────────────────────────────── -->
@@ -214,16 +197,16 @@
 (function () {
     'use strict';
 
-    // ── Quick-select buttons ───────────────────────────────────────────
+    
     var keepAllBtn   = document.getElementById('keepAllCurrentBtn');
     var acceptAllBtn = document.getElementById('acceptAllParsedBtn');
 
     function selectAll(side) {
-        // Desktop radios
+        
         document.querySelectorAll('.conflict-radio').forEach(function (radio) {
             radio.checked = (radio.dataset.side === side);
         });
-        // Mobile radios
+        
         document.querySelectorAll('.conflict-radio-mobile').forEach(function (radio) {
             radio.checked = (radio.dataset.side === side);
         });
@@ -232,22 +215,22 @@
     if (keepAllBtn)   keepAllBtn.addEventListener('click',   function () { selectAll('current'); });
     if (acceptAllBtn) acceptAllBtn.addEventListener('click', function () { selectAll('parsed');  });
 
-    // ── Sync mobile radios into hidden desktop radios on submit ────────
+    
     var conflictForm = document.getElementById('conflictForm');
     var confirmBtn   = document.getElementById('confirmUpdateBtn');
 
     if (conflictForm) {
         conflictForm.addEventListener('submit', function () {
-            // On mobile, the radio names have a _mobile suffix. Before
-            // submission we copy their values into the canonical hidden
-            // inputs so the server always receives field_<key>=value.
+            
+            
+            
             document.querySelectorAll('.conflict-radio-mobile:checked').forEach(function (radio) {
                 var fieldKey = radio.dataset.field;
                 var canonical = conflictForm.querySelector('input[name="field_' + fieldKey + '"][value="' + radio.value + '"]');
                 if (canonical) canonical.checked = true;
             });
 
-            // Disable button to prevent double-submit
+            
             if (confirmBtn) {
                 confirmBtn.disabled = true;
                 confirmBtn.innerHTML = '<svg class="animate-spin h-4 w-4 text-white shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Saving\u2026';
@@ -255,7 +238,7 @@
         });
     }
 
-    // ── Close on Escape key ────────────────────────────────────────────
+    
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
             window.location.href = '/candidate/profile';

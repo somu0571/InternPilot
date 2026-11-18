@@ -71,7 +71,7 @@ router.post('/register', async (req, res) => {
 
         const existing = await User.findOne({ email: normalizedEmail });
 
-        // If user already exists in DB
+        
         if (existing) {
             if (existing.isEmailVerified) {
                 console.log('Status: User exists and is already verified.');
@@ -162,11 +162,11 @@ router.post('/register', async (req, res) => {
             };
         }
 
-        // Create pending user record before dispatching email to guarantee persistence
+        
         const newUser = await User.create(userData);
 
-        // Company owners need companyId set to their own _id
-        // so requireCompanyRole middleware allows access
+        
+        
         if (newUser.role === 'company') {
             newUser.companyId = newUser._id;
             await newUser.save();
@@ -257,7 +257,7 @@ router.post('/resend-otp', async (req, res) => {
         const otpExpires = now + 10 * 60 * 1000;
         const cooldownThreshold = new Date(now - COOLDOWN_SECONDS * 1000);
 
-        // Atomically reserve the resend cooldown to prevent concurrent request race conditions
+        
         const updatedUser = await User.findOneAndUpdate(
             {
                 email,
@@ -324,9 +324,9 @@ router.post('/login', (req, res, next) => {
         req.logIn(user, (err) => {
             if (err) return next(err);
 
-            // Handle "Remember Me"
+            
             if (req.body.remember) {
-                req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
+                req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; 
             }
 
             req.flash('success_msg', `Welcome back, ${user.name}!`);
@@ -371,7 +371,7 @@ router.get('/google/callback', (req, res, next) => {
     })(req, res, next);
 });
 
-// Forgot & Reset Password Flow
+
 router.get('/forgot-password', redirectIfAuthenticated, (req, res) => {
     res.render('auth/forgot-password');
 });

@@ -1,6 +1,4 @@
-/**
- * Automated Verification Test Suite for GitHub Issue #28: "[Backend] Withdraw Application"
- */
+
 const mongoose = require('mongoose');
 const ejs = require('ejs');
 const path = require('path');
@@ -13,15 +11,15 @@ const { handleApplicationWithdrawal } = require('./routes/candidate');
 async function runTests() {
     console.log('=== Starting Verification Test Suite for Issue #28: Withdraw Application ===\n');
 
-    // -------------------------------------------------------------
-    // TEST 1: Model Schema & Transition Validation
-    // -------------------------------------------------------------
+    
+    
+    
     console.log('[Test 1] Testing Application Schema & canWithdraw() / withdraw() transition rules...');
 
     const candidateId = new mongoose.Types.ObjectId();
     const internshipId = new mongoose.Types.ObjectId();
 
-    // 1.1 Permitted transition from 'Submitted'
+    
     const appSubmitted = new Application({
         candidate: candidateId,
         internship: internshipId,
@@ -34,13 +32,13 @@ async function runTests() {
     assert(appSubmitted.withdrawnAt instanceof Date, 'withdrawnAt must be set to Date');
     assert.strictEqual(appSubmitted.withdrawalReason, 'Found another role');
 
-    // 1.2 Blocked transition when already 'Withdrawn'
+    
     assert.strictEqual(appSubmitted.canWithdraw(), false, 'Already withdrawn application must NOT be withdrawable');
     assert.throws(() => {
         appSubmitted.withdraw('Try again');
     }, /cannot be withdrawn/i, 'Calling withdraw() on already withdrawn app must throw');
 
-    // 1.3 Permitted transition from 'Under Review'
+    
     const appUnderReview = new Application({
         candidate: candidateId,
         internship: internshipId,
@@ -48,7 +46,7 @@ async function runTests() {
     });
     assert.strictEqual(appUnderReview.canWithdraw(), true, 'Under Review application must be withdrawable');
 
-    // 1.4 Blocked transition when 'Rejected'
+    
     const appRejected = new Application({
         candidate: candidateId,
         internship: internshipId,
@@ -59,7 +57,7 @@ async function runTests() {
         appRejected.withdraw('Withdraw after reject');
     }, /cannot be withdrawn/i, 'Calling withdraw() on rejected app must throw');
 
-    // 1.5 Blocked transition when 'Hired'
+    
     const appHired = new Application({
         candidate: candidateId,
         internship: internshipId,
@@ -69,12 +67,12 @@ async function runTests() {
 
     console.log('✓ Model transition logic and soft-delete audit fields verified successfully\n');
 
-    // -------------------------------------------------------------
-    // TEST 2: Controller & Route Handler Logic (Ownership & Status)
-    // -------------------------------------------------------------
+    
+    
+    
     console.log('[Test 2] Testing Withdrawal Controller / Route Handler Security & Rules...');
 
-    // Mock response helper
+    
     function createMockRes() {
         return {
             statusCode: 200,
@@ -96,7 +94,7 @@ async function runTests() {
         };
     }
 
-    // 2.1 Invalid ObjectId check
+    
     const reqInvalidId = {
         params: { id: 'invalid-id-format' },
         body: {},
@@ -112,9 +110,9 @@ async function runTests() {
 
     console.log('✓ Controller input validation verified successfully\n');
 
-    // -------------------------------------------------------------
-    // TEST 3: Student View Template Render (views/candidate/my-applications.ejs)
-    // -------------------------------------------------------------
+    
+    
+    
     console.log('[Test 3] Testing views/candidate/my-applications.ejs rendering...');
 
     const myAppsTemplatePath = path.join(__dirname, 'views', 'candidate', 'my-applications.ejs');
@@ -159,7 +157,7 @@ async function runTests() {
         currentUser: { _id: candidateId, role: 'candidate' }
     });
 
-    // Assertions for student view
+    
     assert(renderedMyApps.includes('Withdraw Application'), 'Must render Withdraw button for active application');
     assert(renderedMyApps.includes('openWithdrawModal'), 'Must include modal trigger in button onclick');
     assert(renderedMyApps.includes('withdrawConfirmationModal'), 'Must render Tailwind CSS confirmation modal');
@@ -168,9 +166,9 @@ async function runTests() {
 
     console.log('✓ views/candidate/my-applications.ejs renders status buttons, badges, and modal correctly\n');
 
-    // -------------------------------------------------------------
-    // TEST 4: Recruiter View Template Render (views/recruiter/applicant-list.ejs)
-    // -------------------------------------------------------------
+    
+    
+    
     console.log('[Test 4] Testing views/recruiter/applicant-list.ejs rendering...');
 
     const recruiterTemplatePath = path.join(__dirname, 'views', 'recruiter', 'applicant-list.ejs');
@@ -216,9 +214,9 @@ async function runTests() {
 
     console.log('✓ views/recruiter/applicant-list.ejs correctly renders Withdrawn badge & inactive controls\n');
 
-    // -------------------------------------------------------------
-    // TEST 5: Company Applicants Template Render (views/company/company-applicants.ejs)
-    // -------------------------------------------------------------
+    
+    
+    
     console.log('[Test 5] Testing views/company/company-applicants.ejs rendering...');
 
     const companyApplicantsPath = path.join(__dirname, 'views', 'company', 'company-applicants.ejs');
