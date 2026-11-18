@@ -25,6 +25,7 @@ const { buildSkillProfiles, parseSkillProfiles, skillNames } = require('../utils
 const { sanitizeHttpUrl } = require('../utils/safeUrl');
 const { filterAndSortApplications } = require('../utils/applicationSearch');
 const { getIssuedDocumentsByApplication } = require('../utils/internshipDocuments');
+const MockInterviewSession = require('../models/MockInterviewSession');
 const { calculateProfileCompletion } = require('../utils/profileCompletion');
 
 cloudinary.config({
@@ -106,18 +107,9 @@ async function analyzeResumeQuality(text, customClient = null) {
     if (!text || !text.trim()) {
         console.warn('Resume text is empty; skipping AI quality feedback generation.');
         return {
-            quantifiableAchievements: {
-                status: 'needs_improvement',
-                feedback: 'Resume text could not be extracted.'
-            },
-            technicalSkills: {
-                status: 'needs_improvement',
-                feedback: 'Resume text could not be extracted.'
-            },
-            projects: {
-                status: 'needs_improvement',
-                feedback: 'Resume text could not be extracted.'
-            },
+            quantifiableAchievements: { status: 'needs_improvement', feedback: 'Resume text could not be extracted.' },
+            technicalSkills: { status: 'needs_improvement', feedback: 'Resume text could not be extracted.' },
+            projects: { status: 'needs_improvement', feedback: 'Resume text could not be extracted.' },
             overallFeedback: 'Resume uploaded successfully, but text could not be read for AI feedback.'
         };
     }
@@ -126,18 +118,9 @@ async function analyzeResumeQuality(text, customClient = null) {
     if (!apiKey && !customClient) {
         console.warn('GEMINI_API_KEY is not configured in environment variables.');
         return {
-            quantifiableAchievements: {
-                status: 'needs_improvement',
-                feedback: 'Resume quality analysis was unavailable.'
-            },
-            technicalSkills: {
-                status: 'needs_improvement',
-                feedback: 'Resume quality analysis was unavailable.'
-            },
-            projects: {
-                status: 'needs_improvement',
-                feedback: 'Resume quality analysis was unavailable.'
-            },
+            quantifiableAchievements: { status: 'needs_improvement', feedback: 'Resume quality analysis was unavailable.' },
+            technicalSkills: { status: 'needs_improvement', feedback: 'Resume quality analysis was unavailable.' },
+            projects: { status: 'needs_improvement', feedback: 'Resume quality analysis was unavailable.' },
             overallFeedback: 'Resume uploaded successfully, but AI quality feedback could not be generated.'
         };
     }
@@ -155,18 +138,9 @@ Give actionable feedback, not a numeric score.
 
 Return ONLY valid JSON in this format:
 {
-  "quantifiableAchievements": {
-    "status": "good",
-    "feedback": "..."
-  },
-  "technicalSkills": {
-    "status": "needs_improvement",
-    "feedback": "..."
-  },
-  "projects": {
-    "status": "good",
-    "feedback": "..."
-  },
+  "quantifiableAchievements": { "status": "good", "feedback": "..." },
+  "technicalSkills": { "status": "needs_improvement", "feedback": "..." },
+  "projects": { "status": "good", "feedback": "..." },
   "overallFeedback": "..."
 }
 
@@ -200,13 +174,9 @@ ${text}
                 response = await client.models.generateContent({
                     model,
                     contents: [{ role: 'user', parts: [{ text: prompt }] }],
-                    config: {
-                        responseMimeType: 'application/json'
-                    }
+                    config: { responseMimeType: 'application/json' }
                 });
-                if (response && response.text) {
-                    break;
-                }
+                if (response && response.text) break;
             } catch (err) {
                 lastError = err;
                 console.warn(`[ResumeQuality] Model ${model} failed (${err.message || err}). Trying fallback model...`);
@@ -229,35 +199,25 @@ ${text}
 
         return {
             quantifiableAchievements: {
-                status: parsed && parsed.quantifiableAchievements && parsed.quantifiableAchievements.status ? parsed.quantifiableAchievements.status : 'needs_improvement',
-                feedback: parsed && parsed.quantifiableAchievements && parsed.quantifiableAchievements.feedback ? parsed.quantifiableAchievements.feedback : 'Resume quality analysis was unavailable.'
+                status: parsed?.quantifiableAchievements?.status || 'needs_improvement',
+                feedback: parsed?.quantifiableAchievements?.feedback || 'Resume quality analysis was unavailable.'
             },
             technicalSkills: {
-                status: parsed && parsed.technicalSkills && parsed.technicalSkills.status ? parsed.technicalSkills.status : 'needs_improvement',
-                feedback: parsed && parsed.technicalSkills && parsed.technicalSkills.feedback ? parsed.technicalSkills.feedback : 'Resume quality analysis was unavailable.'
+                status: parsed?.technicalSkills?.status || 'needs_improvement',
+                feedback: parsed?.technicalSkills?.feedback || 'Resume quality analysis was unavailable.'
             },
             projects: {
-                status: parsed && parsed.projects && parsed.projects.status ? parsed.projects.status : 'needs_improvement',
-                feedback: parsed && parsed.projects && parsed.projects.feedback ? parsed.projects.feedback : 'Resume quality analysis was unavailable.'
+                status: parsed?.projects?.status || 'needs_improvement',
+                feedback: parsed?.projects?.feedback || 'Resume quality analysis was unavailable.'
             },
-            overallFeedback: parsed && parsed.overallFeedback ? parsed.overallFeedback : 'Resume uploaded successfully.'
+            overallFeedback: parsed?.overallFeedback || 'Resume uploaded successfully.'
         };
     } catch (error) {
         console.error('Error analyzing resume quality with Gemini AI:', error.message || error);
-
         return {
-            quantifiableAchievements: {
-                status: 'needs_improvement',
-                feedback: 'Resume quality analysis was unavailable.'
-            },
-            technicalSkills: {
-                status: 'needs_improvement',
-                feedback: 'Resume quality analysis was unavailable.'
-            },
-            projects: {
-                status: 'needs_improvement',
-                feedback: 'Resume quality analysis was unavailable.'
-            },
+            quantifiableAchievements: { status: 'needs_improvement', feedback: 'Resume quality analysis was unavailable.' },
+            technicalSkills: { status: 'needs_improvement', feedback: 'Resume quality analysis was unavailable.' },
+            projects: { status: 'needs_improvement', feedback: 'Resume quality analysis was unavailable.' },
             overallFeedback: 'Resume uploaded successfully, but AI quality feedback could not be generated.'
         };
     }
@@ -266,12 +226,12 @@ ${text}
 router.get('/candidate/profile', isAuthenticated, authorize('candidate'), async (req, res) => {
     try {
         const userId = req.user._id || req.user.id;
-        const [freshUser, candidateVerification, activeApplicationsCount] = await Promise.all([
+        const [freshUser, candidateVerification, activeApplicationsCount, latestSession] = await Promise.all([
             User.findById(userId),
             CandidateVerification.findOne({ candidate: userId }).select('status reviewerReason submittedAt reviewedAt'),
-            Application.countDocuments({ candidate: userId, status: { $nin: ['Withdrawn', 'withdrawn', 'Rejected'] } })
+            Application.countDocuments({ candidate: userId, status: { $nin: ['Withdrawn', 'withdrawn', 'Rejected'] } }),
+            MockInterviewSession.findOne({ candidate: userId, status: 'Completed' }).sort({ createdAt: -1 })
         ]);
-
         res.render('candidate/candidate-profile', {
             user: freshUser,
             candidate: freshUser,
@@ -279,10 +239,11 @@ router.get('/candidate/profile', isAuthenticated, authorize('candidate'), async 
             skillProfiles: buildSkillProfiles(freshUser),
             profileCompletion: calculateProfileCompletion(freshUser),
             activeApplicationsCount,
-            savedInternshipsCount: (freshUser && Array.isArray(freshUser.savedInternships)) ? freshUser.savedInternships.length : 0
+            savedInternshipsCount: (freshUser && Array.isArray(freshUser.savedInternships)) ? freshUser.savedInternships.length : 0,
+            latestSession
         });
     } catch (error) {
-        console.error('Error fetching candidate profile:', error);
+        console.error('Error loading candidate profile:', error);
         res.status(500).send('Database Error');
     }
 });
@@ -292,9 +253,7 @@ router.get('/candidate/resume-builder', isAuthenticated, authorize('candidate'),
         const userId = req.user._id || req.user.id;
         const candidate = await User.findById(userId);
 
-        res.render('candidate/resume-builder', {
-            candidate
-        });
+        res.render('candidate/resume-builder', { candidate });
     } catch (error) {
         console.error('Error loading resume builder:', error);
         res.status(500).send('Database Error');
@@ -326,12 +285,8 @@ router.post('/candidate/profile/edit', isAuthenticated, authorize('candidate'), 
             state = parts.slice(1).join(', ') || '';
         }
 
-        const parsedAge = (age !== undefined && age !== null && age !== '' && !isNaN(Number(age)))
-            ? Number(age)
-            : null;
-        const parsedIncome = (familyIncome !== undefined && familyIncome !== null && familyIncome !== '' && !isNaN(Number(familyIncome)))
-            ? Number(familyIncome)
-            : null;
+        const parsedAge = (age !== undefined && age !== null && age !== '' && !isNaN(Number(age))) ? Number(age) : null;
+        const parsedIncome = (familyIncome !== undefined && familyIncome !== null && familyIncome !== '' && !isNaN(Number(familyIncome))) ? Number(familyIncome) : null;
 
         await User.findByIdAndUpdate(
             userId,
@@ -354,7 +309,6 @@ router.post('/candidate/profile/edit', isAuthenticated, authorize('candidate'), 
             { returnDocument: 'after', runValidators: false }
         );
 
-        // Wipe recommendations cache to force AI regeneration with new skills
         await Recommendation.deleteMany({ candidate: userId });
 
         if (req.flash) req.flash('success_msg', 'Profile updated successfully!');
@@ -393,11 +347,7 @@ router.post('/candidate/parse-resume', isAuthenticated, authorize('candidate'), 
                 const publicId = `internpilot/resumes/${Date.now()}_${safeName}`;
 
                 const uploadStream = cloudinary.uploader.upload_stream(
-                    {
-                        public_id: publicId,
-                        resource_type: 'raw',
-                        disable_promises: true
-                    },
+                    { public_id: publicId, resource_type: 'raw', disable_promises: true },
                     (error, result) => {
                         if (error) reject(error);
                         else resolve(result);
@@ -429,18 +379,18 @@ router.post('/candidate/parse-resume', isAuthenticated, authorize('candidate'), 
             resumeUrl = `/uploads/resumes/${uniqueFileName}`;
         }
 
-        let text = ''; console.log('File size received:', req.file.buffer.length);
+        let text = '';
         try {
             const isPdf = req.file.mimetype === 'application/pdf' ||
-                          req.file.mimetype === 'application/x-pdf' ||
-                          (req.file.originalname || '').toLowerCase().endsWith('.pdf');
+                req.file.mimetype === 'application/x-pdf' ||
+                (req.file.originalname || '').toLowerCase().endsWith('.pdf');
             if (isPdf) {
-                text = await extractPdfText(req.file.buffer); console.log('Extracted text length:', text.length);
+                text = await extractPdfText(req.file.buffer);
             } else {
                 text = await extractDocxText(req.file.buffer);
             }
         } catch (extractError) {
-            console.warn('Text extraction warning:', extractError); console.log('Buffer size:', req.file.buffer.length);
+            console.warn('Text extraction warning:', extractError);
         }
 
         const skillBank = [
@@ -464,24 +414,20 @@ router.post('/candidate/parse-resume', isAuthenticated, authorize('candidate'), 
 
         const resumeQuality = await analyzeResumeQuality(text);
 
-        // Keep what the parser found so the profile page can show it (#20).
         await recordResumeParse(req, {
             resumeUrl,
             fileName: resumeOriginalName,
-            text: typeof text !== 'undefined' ? text : req.body.resumeText,
             text,
             skills: extractedSkills,
             qualification: extractedQualification
         });
 
-        // ── Build the parsed-data object for conflict detection ────
         const parsedData = {};
         if (extractedSkills.length > 0) parsedData.skills = extractedSkills;
         if (extractedQualification) {
             parsedData.education = { qualification: extractedQualification };
         }
 
-        // ── Fetch existing profile and detect conflicts ────────────
         const userId = req.user._id || req.user.id;
         const existingProfile = await User.findById(userId);
 
@@ -491,7 +437,6 @@ router.post('/candidate/parse-resume', isAuthenticated, authorize('candidate'), 
         );
 
         if (hasConflicts) {
-            // Render the profile page with the conflict-resolution modal
             return res.render('candidate/candidate-profile', {
                 user: existingProfile,
                 candidate: existingProfile,
@@ -506,7 +451,6 @@ router.post('/candidate/parse-resume', isAuthenticated, authorize('candidate'), 
             });
         }
 
-        // ── No conflicts: apply auto-merged fields + resume data ──
         const updateDoc = {
             $set: {
                 resume: resumeUrl,
@@ -516,7 +460,6 @@ router.post('/candidate/parse-resume', isAuthenticated, authorize('candidate'), 
             }
         };
 
-        // Apply auto-merged fields
         for (const [key, value] of Object.entries(autoMerged)) {
             if (key === 'skills') {
                 updateDoc.$addToSet = { skills: { $each: Array.isArray(value) ? value : [value] } };
@@ -525,7 +468,6 @@ router.post('/candidate/parse-resume', isAuthenticated, authorize('candidate'), 
             }
         }
 
-        // Also merge extracted skills that were not conflicting
         if (extractedSkills.length > 0 && !autoMerged.skills) {
             updateDoc.$addToSet = updateDoc.$addToSet || {};
             updateDoc.$addToSet.skills = { $each: extractedSkills };
@@ -536,7 +478,7 @@ router.post('/candidate/parse-resume', isAuthenticated, authorize('candidate'), 
             label: resumeVersionLabel,
             fileUrl: resumeUrl,
             fileName: resumeOriginalName,
-            text: typeof text !== 'undefined' ? text : req.body.resumeText,
+            text,
             createdAt: resumeUploadedAt
         }));
         await Recommendation.deleteMany({ candidate: userId });
@@ -559,7 +501,6 @@ router.post('/candidate/parse-resume', isAuthenticated, authorize('candidate'), 
     }
 });
 
-// ── Confirm & save profile after conflict resolution ──────────────────
 router.post('/candidate/profile/confirm-update', isAuthenticated, authorize('candidate'), async (req, res) => {
     try {
         const userId = req.user._id || req.user.id;
@@ -569,13 +510,11 @@ router.post('/candidate/profile/confirm-update', isAuthenticated, authorize('can
             return res.redirect('/candidate/profile');
         }
 
-        // Parse the auto-merged fields that were already resolved server-side
         let autoMerged = {};
         try {
             autoMerged = JSON.parse(req.body.autoMerged || '{}');
         } catch (_) { /* ignore malformed JSON */ }
 
-        // Parse resume quality if present
         let resumeQuality = null;
         try {
             if (req.body.resumeQuality) {
@@ -587,10 +526,8 @@ router.post('/candidate/profile/confirm-update', isAuthenticated, authorize('can
         const resumeOriginalName = req.body.resumeOriginalName || '';
         const resumeVersionLabel = req.body.resumeVersionLabel || '';
 
-        // ── Build the final update document ───────────────────────
         const updateDoc = { $set: {} };
 
-        // Always save the resume URL and quality analysis
         if (resumeUrl) {
             updateDoc.$set.resume = resumeUrl;
             if (resumeOriginalName) updateDoc.$set.resumeOriginalName = resumeOriginalName;
@@ -598,7 +535,6 @@ router.post('/candidate/profile/confirm-update', isAuthenticated, authorize('can
         }
         if (resumeQuality) updateDoc.$set.resumeQuality = resumeQuality;
 
-        // Apply auto-merged fields
         for (const [key, value] of Object.entries(autoMerged)) {
             if (key === 'skills') {
                 updateDoc.$addToSet = { skills: { $each: Array.isArray(value) ? value : [value] } };
@@ -607,33 +543,17 @@ router.post('/candidate/profile/confirm-update', isAuthenticated, authorize('can
             }
         }
 
-        // ── Process each conflict resolution from the form ────────
-        // Form fields arrive as  field_<key> = "current" | "parsed"
-        // We also need the parsed values — they were embedded in the
-        // form via the conflict objects.  To avoid a second round-trip
-        // to the AI, we stashed them in hidden inputs.  However, for
-        // security we re-derive the "current" value from the DB and
-        // only accept "parsed" when the user explicitly chose it.
-        //
-        // The parsedValues are passed through the autoMerged/conflicts
-        // data; conflicts that the user chose "parsed" for need the
-        // parsed value.  We store those in a separate hidden field.
-
         for (const bodyKey of Object.keys(req.body)) {
-            if (!bodyKey.startsWith('field_')) continue;
-            // Skip mobile duplicate radio names
-            if (bodyKey.endsWith('_mobile')) continue;
+            if (!bodyKey.startsWith('field_') || bodyKey.endsWith('_mobile')) continue;
 
             const fieldKey = bodyKey.replace('field_', '');
-            const choice = req.body[bodyKey]; // 'current' or 'parsed'
+            const choice = req.body[bodyKey];
 
             if (choice === 'parsed') {
-                // The parsed value was serialized in a companion hidden input
                 const parsedVal = req.body[`parsedValue_${fieldKey}`];
                 if (parsedVal !== undefined && parsedVal !== '') {
                     if (fieldKey === 'skills') {
-                        const skillsArr = parsedVal.split(',').map(s => s.trim()).filter(Boolean);
-                        updateDoc.$set.skills = skillsArr;
+                        updateDoc.$set.skills = parsedVal.split(',').map(s => s.trim()).filter(Boolean);
                     } else if (fieldKey === 'education.institutionName') {
                         updateDoc.$set['education.institutionName'] = parsedVal;
                         updateDoc.$set.institution = parsedVal;
@@ -642,10 +562,8 @@ router.post('/candidate/profile/confirm-update', isAuthenticated, authorize('can
                     }
                 }
             }
-            // choice === 'current' → we keep the existing DB value (no-op)
         }
 
-        // Ensure institution stays in sync with education.institutionName
         if (updateDoc.$set['education.institutionName'] && !updateDoc.$set.institution) {
             updateDoc.$set.institution = updateDoc.$set['education.institutionName'];
         }
@@ -656,7 +574,6 @@ router.post('/candidate/profile/confirm-update', isAuthenticated, authorize('can
                 label: resumeVersionLabel,
                 fileUrl: resumeUrl,
                 fileName: resumeOriginalName,
-            text: typeof text !== 'undefined' ? text : req.body.resumeText,
                 createdAt: updateDoc.$set.resumeUploadedAt
             }));
         }
@@ -670,7 +587,6 @@ router.post('/candidate/profile/confirm-update', isAuthenticated, authorize('can
     }
 });
 
-// ── Delete on-file resume ─────────────────────────────────────────────
 router.post('/candidate/resume/delete', isAuthenticated, authorize('candidate'), async (req, res) => {
     try {
         const userId = req.user._id || req.user.id;
@@ -691,9 +607,6 @@ router.post('/candidate/resume/delete', isAuthenticated, authorize('candidate'),
     }
 });
 
-// Select a historical resume version as the candidate's active/default one.
-// Application snapshots keep their own file URL, so this never changes a
-// previously submitted Application Kit.
 router.post('/candidate/profile/resume-versions/:versionId/default', isAuthenticated, authorize('candidate'), async (req, res) => {
     try {
         const userId = req.user._id || req.user.id;
@@ -719,9 +632,6 @@ router.post('/candidate/profile/resume-versions/:versionId/default', isAuthentic
     }
 });
 
-// Remove a stored resume version. If the removed version was current, a
-// remaining version becomes the default; immutable application snapshots are
-// deliberately left intact.
 router.post('/candidate/profile/resume-versions/:versionId/delete', isAuthenticated, authorize('candidate'), async (req, res) => {
     try {
         const userId = req.user._id || req.user.id;
@@ -752,432 +662,6 @@ router.post('/candidate/profile/resume-versions/:versionId/delete', isAuthentica
         return res.redirect('/candidate/profile');
     }
 });
-
-function handleDocumentUpload(fieldName) {
-    return (req, res, next) => {
-        documentUpload.single(fieldName)(req, res, (err) => {
-            if (err) {
-                const message = err.code === 'LIMIT_FILE_SIZE'
-                    ? 'File is too large. Maximum allowed size is 5MB.'
-                    : (err.message || 'File upload failed.');
-                if (req.flash) req.flash('error_msg', message);
-                return res.redirect('/candidate/profile');
-            }
-            next();
-        });
-    };
-}
-
-function sanitizeLink(value) {
-    const link = (value || '').trim();
-    if (!link) return { link: '' };
-
-    try {
-        const parsed = new URL(link);
-        if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-            return { error: 'Links must start with http:// or https://' };
-        }
-        return { link: parsed.toString() };
-    } catch {
-        return { error: 'Please enter a valid URL (e.g. https://example.com/certificate).' };
-    }
-}
-
-function sanitizeIssueDate(value) {
-    const raw = (value || '').trim();
-    if (!raw) return { issueDate: null };
-
-    const parsed = new Date(raw);
-    if (Number.isNaN(parsed.getTime())) {
-        return { error: 'Please enter a valid issue date.' };
-    }
-    if (parsed > new Date()) {
-        return { error: 'Issue date cannot be in the future.' };
-    }
-    return { issueDate: parsed };
-}
-
-function parseTechStack(value) {
-    return (value || '')
-        .split(',')
-        .map(item => item.trim())
-        .filter(Boolean)
-        .slice(0, 20);
-}
-
-async function storeDocument(file, folder) {
-    if (!file) return null;
-    try {
-        const result = await uploadBufferToCloudinary(file, folder);
-        return { fileUrl: result.secure_url, fileName: file.originalname };
-    } catch (cloudErr) {
-        console.warn('Cloudinary upload failed in storeDocument, falling back to local file storage:', cloudErr.message || cloudErr);
-        const safeName = (file.originalname || 'document').replace(/[^a-zA-Z0-9_.-]/g, '_');
-        const uniqueFileName = `${Date.now()}_${safeName}`;
-        const uploadDir = path.join(__dirname, '..', 'public', 'uploads', 'documents');
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-        }
-        const localFilePath = path.join(uploadDir, uniqueFileName);
-        fs.writeFileSync(localFilePath, file.buffer);
-        return { fileUrl: `/uploads/documents/${uniqueFileName}`, fileName: file.originalname };
-    }
-}
-
-function redirectWithError(req, res, message) {
-    if (req.flash) req.flash('error_msg', message);
-    return res.redirect('/candidate/profile');
-}
-
-
-router.post('/candidate/profile/certifications', isAuthenticated, authorize('candidate'),
-    handleDocumentUpload('certificate'), async (req, res) => {
-        try {
-            const name = (req.body.name || '').trim();
-            if (!name) return redirectWithError(req, res, 'Certification name is required.');
-            if (name.length > 120) return redirectWithError(req, res, 'Certification name must be 120 characters or fewer.');
-
-            const { link, error: linkError } = sanitizeLink(req.body.link);
-            if (linkError) return redirectWithError(req, res, linkError);
-
-            const { issueDate, error: dateError } = sanitizeIssueDate(req.body.issueDate);
-            if (dateError) return redirectWithError(req, res, dateError);
-
-            const certification = {
-                name,
-                issuer: (req.body.issuer || '').trim().slice(0, 120),
-                link,
-                issueDate: issueDate || undefined
-            };
-
-            const stored = await storeDocument(req.file, 'internpilot/certifications');
-            if (stored) Object.assign(certification, stored);
-
-            const userId = req.user._id || req.user.id;
-            await User.findByIdAndUpdate(userId, { $push: { certifications: certification } });
-
-            if (req.flash) req.flash('success_msg', 'Certification added successfully!');
-            res.redirect('/candidate/profile');
-        } catch (error) {
-            console.error('Error adding certification:', error);
-            redirectWithError(req, res, 'Failed to add certification. Please try again.');
-        }
-    });
-
-router.put('/candidate/profile/certifications/:certId', isAuthenticated, authorize('candidate'),
-    handleDocumentUpload('certificate'), async (req, res) => {
-        try {
-            const userId = req.user._id || req.user.id;
-            const user = await User.findById(userId);
-            const certification = user && user.certifications.id(req.params.certId);
-            if (!certification) return redirectWithError(req, res, 'Certification not found.');
-
-            const name = (req.body.name || '').trim();
-            if (!name) return redirectWithError(req, res, 'Certification name is required.');
-            if (name.length > 120) return redirectWithError(req, res, 'Certification name must be 120 characters or fewer.');
-
-            const { link, error: linkError } = sanitizeLink(req.body.link);
-            if (linkError) return redirectWithError(req, res, linkError);
-
-            const { issueDate, error: dateError } = sanitizeIssueDate(req.body.issueDate);
-            if (dateError) return redirectWithError(req, res, dateError);
-
-            certification.name = name;
-            certification.issuer = (req.body.issuer || '').trim().slice(0, 120);
-            certification.link = link;
-            certification.issueDate = issueDate || undefined;
-
-            const stored = await storeDocument(req.file, 'internpilot/certifications');
-            if (stored) {
-                certification.fileUrl = stored.fileUrl;
-                certification.fileName = stored.fileName;
-            }
-
-            await user.save();
-            if (req.flash) req.flash('success_msg', 'Certification updated successfully!');
-            res.redirect('/candidate/profile');
-        } catch (error) {
-            console.error('Error updating certification:', error);
-            redirectWithError(req, res, 'Failed to update certification. Please try again.');
-        }
-    });
-
-router.delete('/candidate/profile/certifications/:certId', isAuthenticated, authorize('candidate'), async (req, res) => {
-    try {
-        const userId = req.user._id || req.user.id;
-        const user = await User.findById(userId).select('certifications');
-        if (!user || !user.certifications.id(req.params.certId)) {
-            return redirectWithError(req, res, 'Certification not found.');
-        }
-
-        await User.findByIdAndUpdate(userId, { $pull: { certifications: { _id: req.params.certId } } });
-
-        if (req.flash) req.flash('success_msg', 'Certification removed.');
-        res.redirect('/candidate/profile');
-    } catch (error) {
-        console.error('Error deleting certification:', error);
-        redirectWithError(req, res, 'Failed to remove certification. Please try again.');
-    }
-});
-
-
-router.post('/candidate/profile/projects', isAuthenticated, authorize('candidate'),
-    handleDocumentUpload('attachment'), async (req, res) => {
-        try {
-            const title = (req.body.title || '').trim();
-            if (!title) return redirectWithError(req, res, 'Project title is required.');
-            if (title.length > 120) return redirectWithError(req, res, 'Project title must be 120 characters or fewer.');
-
-            const { link, error: linkError } = sanitizeLink(req.body.link);
-            if (linkError) return redirectWithError(req, res, linkError);
-
-            const project = {
-                title,
-                description: (req.body.description || '').trim().slice(0, 1000),
-                link,
-                techStack: parseTechStack(req.body.techStack)
-            };
-
-            const stored = await storeDocument(req.file, 'internpilot/projects');
-            if (stored) Object.assign(project, stored);
-
-            const userId = req.user._id || req.user.id;
-            await User.findByIdAndUpdate(userId, { $push: { projects: project } });
-
-            if (req.flash) req.flash('success_msg', 'Project added successfully!');
-            res.redirect('/candidate/profile');
-        } catch (error) {
-            console.error('Error adding project:', error);
-            redirectWithError(req, res, 'Failed to add project. Please try again.');
-        }
-    });
-
-router.put('/candidate/profile/projects/:projectId', isAuthenticated, authorize('candidate'),
-    handleDocumentUpload('attachment'), async (req, res) => {
-        try {
-            const userId = req.user._id || req.user.id;
-            const user = await User.findById(userId);
-            const project = user && user.projects.id(req.params.projectId);
-            if (!project) return redirectWithError(req, res, 'Project not found.');
-
-            const title = (req.body.title || '').trim();
-            if (!title) return redirectWithError(req, res, 'Project title is required.');
-            if (title.length > 120) return redirectWithError(req, res, 'Project title must be 120 characters or fewer.');
-
-            const { link, error: linkError } = sanitizeLink(req.body.link);
-            if (linkError) return redirectWithError(req, res, linkError);
-
-            project.title = title;
-            project.description = (req.body.description || '').trim().slice(0, 1000);
-            project.link = link;
-            project.techStack = parseTechStack(req.body.techStack);
-
-            const stored = await storeDocument(req.file, 'internpilot/projects');
-            if (stored) {
-                project.fileUrl = stored.fileUrl;
-                project.fileName = stored.fileName;
-            }
-
-            await user.save();
-            if (req.flash) req.flash('success_msg', 'Project updated successfully!');
-            res.redirect('/candidate/profile');
-        } catch (error) {
-            console.error('Error updating project:', error);
-            redirectWithError(req, res, 'Failed to update project. Please try again.');
-        }
-    });
-
-router.delete('/candidate/profile/projects/:projectId', isAuthenticated, authorize('candidate'), async (req, res) => {
-    try {
-        const userId = req.user._id || req.user.id;
-        const user = await User.findById(userId).select('projects');
-        if (!user || !user.projects.id(req.params.projectId)) {
-            return redirectWithError(req, res, 'Project not found.');
-        }
-
-        await User.findByIdAndUpdate(userId, { $pull: { projects: { _id: req.params.projectId } } });
-
-        if (req.flash) req.flash('success_msg', 'Project removed.');
-        res.redirect('/candidate/profile');
-    } catch (error) {
-        console.error('Error deleting project:', error);
-        redirectWithError(req, res, 'Failed to remove project. Please try again.');
-    }
-});
-
-router.get('/candidate/applications', isAuthenticated, authorize('candidate'), async (req, res) => {
-    try {
-        const userId = req.user._id || req.user.id;
-        const candidate = await User.findById(userId);
-
-        const searchQuery = (req.query.search || '').trim();
-        const statusFilter = (req.query.status || 'all').trim();
-        const sortOrder = (req.query.sort || 'applied_desc').trim();
-
-        const allApplications = await Application.find({ candidate: userId });
-        const stats = {
-            total: allApplications.length,
-            submitted: allApplications.filter(a => a.status === 'Submitted').length,
-            underReview: allApplications.filter(a => a.status === 'Under Review').length,
-            shortlisted: allApplications.filter(a => a.status === 'Shortlisted').length,
-            rejected: allApplications.filter(a => a.status === 'Rejected').length
-        };
-
-        let query = { candidate: userId };
-
-        if (statusFilter !== 'all') {
-            if (statusFilter.toLowerCase() === 'submitted') {
-                query.status = { $in: ['Submitted', 'pending'] };
-            } else {
-                query.status = new RegExp('^' + statusFilter.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&') + '$', 'i');
-            }
-        }
-
-        if (searchQuery) {
-            const escapeRegex = (text) => text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
-            const regex = new RegExp(escapeRegex(searchQuery), 'gi');
-
-            const matchingInternships = await Internship.find({
-                $or: [{ title: regex }, { companyName: regex }, { company: regex }]
-            }).select('_id');
-
-            const internshipIds = matchingInternships.map(i => i._id);
-            query.internship = { $in: internshipIds };
-        }
-
-        let sortObj = { appliedAt: -1, _id: -1 };
-        if (sortOrder === 'applied_asc') {
-            sortObj = { appliedAt: 1, _id: 1 };
-        } else if (sortOrder === 'updated_desc') {
-            sortObj = { statusUpdatedAt: -1, _id: -1 };
-        } else if (sortOrder === 'match_desc') {
-            sortObj = { matchScore: -1, _id: -1 };
-        }
-
-        const applications = await Application.find(query)
-            .populate('internship')
-            .sort(sortObj);
-
-        const applicationSearch = filterAndSortApplications(applications, req.query);
-        const issuedDocumentsByApplication = await getIssuedDocumentsByApplication(applicationSearch.applications, userId);
-
-        res.render('candidate/candidate-tracker', {
-            candidate,
-            currentUser: req.user,
-            applications: applicationSearch.applications,
-            issuedDocumentsByApplication,
-            stats,
-            searchQuery: applicationSearch.search,
-            statusFilter: applicationSearch.status,
-            sort: applicationSearch.sort,
-            totalApplications: allApplications.length,
-            pageTitle: 'My Applications',
-            sanitizeHttpUrl,
-            formatRelativeTime,
-            formatLocalizedDateTime
-        });
-
-    } catch (error) {
-        console.error('Error fetching tracker data:', error);
-        res.status(500).send('Database Error');
-    }
-});
-
-router.get('/recommendations/:userId', isAuthenticated, authorize('candidate'), async (req, res) => {
-    try {
-        const { userId } = req.params;
-
-        // IDOR Protection: Candidates can only access their own recommendations
-        if (req.user._id.toString() !== userId) {
-            if (req.flash) req.flash('error_msg', 'You are not authorized to view recommendations for other candidates.');
-            return res.redirect(`/recommendations/${req.user._id}`);
-        }
-
-        const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).send('Candidate profile not found.');
-        }
-
-        const isAgeValid = user.age >= 21 && user.age <= 24;
-        const isIncomeValid = user.familyIncome !== undefined && user.familyIncome !== null && user.familyIncome <= 800000;
-        const isEligible = isAgeValid && isIncomeValid;
-
-        const reasons = [];
-        if (!isAgeValid) reasons.push(`Age (${user.age || 'N/A'}) falls outside the 21–24 permitted range.`);
-        if (!isIncomeValid) reasons.push(`Family income (${user.familyIncome ? '₹' + user.familyIncome.toLocaleString('en-IN') : 'N/A'}) exceeds the ₹8,00,000 ceiling.`);
-
-        const eligibility = { isEligible, reasons };
-
-        // Fetch already applied IDs to exclude from read-time view
-        const apps = await Application.find({ candidate: user._id }).select('internship');
-        const appliedIds = apps.map(a => a.internship ? a.internship.toString() : null).filter(Boolean);
-
-        // Fetch recommendations from DB
-        let recommendations = await Recommendation.find({ candidate: user._id })
-            .populate('internship')
-            .sort({ aiMatchScore: -1 });
-
-        let needsRegeneration = false;
-
-        if (recommendations.length === 0) {
-            needsRegeneration = true;
-        } else {
-            const firstGenTime = recommendations[0].generatedAt;
-            const isFresh = firstGenTime && (new Date() - firstGenTime < 24 * 60 * 60 * 1000); // < 24h
-
-            // Check if mixed generation or stale
-            const isMixed = recommendations.some(r => !r.generatedAt || r.generatedAt.getTime() !== firstGenTime.getTime());
-
-            if (!isFresh || isMixed) {
-                needsRegeneration = true;
-            }
-        }
-
-        if (needsRegeneration) {
-            recommendations = await generateRecommendationsForUser(user);
-            // Need to populate the internship for the newly generated ones
-            recommendations = await Recommendation.populate(recommendations, { path: 'internship' });
-        }
-
-        // Filter out closed/paused/applied at read-time
-        recommendations = recommendations.filter(rec => {
-            const internship = rec.internship;
-            if (!internship) return false; // Deleted internship
-            if (internship.status === 'draft' || internship.status === 'paused' || internship.isPaused) return false;
-            if (appliedIds.includes(internship._id.toString())) return false;
-            return true;
-        });
-
-        // If after filtering we have nothing, and we didn't JUST regenerate, we could regenerate.
-        if (recommendations.length === 0 && !needsRegeneration) {
-            recommendations = await generateRecommendationsForUser(user);
-            recommendations = await Recommendation.populate(recommendations, { path: 'internship' });
-
-            recommendations = recommendations.filter(rec => {
-                const internship = rec.internship;
-                if (!internship || internship.status === 'draft' || internship.status === 'paused' || internship.isPaused) return false;
-                if (appliedIds.includes(internship._id.toString())) return false;
-                return true;
-            });
-        }
-
-        // Format for the EJS view (it expects { role: internship, matchScore: num, skillGapAnalysis, matchReasoning, isFallback })
-        const formattedRecommendations = recommendations.map(rec => ({
-            role: rec.internship,
-            matchScore: rec.aiMatchScore,
-            skillGapAnalysis: rec.skillGapAnalysis,
-            matchReasoning: rec.matchReasoning,
-            isFallback: rec.isFallback
-        }));
-
-        res.render('candidate/candidate-recommendations', { user, eligibility, recommendations: formattedRecommendations, appliedIds });
-    } catch (error) {
-        console.error('Error fetching recommendation dashboard:', error);
-        res.status(500).send('Internal Server Error');
-    }
-});
-
-router.analyzeResumeQuality = analyzeResumeQuality;
 
 module.exports = router;
 
