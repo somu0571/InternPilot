@@ -354,19 +354,11 @@ Provide a list of strengths, areas for improvement, and a summary feedback parag
 Transcript:
 ${transcriptText}`;
 
-        let aiResponse;
-        try {
-            aiResponse = await aiClient.generateJsonWithRetry(prompt, dynamicEvalSchema, ['overallScore', 'strengths', 'improvements', 'feedback', 'dimensionScores']);
-        } catch (aiErr) {
-            console.error('Eval Gen Error:', aiErr);
-            aiResponse = {
-                overallScore: 70,
-                strengths: ["Completed the interview"],
-                improvements: ["AI Evaluation generation failed"],
-                feedback: "We were unable to generate a detailed AI evaluation for this session due to a technical error.",
-                dimensionScores: dimensionKeys.reduce((acc, key) => ({...acc, [key]: 70}), {})
-            };
-        }
+        // Ensure numeric types
+        aiResponse.overallScore = Number(aiResponse.overallScore) || 0;
+        Object.keys(aiResponse.dimensionScores || {}).forEach(k=>{
+            aiResponse.dimensionScores[k] = Number(aiResponse.dimensionScores[k]) || 0;
+        });
 
         session.evaluation = {
             overallScore: aiResponse.overallScore,
