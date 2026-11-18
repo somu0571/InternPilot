@@ -354,9 +354,37 @@ Provide a list of strengths, areas for improvement, and a summary feedback parag
 Transcript:
 ${transcriptText}`;
 
-        // Ensure numeric types
+        // Generate evaluation from AI
+        let aiResponse;
+        try {
+            aiResponse = await aiClient.generateJsonWithRetry(prompt, dynamicEvalSchema, ['overallScore', 'strengths', 'improvements', 'feedback', 'dimensionScores']);
+        } catch (aiErr) {
+            console.error('Eval Gen Error:', aiErr);
+            // Fallback values
+            aiResponse = {
+                overallScore: 70,
+                strengths: ['Completed the interview'],
+                improvements: ['AI evaluation generation failed'],
+                feedback: 'Evaluation could not be generated automatically due to an error.',
+                dimensionScores: dimensionKeys.reduce((acc, key) => ({ ...acc, [key]: 70 }), {})
+            };
+        }
+
+        // Validate and coerce types
+        if (!aiResponse || typeof aiResponse.overallScore !== 'number' || !Array.isArray(aiResponse.strengths) || !Array.isArray(aiResponse.improvements) || typeof aiResponse.feedback !== 'string' || typeof aiResponse.dimensionScores !== 'object') {
+            console.warn('AI evaluation returned incomplete data, applying fallback defaults');
+            aiResponse = {
+                overallScore: 70,
+                strengths: ['Completed the interview'],
+                improvements: ['AI evaluation generation failed or returned incomplete data'],
+                feedback: 'Evaluation could not be generated automatically; please review manually.',
+                dimensionScores: dimensionKeys.reduce((acc, key) => ({ ...acc, [key]: 70 }), {})
+            };
+        }
+
+        // Ensure numeric types for scores
         aiResponse.overallScore = Number(aiResponse.overallScore) || 0;
-        Object.keys(aiResponse.dimensionScores || {}).forEach(k=>{
+        Object.keys(aiResponse.dimensionScores || {}).forEach(k => {
             aiResponse.dimensionScores[k] = Number(aiResponse.dimensionScores[k]) || 0;
         });
 
