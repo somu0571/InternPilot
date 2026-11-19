@@ -197,6 +197,7 @@ app.use('/', require('./routes/interview'));
 app.use('/', require('./routes/problems'));
 app.use('/', require('./routes/certificates'));
 app.use('/', require('./routes/reviews'));
+app.use('/recommendations', require('./routes/recommendations'));
 app.use('/api', activityRoutes);
 app.use('/api/v1', analyticsRoutes);
 

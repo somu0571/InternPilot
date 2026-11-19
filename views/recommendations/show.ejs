@@ -1,0 +1,12 @@
+<%- include('../partials/header', { title: pageTitle }) %>
+
+<h1 class="text-2xl font-bold mb-4">Recommendation Details</h1>
+<div class="bg-white rounded shadow p-6">
+  <p><strong>Internship:</strong> <%= recommendation.internship.title %></p>
+  <p><strong>Company:</strong> <%= recommendation.internship.companyName %></p>
+  <p><strong>Reason:</strong> <%= recommendation.reason || 'N/A' %></p>
+  <p><strong>Created:</strong> <%= new Date(recommendation.createdAt).toLocaleString() %></p>
+</div>
+<a href="/candidate/applications" class="inline-block mt-4 btn btn-primary">Back to Applications</a>
+
+<%- include('../partials/footer') %>
